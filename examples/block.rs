@@ -26,6 +26,7 @@ fn main() {
                                     vec![10, 20, 30, 40, 50],
                                     vec!["X", "YYY", "ZZ"]);
     println!("{:?}", &b);
+    println!("{:?}", &b.slice_by_label(&vec![20, 30, 40]));
 
     println!("** Slicing / Calculation **");
     println!("{:?}", &b.get_column_by_label(&"YYY"));
@@ -36,5 +37,6 @@ fn main() {
     let bg = b.groupby(vec!["A", "A", "B", "A", "B"]);
     let a = bg.get_group(&"A");
     println!("{:?}", &a);
-    println!("{:?}", &a.sum());
+
+    println!("{:?}", &bg.sum());
 }

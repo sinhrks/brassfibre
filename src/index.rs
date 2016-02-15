@@ -36,11 +36,7 @@ impl<U: Copy + Eq + Hash> Indexer<U> {
     }
 
     pub fn copy_values(&self) -> Vec<U> {
-        let mut values = vec![];
-        for v in self.values.iter() {
-            values.push(*v);
-        }
-        return values;
+        return self.values.clone();
     }
 
     pub fn copy(&self) -> Indexer<U> {
@@ -98,7 +94,8 @@ impl<U: Copy + Eq + Hash> Indexer<U> {
 
 // Formatting
 
-impl<U: fmt::Debug> fmt::Display for Indexer<U> {
+impl<U> fmt::Display for Indexer<U>
+    where U: Copy + Eq + Hash + fmt::Debug {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         return write!(f, "Index({:?})", &self.values);
@@ -106,7 +103,8 @@ impl<U: fmt::Debug> fmt::Display for Indexer<U> {
 
 }
 
-impl<U: fmt::Debug> fmt::Debug for Indexer<U> {
+impl<U> fmt::Debug for Indexer<U>
+    where U: Copy + Eq + Hash + fmt::Debug {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         return write!(f, "Index({:?})", &self.values);

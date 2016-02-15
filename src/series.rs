@@ -18,7 +18,9 @@ pub struct Series<T, U: Hash> {
 
 // Indexing
 
-impl<T: Copy, U: Copy + Eq + Hash> Series<T, U> {
+impl<T, U> Series<T, U>
+    where T: Copy,
+          U: Copy + Eq + Hash {
 
     pub fn from_vec(values: Vec<T>) -> Series<T, i64> {
         let mut index: Vec<i64> = vec![];
@@ -47,8 +49,7 @@ impl<T: Copy, U: Copy + Eq + Hash> Series<T, U> {
 
     pub fn copy(&self) -> Series<T, U> {
         // copy vec
-        let new_values = self.values.iter().map(|x| *x).collect();
-        return Series::new(new_values, self.index.copy_values());
+        return Series::new(self.values.clone(), self.index.copy_values());
     }
 
     pub fn get_by_label(&mut self, label: &U) -> T {
@@ -70,7 +71,6 @@ impl<T: Copy, U: Copy + Eq + Hash> Series<T, U> {
         /*
         slice Series using given labels.
         */
-
         // self must be mut to update label_mapper
         let locs = self.index.slice_label_loc(labels);
         return self.slice_by_index(&locs);
@@ -113,28 +113,31 @@ impl<T: Copy, U: Copy + Eq + Hash> Series<T, U> {
     }
 
     pub fn append(&self, other: &Series<T, U>) -> Series<T, U> {
-        let mut new_values: Vec<T> = vec![];
-        let mut new_index: Vec<U> = vec![];
+        let mut new_values: Vec<T> = self.values.clone();
+        let mut new_index: Vec<U> = self.index.values.clone();
+        new_values.append(&mut other.values.clone());
+        new_index.append(&mut other.index.values.clone());
 
-        for (&v, &i) in Zip::new((&self.values, &self.index.values)) {
-            new_values.push(v);
-            new_index.push(i);
-        }
-        for (&v, &i) in Zip::new((&other.values, &other.index.values)) {
-            new_values.push(v);
-            new_index.push(i);
-        }
         return Series::<T, U>::new(new_values, new_index);
     }
 
     pub fn groupby<G: Copy + Eq + Hash + Ord>(&self, other: Vec<G>) -> SeriesGroupBy<T, U, G> {
         return SeriesGroupBy::new(self.copy(), other);
     }
+
+    pub fn apply<W: Copy>(&self, func: &Fn(&Vec<T>) -> W) -> W {
+        /*
+        Apply passed function to each columns.
+        */
+        return func(&self.values);
+    }
 }
 
 // Formatting
 
-impl<T: fmt::Debug, U> fmt::Display for Series<T, U> {
+impl<T, U> fmt::Display for Series<T, U>
+    where T: Copy + fmt::Debug,
+          U: Copy + Eq + Hash {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         return write!(f, "Series({:?})", &self.values);
@@ -142,7 +145,9 @@ impl<T: fmt::Debug, U> fmt::Display for Series<T, U> {
 
 }
 
-impl<T: ToString, U: ToString> fmt::Debug for Series<T, U> {
+impl<T, U> fmt::Debug for Series<T, U>
+    where T: Copy + ToString,
+          U: Copy + Eq + Hash + ToString {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let str_index = formatting::pad_string_vector(&self.index.values);
@@ -163,68 +168,94 @@ impl<T: ToString, U: ToString> fmt::Debug for Series<T, U> {
 
 // Aggregation
 
-impl<T: Copy + Num + Zero + ToPrimitive, U: Hash> Series<T, U> {
+impl<T, U> Series<T, U>
+    where T: Copy + Num + Zero + ToPrimitive,
+          U: Copy + Eq + Hash {
 
     pub fn sum(&self) -> T {
-        return computations::vec_sum(&self.values);
+        return self.apply(&computations::vec_sum);
     }
 
     pub fn count(&self) -> usize {
-        return computations::vec_count(&self.values);
+        return self.apply(&computations::vec_count);
     }
 
     pub fn mean(&self) -> f64 {
-        return computations::vec_mean(&self.values)
+        return self.apply(&computations::vec_mean);
     }
 
     pub fn var(&self) -> f64 {
-        return computations::vec_var(&self.values);
+        return self.apply(&computations::vec_var);
     }
 
     pub fn unbiased_var(&self) -> f64 {
-        return computations::vec_unbiased_var(&self.values);
+        return self.apply(&computations::vec_unbiased_var);
     }
 
     pub fn std(&self) -> f64 {
-        return computations::vec_std(&self.values);
+        return self.apply(&computations::vec_std);
     }
 
     pub fn unbiased_std(&self) -> f64 {
-        return computations::vec_unbiased_std(&self.values);
+        return self.apply(&computations::vec_unbiased_std);
+    }
+}
+
+// Integer (Ord)
+impl<T, U> Series<T, U>
+    where T: Copy + Num + Zero + ToPrimitive + Ord,
+          U: Copy + Eq + Hash {
+
+    pub fn min(&self) -> T {
+        return self.apply(&computations::vec_min);
+    }
+
+    pub fn max(&self) -> T {
+        return self.apply(&computations::vec_max);
     }
 
     pub fn describe(&self) -> Series<f64, &str> {
-        let new_index: Vec<&str> = vec!["count", "mean", "std"];
+        let new_index: Vec<&str> = vec!["count", "mean", "std", "min", "max"];
         let count_f64 = computations::vec_count_as_f64(&self.values);
+
+        let min = ToPrimitive::to_f64(&self.min()).unwrap();
+        let max = ToPrimitive::to_f64(&self.max()).unwrap();
+
         let new_values: Vec<f64> = vec![count_f64,
                                         self.mean(),
-                                        self.std()];
-        // ToDo:: min / max
+                                        self.std(),
+                                        min,
+                                        max];
         return Series::new(new_values, new_index);
     }
 }
 
-// Integer
-impl<T: Copy + Num + Ord, U: Hash> Series<T, U> {
+impl<T, U> Series<T, U>
+    where T: Copy + Num + Zero + ToPrimitive + Float,
+          U: Copy + Eq + Hash {
 
     pub fn min(&self) -> T {
-        return computations::vec_min(&self.values);
+        return self.apply(&computations::vec_min_float);
     }
 
     pub fn max(&self) -> T {
-        return computations::vec_max(&self.values);
-    }
-}
-
-// Float
-impl<T: Copy + Num + Float, U: Hash> Series<T, U> {
-
-    pub fn min(&self) -> T {
-        return computations::vec_min_float(&self.values);
+        return self.apply(&computations::vec_max_float);
     }
 
-    pub fn max(&self) -> T {
-        return computations::vec_max_float(&self.values);
+    pub fn describe(&self) -> Series<f64, &str> {
+        let new_index: Vec<&str> = vec!["count", "mean", "std", "min", "max"];
+        let count_f64 = computations::vec_count_as_f64(&self.values);
+
+        let min = ToPrimitive::to_f64(&self.min()).unwrap();
+        let max = ToPrimitive::to_f64(&self.max()).unwrap();
+
+        let new_values: Vec<f64> = vec![count_f64,
+                                        self.mean(),
+                                        self.std(),
+                                        min,
+                                        max];
+        // ToDo:: min / max
+        return Series::new(new_values, new_index);
     }
 }
 
@@ -408,13 +439,25 @@ mod tests {
     }
 
     #[test]
-    fn test_series_describe() {
+    fn test_series_describe_int() {
         let values: Vec<i64> = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         let s = Series::<i64, i64>::from_vec(values);
 
         let d = s.describe();
-        let exp_values: Vec<f64> = vec![10., 5.5, 2.8722813232690143];
-        let exp_index: Vec<&str> = vec!["count", "mean", "std"];
+        let exp_values: Vec<f64> = vec![10., 5.5, 2.8722813232690143, 1., 10.];
+        let exp_index: Vec<&str> = vec!["count", "mean", "std", "min", "max"];
+        assert_eq!(&d.values, &exp_values);
+        assert_eq!(&d.index.values, &exp_index);
+    }
+
+    #[test]
+    fn test_series_describe_float() {
+        let values: Vec<f64> = vec![1., 2., 3., 4., 5., 6., 7., 8., 9., 10.];
+        let s = Series::<f64, i64>::from_vec(values);
+
+        let d = s.describe();
+        let exp_values: Vec<f64> = vec![10., 5.5, 2.8722813232690143, 1., 10.];
+        let exp_index: Vec<&str> = vec!["count", "mean", "std", "min", "max"];
         assert_eq!(&d.values, &exp_values);
         assert_eq!(&d.index.values, &exp_index);
     }
