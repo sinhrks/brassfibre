@@ -4,7 +4,8 @@ use num::{Num, Zero, Float, ToPrimitive};
 
 // Aggregation
 
-pub fn vec_sum<T: Copy + Num + Zero>(values: &Vec<T>) -> T {
+pub fn vec_sum<T>(values: &Vec<T>) -> T
+    where T: Copy + Num + Zero {
     return values.iter().fold(T::zero(), |a, b| a + *b);
 }
 
@@ -16,52 +17,61 @@ pub fn vec_count_as_f64<T>(values: &Vec<T>) -> f64 {
     return ToPrimitive::to_f64(&vec_count(values)).unwrap();
 }
 
-pub fn vec_mean<T: Copy + Num + Zero + ToPrimitive>(values: &Vec<T>) -> f64 {
+pub fn vec_mean<T>(values: &Vec<T>) -> f64
+    where T: Copy + Num + Zero + ToPrimitive {
     return ToPrimitive::to_f64(&vec_sum(values)).unwrap() /
            vec_count_as_f64(values);
 }
 
-fn mean_sq<T: Copy + Num + Zero + ToPrimitive>(values: &Vec<T>) -> f64 {
+fn mean_sq<T>(values: &Vec<T>) -> f64
+    where T: Copy + Num + Zero + ToPrimitive {
     // use two pass algorithm, assuming data is not large
     let mean = vec_mean(values);
-
     return values.iter()
                  .map(|x| ToPrimitive::to_f64(x).unwrap())
                  .fold(0., |a, b| a + (b - mean) * (b - mean));
 }
 
-pub fn vec_var<T: Copy + Num + Zero + ToPrimitive>(values: &Vec<T>) -> f64 {
+pub fn vec_var<T>(values: &Vec<T>) -> f64
+    where T: Copy + Num + Zero + ToPrimitive {
     return mean_sq(values) / vec_count_as_f64(values);
 }
 
-pub fn vec_unbiased_var<T: Copy + Num + Zero + ToPrimitive>(values: &Vec<T>) -> f64 {
+pub fn vec_unbiased_var<T>(values: &Vec<T>) -> f64
+    where T: Copy + Num + Zero + ToPrimitive {
     return mean_sq(values) / (vec_count_as_f64(values) - 1.);
 }
 
-pub fn vec_std<T: Copy + Num + Zero + ToPrimitive>(values: &Vec<T>) -> f64 {
+pub fn vec_std<T>(values: &Vec<T>) -> f64
+    where T: Copy + Num + Zero + ToPrimitive {
     return vec_var(values).sqrt();
 }
 
-pub fn vec_unbiased_std<T: Copy + Num + Zero + ToPrimitive>(values: &Vec<T>) -> f64 {
+pub fn vec_unbiased_std<T>(values: &Vec<T>) -> f64
+    where T: Copy + Num + Zero + ToPrimitive {
     return vec_unbiased_var(values).sqrt();
 }
 
 // MIN / MAX
 
-pub fn vec_min<T: Copy + Num + Ord>(values: &Vec<T>) -> T {
+pub fn vec_min<T>(values: &Vec<T>) -> T
+    where T: Copy + Num + Ord {
     return *(values.iter().min().unwrap());
 }
 
-pub fn vec_max<T: Copy + Num + Ord>(values: &Vec<T>) -> T {
+pub fn vec_max<T>(values: &Vec<T>) -> T
+    where T: Copy + Num + Ord {
     return *(values.iter().max().unwrap());
 }
 
-pub fn vec_min_float<T: Copy + Num + Float>(values: &Vec<T>) -> T {
+pub fn vec_min_float<T>(values: &Vec<T>) -> T
+    where T: Copy + Num + Float {
     // can't use normal min(a, b), because it can't handle NaN
     return values.iter().fold(Float::max_value(), |a, b| a.min(*b));
 }
 
-pub fn vec_max_float<T: Copy + Num + Float>(values: &Vec<T>) -> T {
+pub fn vec_max_float<T>(values: &Vec<T>) -> T
+    where T: Copy + Num + Float {
     return values.iter().fold(Float::min_value(), |a, b| a.max(*b));
 }
 
