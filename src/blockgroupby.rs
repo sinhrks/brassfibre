@@ -162,4 +162,76 @@ mod tests {
         let c11 = bsum.get_column_by_label(&"Z");
         assert_eq!(&c11.values, &vec![38, 27]);
     }
+
+    #[test]
+    fn test_block_agg2() {
+        let values = vec![vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                          vec![2, 4, 6, 8, 10, 12, 14, 16, 18, 20]];
+        let b = Block::from_nested_vec(values,
+                                       vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                                       vec!["X", "Y"]);
+        assert_eq!(&b.len(), &10);
+
+        let bg = b.groupby(vec![1, 1, 1, 2, 2, 2, 1, 1, 1, 2]);
+        let mut bagg = bg.sum();
+
+        // mean
+        assert_eq!(&bagg.len(), &2);
+        assert_eq!(&bagg.index.values, &vec![1, 2]);
+        assert_eq!(&bagg.columns.values, &vec!["X", "Y"]);
+        let c11 = bagg.get_column_by_label(&"X");
+        assert_eq!(&c11.values, &vec![30, 25]);
+        let c11 = bagg.get_column_by_label(&"Y");
+        assert_eq!(&c11.values, &vec![60, 50]);
+
+        // count
+        let mut bagg = bg.count();
+        assert_eq!(&bagg.len(), &2);
+        assert_eq!(&bagg.index.values, &vec![1, 2]);
+        assert_eq!(&bagg.columns.values, &vec!["X", "Y"]);
+        let c11 = bagg.get_column_by_label(&"X");
+        assert_eq!(&c11.values, &vec![6, 4]);
+        let c11 = bagg.get_column_by_label(&"Y");
+        assert_eq!(&c11.values, &vec![6, 4]);
+
+        // var
+        let mut bagg = bg.var();
+        assert_eq!(&bagg.len(), &2);
+        assert_eq!(&bagg.index.values, &vec![1, 2]);
+        assert_eq!(&bagg.columns.values, &vec!["X", "Y"]);
+        let c11 = bagg.get_column_by_label(&"X");
+        assert_eq!(&c11.values, &vec![9.666666666666666, 5.1875]);
+        let c11 = bagg.get_column_by_label(&"Y");
+        assert_eq!(&c11.values, &vec![38.666666666666664, 20.75]);
+
+        // unbiased var
+        let mut bagg = bg.unbiased_var();
+        assert_eq!(&bagg.len(), &2);
+        assert_eq!(&bagg.index.values, &vec![1, 2]);
+        assert_eq!(&bagg.columns.values, &vec!["X", "Y"]);
+        let c11 = bagg.get_column_by_label(&"X");
+        assert_eq!(&c11.values, &vec![11.6, 6.916666666666667]);
+        let c11 = bagg.get_column_by_label(&"Y");
+        assert_eq!(&c11.values, &vec![46.4, 27.666666666666668]);
+
+        // std
+        let mut bagg = bg.std();
+        assert_eq!(&bagg.len(), &2);
+        assert_eq!(&bagg.index.values, &vec![1, 2]);
+        assert_eq!(&bagg.columns.values, &vec!["X", "Y"]);
+        let c11 = bagg.get_column_by_label(&"X");
+        assert_eq!(&c11.values, &vec![3.1091263510296048, 2.277608394786075]);
+        let c11 = bagg.get_column_by_label(&"Y");
+        assert_eq!(&c11.values, &vec![6.2182527020592095, 4.55521678957215]);
+
+        // unbiased std
+        let mut bagg = bg.unbiased_std();
+        assert_eq!(&bagg.len(), &2);
+        assert_eq!(&bagg.index.values, &vec![1, 2]);
+        assert_eq!(&bagg.columns.values, &vec!["X", "Y"]);
+        let c11 = bagg.get_column_by_label(&"X");
+        assert_eq!(&c11.values, &vec![3.40587727318528, 2.6299556396765835]);
+        let c11 = bagg.get_column_by_label(&"Y");
+        assert_eq!(&c11.values, &vec![6.81175454637056, 5.259911279353167]);
+    }
 }
