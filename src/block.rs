@@ -224,19 +224,17 @@ impl<T, U, V> fmt::Debug for Block<T, U, V>
         let str_index = formatting::pad_string_vector_with_header(&self.index.values,
                                                                   "".to_string());
 
-        let mut result = "".to_string();
+        let mut result = vec![];
         for (i, label) in str_index.iter().enumerate() {
-            result.push_str(label);
-            result.push(' ');
+            let mut row_vec = vec![];
+            row_vec.push(label.clone());
             for column in str_values.iter() {
-                result.push_str(&column[i]);
-                result.push(' ');
+                row_vec.push(column[i].clone());
             }
-            // result.push_str(v);
-            result.push_str("\n");
+            result.push(row_vec.join(" "));
         }
         // debug expression {:?} outputs linesep as character, do not use
-        return write!(f, "{:}", &result);
+        return write!(f, "{:}", &result.join("\n"));
     }
 
 }

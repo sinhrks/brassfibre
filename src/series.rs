@@ -153,15 +153,13 @@ impl<T, U> fmt::Debug for Series<T, U>
         let str_index = formatting::pad_string_vector(&self.index.values);
         let str_values = formatting::pad_string_vector(&self.values);
 
-        let mut result = "".to_string();
+        let mut result = vec![];
         for (i, v) in Zip::new((&str_index, &str_values)) {
-            result.push_str(i);
-            result.push(' ');
-            result.push_str(v);
-            result.push_str("\n");
+            let row = vec![i.clone(), v.clone()];
+            result.push(row.join(" "));
         }
         // debug expression {:?} outputs linesep as character, do not use
-        return write!(f, "{:}", &result);
+        return write!(f, "{:}", &result.join("\n"));
     }
 
 }

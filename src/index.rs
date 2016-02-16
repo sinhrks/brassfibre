@@ -3,6 +3,8 @@ extern crate itertools;
 use std::collections::HashMap;
 use std::fmt;
 use std::hash::Hash;
+use std::ops::Index;
+
 
 pub struct Indexer<U: Hash> {
     // index must be hashable, note that float can't be hashed
@@ -11,7 +13,8 @@ pub struct Indexer<U: Hash> {
 }
 
 
-impl<U: Copy + Eq + Hash> Indexer<U> {
+impl<U> Indexer<U>
+    where U: Copy + Eq + Hash {
 
     pub fn from_len(len: usize) -> Indexer<i64> {
         let mut index: Vec<i64> = vec![];
@@ -44,8 +47,18 @@ impl<U: Copy + Eq + Hash> Indexer<U> {
     }
 
     pub fn contains(&mut self, label: &U) -> bool {
+        /*
+        Whether Indexer contains label or not
+        */
         self.init_label_mapper();
         return self.label_mapper.contains_key(label);
+    }
+
+    pub fn equals(&self, other: &Indexer<U>) -> bool {
+        /*
+        Whether Indexer is equal to other
+        */
+        return self.values == other.values;
     }
 
     pub fn push(&mut self, label: U) {
@@ -91,6 +104,41 @@ impl<U: Copy + Eq + Hash> Indexer<U> {
     }
 }
 
+// Indexing
+
+impl<U> Index<usize> for Indexer<U>
+    where U: Copy + Eq + Hash {
+    /*
+    Location (usize) Indexing
+    */
+    type Output = U;
+    fn index(&self, index: usize) -> &U {
+        return &self.values[index];
+    }
+}
+
+/*
+impl<'a, U> Index<&'a Vec<bool>> for &'a Indexer<U>
+    where U: Copy + Eq + Hash {
+    /*
+    Boolian Indexing
+    */
+    type Output = Vec<U>;
+    fn index<'b>(&'b self, index: &Vec<bool>) -> &'b Vec<U> {
+        if self.len() != index.len() {
+            panic!("Length Mismatch!");
+        }
+        let mut new_values: Vec<U> = vec![];
+        for (&v, &flag) in self.values.iter().zip(index.iter()) {
+            if flag {
+                new_values.push(v);
+            }
+        }
+        let idx: &'a Indexer<U> = &Indexer::new(*new_values);
+        return &idx;
+    }
+}
+*/
 
 // Formatting
 
@@ -129,7 +177,7 @@ mod tests {
     }
 
     #[test]
-    fn test_index_slice_int64() {
+    fn test_index_loc_int64() {
         let values: Vec<i64> = vec![1, 2, 3];
         let mut idx = Indexer::<i64>::new(values);
 
@@ -144,6 +192,18 @@ mod tests {
     }
 
     #[test]
+    fn test_indexing_int64() {
+        let values: Vec<i64> = vec![1, 2, 3];
+        let idx = Indexer::<i64>::new(values);
+
+        assert_eq!(&idx[2], &3);
+        assert_eq!(&idx[0], &1);
+
+        // let res = *idx[&vec![true, false, true]];
+        // assert_eq!(&res.values, &vec![1, 3]);
+    }
+
+    #[test]
     fn test_index_creation_str() {
         let values: Vec<&str> = vec!["A", "B", "C"];
         let idx = Indexer::<&str>::new(values);
@@ -154,7 +214,7 @@ mod tests {
     }
 
     #[test]
-    fn test_index_slice_str() {
+    fn test_index_loc_str() {
         let values: Vec<&str> = vec!["A", "B", "C"];
         let mut idx = Indexer::<&str>::new(values);
 
@@ -166,6 +226,18 @@ mod tests {
 
         assert_eq!(&idx.contains(&"C"), &true);
         assert_eq!(&idx.contains(&"X"), &false);
+    }
+
+    #[test]
+    fn test_indexing_str() {
+        let values: Vec<&str> = vec!["A", "B", "C"];
+        let idx = Indexer::<&str>::new(values);
+
+        assert_eq!(&idx[2], &"C");
+        assert_eq!(&idx[0], &"A");
+
+        // let res = *idx[&vec![true, false, true]];
+        // assert_eq!(&res.values, &vec!["A", "C"]);
     }
 
     #[test]
@@ -203,5 +275,19 @@ mod tests {
         let copied = idx.copy();
         let exp_values: Vec<&str> = vec!["A", "B", "C"];
         assert_eq!(&copied.values, &exp_values);
+    }
+
+    #[test]
+    fn test_equals() {
+        let idx = Indexer::<&str>::new(vec!["A", "B", "C"]);
+
+        let other = Indexer::<&str>::new(vec!["A", "B"]);
+        assert_eq!(&idx.equals(&other), &false);
+
+        let other = Indexer::<&str>::new(vec!["A", "B", "X"]);
+        assert_eq!(&idx.equals(&other), &false);
+
+        let other = Indexer::<&str>::new(vec!["A", "B", "C"]);
+        assert_eq!(&idx.equals(&other), &true);
     }
 }
