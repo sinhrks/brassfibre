@@ -1,14 +1,15 @@
 extern crate num;
 
 use num::{Num, Zero, Float, ToPrimitive};
-use std::fmt;
 use std::hash::Hash;
 
 use super::blockgroupby::BlockGroupBy;
 use super::computations;
-use super::formatting;
-use super::index::Indexer;
+use super::indexer::Indexer;
 use super::series::Series;
+
+mod formatting;
+mod ops;
 
 pub struct Block<T, U: Hash, V: Hash> {
     /// 2-dimentional block contains a single type.
@@ -177,7 +178,27 @@ impl<T, U, V> Block<T, U, V>
                                                self.columns.copy());
     }
 
-    pub fn groupby<G: Copy + Eq + Hash + Ord>(&self, other: Vec<G>) -> BlockGroupBy<T, U, V, G> {
+    pub fn append(&self, other: &Block<T, U, V>) -> Block<T, U, V> {
+        if !self.columns.equals(&other.columns) {
+            panic!("columns must be the same!")
+        }
+
+        let mut new_index: Vec<U> = self.index.values.clone();
+        new_index.append(&mut other.index.values.clone());
+
+        let mut new_values: Vec<Vec<T>> = vec![];
+        for (svalues, ovalues) in self.values.iter().zip(&other.values) {
+            let mut new_value = svalues.clone();
+            new_value.append(&mut ovalues.clone());
+            new_values.push(new_value);
+        }
+
+        return Block::<T, U, V>::from_nested_vec(new_values, new_index,
+                                                 self.columns.copy_values());
+    }
+
+    pub fn groupby<G>(&self, other: Vec<G>) -> BlockGroupBy<T, U, V, G>
+        where G: Copy + Eq + Hash + Ord {
         return BlockGroupBy::new(self.copy(), other);
     }
 
@@ -191,54 +212,21 @@ impl<T, U, V> Block<T, U, V>
         }
         return Series::new(new_values, self.columns.copy_values());
     }
-}
 
+    pub fn transpose(&self) -> Block<T, V, U> {
 
-// Formatting
-
-impl<T, U, V> fmt::Display for Block<T, U, V>
-    where T: Copy,
-          U: Copy + Eq + Hash,
-          V: Copy + Eq + Hash + fmt::Debug {
-
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        return write!(f, "Block(columns={:?})", &self.columns.values);
-    }
-
-}
-
-impl<T, U, V> fmt::Debug for Block<T, U, V>
-    where T: Copy + ToString,
-          U: Copy + Eq + Hash + ToString,
-          V: Copy + Eq + Hash + ToString {
-
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-
-        let mut str_values: Vec<Vec<String>> = vec![];
-
-        for (i, column) in self.columns.values.iter().enumerate() {
-            let current = self.values[i].clone();
-            let column_str = formatting::pad_string_vector_with_header(&current, column.to_string());
-            str_values.push(column_str);
-        }
-        let str_index = formatting::pad_string_vector_with_header(&self.index.values,
-                                                                  "".to_string());
-
-        let mut result = vec![];
-        for (i, label) in str_index.iter().enumerate() {
-            let mut row_vec = vec![];
-            row_vec.push(label.clone());
-            for column in str_values.iter() {
-                row_vec.push(column[i].clone());
+        let mut new_values: Vec<Vec<T>> = vec![];
+        for i in 0..self.index.len() {
+            let mut new_value: Vec<T> = vec![];
+            for value in self.values.iter() {
+                new_value.push(value[i]);
             }
-            result.push(row_vec.join(" "));
+            new_values.push(new_value);
         }
-        // debug expression {:?} outputs linesep as character, do not use
-        return write!(f, "{:}", &result.join("\n"));
+        return Block::from_internal(new_values, self.columns.copy(),
+                                    self.index.copy());
     }
-
 }
-
 
 // Aggregation
 
@@ -514,6 +502,48 @@ mod tests {
         let c = sliced.get_column_by_label(&3);
         let exp_values: Vec<f64> = vec![5., 6.];
         assert_eq!(&c.values, &exp_values);
+    }
+
+    #[test]
+    fn test_block_append() {
+        let b1 = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
+                                     vec!["A", "B", "C"],
+                                     vec!["X", "Y"]);
+        let b2 = Block::from_col_vec(vec![7., 8., 9., 10., 11., 12.],
+                                     vec!["D", "E", "F"],
+                                     vec!["X", "Y"]);
+
+        let mut res = b1.append(&b2);
+
+        let exp_index: Vec<&str> = vec!["A", "B", "C", "D", "E", "F"];
+        let exp_columns: Vec<&str> = vec!["X", "Y"];
+        assert_eq!(&res.index.values, &exp_index);
+        assert_eq!(&res.columns.values, &exp_columns);
+
+        let c = res.get_column_by_label(&"X");
+        assert_eq!(&c.values, &vec![1., 2., 3., 7., 8., 9.]);
+        let c = res.get_column_by_label(&"Y");
+        assert_eq!(&c.values, &vec![4., 5., 6., 10., 11., 12.]);
+    }
+
+    #[test]
+    fn test_block_transpose() {
+        let b1 = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
+                                     vec!["A", "B", "C"],
+                                     vec!["X", "Y"]);
+        let mut res = b1.transpose();
+
+        let exp_index: Vec<&str> = vec!["X", "Y"];
+        let exp_columns: Vec<&str> = vec!["A", "B", "C"];
+        assert_eq!(&res.index.values, &exp_index);
+        assert_eq!(&res.columns.values, &exp_columns);
+
+        let c = res.get_column_by_label(&"A");
+        assert_eq!(&c.values, &vec![1., 4.]);
+        let c = res.get_column_by_label(&"B");
+        assert_eq!(&c.values, &vec![2., 5.]);
+        let c = res.get_column_by_label(&"C");
+        assert_eq!(&c.values, &vec![3., 6.]);
     }
 
     #[test]

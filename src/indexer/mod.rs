@@ -1,10 +1,11 @@
 extern crate itertools;
 
 use std::collections::HashMap;
-use std::fmt;
 use std::hash::Hash;
 use std::ops::Index;
 
+mod formatting;
+mod ops;
 
 pub struct Indexer<U: Hash> {
     // index must be hashable, note that float can't be hashed
@@ -144,8 +145,8 @@ impl<'a, U> Index<&'a Vec<bool>> for &'a Indexer<U>
 // Sorting
 
 /*
-impl<T> Indexer<T>
-    where T: Copy + Eq + Hash + Ord {
+impl<U> Indexer<U>
+    where U: Copy + Eq + Hash + Ord {
 
     pub fn argsort(&self) -> Vec<usize> {
         let mut indexer: Vec<usize> = (0..self.len()).collect();
@@ -154,7 +155,7 @@ impl<T> Indexer<T>
         return indexer;
     }
 
-    pub fn sort(&self) -> Indexer<T> {
+    pub fn sort(&self) -> Indexer<U> {
         let indexer = self.argsort();
         let mut new_values = vec![];
         for i in indexer.iter() {
@@ -164,26 +165,6 @@ impl<T> Indexer<T>
     }
 }
 */
-
-// Formatting
-
-impl<U> fmt::Display for Indexer<U>
-    where U: Copy + Eq + Hash + fmt::Debug {
-
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        return write!(f, "Index({:?})", &self.values);
-    }
-
-}
-
-impl<U> fmt::Debug for Indexer<U>
-    where U: Copy + Eq + Hash + fmt::Debug {
-
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        return write!(f, "Index({:?})", &self.values);
-    }
-
-}
 
 
 #[cfg(test)]
