@@ -67,6 +67,12 @@ println!("{:?}", &b.get_column_by_label(&"YYY"));
 // 40  9
 // 50 10
 
+println!("{:?}\n", &b.transpose());
+//     10 20 30 40 50
+//   X  1  2  3  4  5
+// YYY  6  7  8  9 10
+//  ZZ 11 12 13 14 15
+
 println!("{:?}", &b.sum());
 //   X 15
 // YYY 40
@@ -78,16 +84,23 @@ println!("{:?}", &b.mean());
 //  ZZ 13
 
 let bg = b.groupby(vec!["A", "A", "B", "A", "B"]);
-let a = bg.get_group(&"A");
+println!("{:?}\n", &bg.sum());
+//   X YYY ZZ
+// A 7  22 37
+// B 8  18 28
 
+let a = bg.get_group(&"A");
 println!("{:?}", &a);
 //    X YYY ZZ 
 // 10 1   6 11 
 // 20 2   7 12 
 // 40 4   9 14 
 
-println!("{:?}", &a.sum());
-//   X  7
-// YYY 22
-//  ZZ 37
+println!("{:?}\n", &(b + 5));
+//     X YYY ZZ
+// 10  6  11 16
+// 20  7  12 17
+// 30  8  13 18
+// 40  9  14 19
+// 50 10  15 20
 ~~~~
