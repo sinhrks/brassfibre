@@ -6,6 +6,14 @@ use std::ops::{Add, Mul, Sub, Div, Rem};
 
 use super::Series;
 
+fn elemwise<T>(left: &Vec<T>, right: &Vec<T>,
+            func: &Fn((&T, &T)) -> T) -> Vec<T>
+    where T: Copy + Num {
+    return left.iter()
+               .zip(right.iter())
+               .map(func).collect();
+}
+
 macro_rules! define_numric_op(
   ($t:ident $m:ident) => (
 
@@ -21,6 +29,39 @@ macro_rules! define_numric_op(
         }
     }
 
+    impl<'a, T, U> $t<&'a T> for Series<T, U>
+        where T: Copy + Num,
+              U: Copy + Eq + Hash {
+
+        type Output = Series<T, U>;
+        fn $m(self, _rhs: &T) -> Series<T, U> {
+            let new_values = self.values.iter().map(|x: &T| (*x).$m(*_rhs)).collect();
+            return Series::new(new_values, self.index.copy_values());
+        }
+    }
+
+    impl<'b, T, U> $t<T> for &'b Series<T, U>
+        where T: Copy + Num,
+              U: Copy + Eq + Hash {
+
+        type Output = Series<T, U>;
+        fn $m(self, _rhs: T) -> Series<T, U> {
+            let new_values = self.values.iter().map(|x: &T| (*x).$m(_rhs)).collect();
+            return Series::new(new_values, self.index.copy_values());
+        }
+    }
+
+    impl<'a, 'b, T, U> $t<&'a T> for &'b Series<T, U>
+        where T: Copy + Num,
+              U: Copy + Eq + Hash {
+
+        type Output = Series<T, U>;
+        fn $m(self, _rhs: &T) -> Series<T, U> {
+            let new_values = self.values.iter().map(|x: &T| (*x).$m(*_rhs)).collect();
+            return Series::new(new_values, self.index.copy_values());
+        }
+    }
+
     // Element-wise
     impl<T, U> $t<Series<T, U>> for Series<T, U>
         where T: Copy + Num,
@@ -28,12 +69,48 @@ macro_rules! define_numric_op(
 
         type Output = Series<T, U>;
         fn $m(self, _rhs: Series<T, U>) -> Series<T, U> {
-            if !self.index.equals(&_rhs.index) {
-                panic!("index must be the same!");
-            }
-            let new_values = self.values.iter()
-                                 .zip(_rhs.values.iter())
-                                 .map(|(x, y)| (*x).$m(*y)).collect();
+            self.assert_binop(&_rhs);
+            let new_values = elemwise(&self.values, &_rhs.values,
+                                      &|(x, y)| (*x).$m(*y));
+            return Series::new(new_values, self.index.copy_values());
+        }
+    }
+
+    impl<'a, T, U> $t<&'a Series<T, U>> for Series<T, U>
+        where T: Copy + Num,
+              U: Copy + Eq + Hash {
+
+        type Output = Series<T, U>;
+        fn $m(self, _rhs: &Series<T, U>) -> Series<T, U> {
+            self.assert_binop(&_rhs);
+            let new_values = elemwise(&self.values, &_rhs.values,
+                                      &|(x, y)| (*x).$m(*y));
+            return Series::new(new_values, self.index.copy_values());
+        }
+    }
+
+    impl<'b, T, U> $t<Series<T, U>> for &'b Series<T, U>
+        where T: Copy + Num,
+              U: Copy + Eq + Hash {
+
+        type Output = Series<T, U>;
+        fn $m(self, _rhs: Series<T, U>) -> Series<T, U> {
+            self.assert_binop(&_rhs);
+            let new_values = elemwise(&self.values, &_rhs.values,
+                                      &|(x, y)| (*x).$m(*y));
+            return Series::new(new_values, self.index.copy_values());
+        }
+    }
+
+    impl<'a, 'b, T, U> $t<&'a Series<T, U>> for &'b Series<T, U>
+        where T: Copy + Num,
+              U: Copy + Eq + Hash {
+
+        type Output = Series<T, U>;
+        fn $m(self, _rhs: &Series<T, U>) -> Series<T, U> {
+            self.assert_binop(&_rhs);
+            let new_values = elemwise(&self.values, &_rhs.values,
+                                      &|(x, y)| (*x).$m(*y));
             return Series::new(new_values, self.index.copy_values());
         }
     }
@@ -82,6 +159,23 @@ mod tests {
     }
 
     #[test]
+    fn test_series_ops_i64_broadcast_refs() {
+        let s = Series::<i64, i64>::new(vec![1, 2, 3], vec![10, 20, 30]);
+
+        let result = &s + 3;
+        assert_eq!(&result.values, &vec![4, 5, 6]);
+        assert_eq!(&result.index.values, &vec![10, 20, 30]);
+
+        let result = &s + &3;
+        assert_eq!(&result.values, &vec![4, 5, 6]);
+        assert_eq!(&result.index.values, &vec![10, 20, 30]);
+
+        let result = s + &3;
+        assert_eq!(&result.values, &vec![4, 5, 6]);
+        assert_eq!(&result.index.values, &vec![10, 20, 30]);
+    }
+
+    #[test]
     fn test_series_ops_f64_broadcast() {
         let s = Series::<f64, i64>::new(vec![1., 2., 3.], vec![10, 20, 30]);
         // s moves by ops
@@ -107,6 +201,23 @@ mod tests {
         let s = Series::<f64, i64>::new(vec![1., 2., 3.], vec![10, 20, 30]);
         let result = s % 2.;
         assert_eq!(&result.values, &vec![1., 0., 1.]);
+        assert_eq!(&result.index.values, &vec![10, 20, 30]);
+    }
+
+    #[test]
+    fn test_series_ops_f64_broadcast_refs() {
+        let s = Series::<f64, i64>::new(vec![1., 2., 3.], vec![10, 20, 30]);
+
+        let result = &s + 3.;
+        assert_eq!(&result.values, &vec![4., 5., 6.]);
+        assert_eq!(&result.index.values, &vec![10, 20, 30]);
+
+        let result = &s + &3.;
+        assert_eq!(&result.values, &vec![4., 5., 6.]);
+        assert_eq!(&result.index.values, &vec![10, 20, 30]);
+
+        let result = s + &3.;
+        assert_eq!(&result.values, &vec![4., 5., 6.]);
         assert_eq!(&result.index.values, &vec![10, 20, 30]);
     }
 
@@ -145,6 +256,25 @@ mod tests {
     }
 
     #[test]
+    fn test_series_ops_i64_elemwise_refs() {
+        let s = Series::<i64, i64>::new(vec![1, 2, 3], vec![10, 20, 30]);
+        let r = Series::<i64, i64>::new(vec![1, 3, 2], vec![10, 20, 30]);
+
+        let result = &s + r;
+        assert_eq!(&result.values, &vec![2, 5, 5]);
+        assert_eq!(&result.index.values, &vec![10, 20, 30]);
+
+        let r = Series::<i64, i64>::new(vec![1, 3, 2], vec![10, 20, 30]);
+        let result = &s + &r;
+        assert_eq!(&result.values, &vec![2, 5, 5]);
+        assert_eq!(&result.index.values, &vec![10, 20, 30]);
+
+        let result = s + &r;
+        assert_eq!(&result.values, &vec![2, 5, 5]);
+        assert_eq!(&result.index.values, &vec![10, 20, 30]);
+    }
+
+    #[test]
     fn test_series_ops_f64_elemwise() {
         let s = Series::<f64, i64>::new(vec![1., 2., 3.], vec![10, 20, 30]);
         let r = Series::<f64, i64>::new(vec![1., 3., 2.], vec![10, 20, 30]);
@@ -175,6 +305,25 @@ mod tests {
         let r = Series::<f64, i64>::new(vec![1., 3., 2.], vec![10, 20, 30]);
         let result = s % r;
         assert_eq!(&result.values, &vec![0., 2., 1.]);
+        assert_eq!(&result.index.values, &vec![10, 20, 30]);
+    }
+
+    #[test]
+    fn test_series_ops_f64_elemwise_refs() {
+        let s = Series::<f64, i64>::new(vec![1., 2., 3.], vec![10, 20, 30]);
+        let r = Series::<f64, i64>::new(vec![1., 3., 2.], vec![10, 20, 30]);
+
+        let result = &s + r;
+        assert_eq!(&result.values, &vec![2., 5., 5.]);
+        assert_eq!(&result.index.values, &vec![10, 20, 30]);
+
+        let r = Series::<f64, i64>::new(vec![1., 3., 2.], vec![10, 20, 30]);
+        let result = &s + &r;
+        assert_eq!(&result.values, &vec![2., 5., 5.]);
+        assert_eq!(&result.index.values, &vec![10, 20, 30]);
+
+        let result = s + &r;
+        assert_eq!(&result.values, &vec![2., 5., 5.]);
         assert_eq!(&result.index.values, &vec![10, 20, 30]);
     }
 }

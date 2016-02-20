@@ -129,6 +129,15 @@ impl<T, U, V> Block<T, U, V>
         }
     }
 
+    fn assert_binop(&self, other: &Block<T, U, V>) {
+        if !self.index.equals(&other.index) {
+            panic!("index must be the same!");
+        }
+        if !self.columns.equals(&other.columns) {
+            panic!("columns must be the same!");
+        }
+    }
+
     pub fn add_columns(&mut self, values: Vec<T>, name: V) {
         if self.len() != values.len() {
             panic!("Length mismatch!");
@@ -163,7 +172,6 @@ impl<T, U, V> Block<T, U, V>
     }
 
     pub fn slice_by_index(&self, locations: &Vec<usize>) -> Block<T, U, V> {
-
         let new_index: Vec<U> = locations.iter()
                                          .map(|loc| self.index.values[*loc])
                                          .collect();

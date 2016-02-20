@@ -43,6 +43,12 @@ impl<T, U> Series<T, U>
         }
     }
 
+    fn assert_binop(&self, other: &Series<T, U>) {
+        if !self.index.equals(&other.index) {
+            panic!("index must be the same!");
+        }
+    }
+
     pub fn len(&self) -> usize {
         return self.values.len();
     }
