@@ -7,24 +7,24 @@ use std::hash::Hash;
 
 use super::block::Block;
 
-pub struct BlockGroupBy<T, U: Hash, V: Hash, G: Hash> {
+pub struct BlockGroupBy<'a, T: 'a, U: 'a + Hash, V: 'a + Hash, G: 'a + Hash> {
     /// Grouped Block
     /// T: type of Block values
     /// U: type of Block indexer
     /// V: type of Block columns
     /// G: type of Group indexer
 
-    pub block: Block<T, U, V>,
+    pub block: &'a Block<T, U, V>,
     pub grouper: MultiMap<G, usize>,
 }
 
-impl<T, U, V, G> BlockGroupBy<T, U, V, G>
+impl<'a, T, U, V, G> BlockGroupBy<'a, T, U, V, G>
     where T: Copy,
           U: Copy + Eq + Hash,
           V: Copy + Eq + Hash,
           G: Copy + Eq + Hash + Ord {
 
-    pub fn new(block: Block<T, U, V>, indexer: Vec<G>) -> BlockGroupBy<T, U, V, G>{
+    pub fn new(block: &'a Block<T, U, V>, indexer: Vec<G>) -> BlockGroupBy<T, U, V, G>{
 
         if block.len() != indexer.len() {
             panic!("Block and Indexer length are different");
@@ -74,7 +74,7 @@ impl<T, U, V, G> BlockGroupBy<T, U, V, G>
 }
 
 
-impl<T, U, V, G> BlockGroupBy<T, U, V, G>
+impl<'a, T, U, V, G> BlockGroupBy<'a, T, U, V, G>
     where T: Copy + Eq + Hash + Num + Zero + ToPrimitive,
           U: Copy + Eq + Hash,
           V: Copy + Eq + Hash,

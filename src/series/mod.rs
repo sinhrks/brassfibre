@@ -11,6 +11,7 @@ mod aggregation;
 mod formatting;
 mod ops;
 
+#[derive(Clone)]
 pub struct Series<T, U: Hash> {
     pub values: Vec<T>,
     pub index: Indexer<U>,
@@ -22,14 +23,12 @@ impl<T, U> Series<T, U>
     where T: Copy,
           U: Copy + Eq + Hash {
 
-    pub fn from_vec(values: Vec<T>) -> Series<T, i64> {
-        let mut index: Vec<i64> = vec![];
-        for i in 0..values.len() as i64 {
-            index.push(i);
-        }
+    pub fn from_vec(values: Vec<T>) -> Series<T, usize> {
+        let index: Indexer<usize> = Indexer::<usize>::from_len(values.len());
+
         Series {
             values: values,
-            index: Indexer::new(index),
+            index: index,
         }
     }
 
@@ -44,7 +43,7 @@ impl<T, U> Series<T, U>
     }
 
     fn assert_binop(&self, other: &Series<T, U>) {
-        if !self.index.equals(&other.index) {
+        if self.index != other.index {
             panic!("index must be the same!");
         }
     }
@@ -53,47 +52,27 @@ impl<T, U> Series<T, U>
         return self.values.len();
     }
 
-    pub fn copy(&self) -> Series<T, U> {
-        // copy vec
-        return Series::new(self.values.clone(), self.index.copy_values());
-    }
-
-    pub fn equals(&self, other: &Series<T, U>) -> bool
-        where T: PartialEq {
-        /*
-        Whether Series is equal to other
-        */
-        return self.index.equals(&other.index) && self.values == other.values;
-    }
-
+    /// Return single value corresponding to given label
     pub fn get_by_label(&mut self, label: &U) -> T {
-        /*
-        return single value corresponding to given label.
-        */
         let loc = self.index.get_label_loc(&label);
         return self.get_by_index(&loc);
     }
 
+    /// Return single value corresponding to given location
     pub fn get_by_index(&self, location: &usize) -> T {
-        /*
-        return single value corresponding to given location.
-        */
         return self.values[*location];
     }
 
+    /// Slice Series using given labels.
     pub fn slice_by_label(&mut self, labels: &Vec<U>) -> Series<T, U> {
-        /*
-        slice Series using given labels.
-        */
+
         // self must be mut to update label_mapper
         let locs = self.index.slice_label_loc(labels);
         return self.slice_by_index(&locs);
     }
 
+    /// Slice Series using given locations.
     pub fn slice_by_index(&self, locations: &Vec<usize>) -> Series<T, U> {
-        /*
-        slice Series using given locations.
-        */
         let mut new_values: Vec<T> = vec![];
         let mut new_index: Vec<U> = vec![];
 
@@ -104,10 +83,8 @@ impl<T, U> Series<T, U>
         return Series::<T, U>::new(new_values, new_index);
     }
 
+    /// Slice Series using given bool flags.
     pub fn slice_by_bool(&self, flags: &Vec<bool>) -> Series<T, U> {
-        /*
-        slice Series using given bool flags.
-        */
 
         if self.len() != flags.len() {
             panic!("Values and Indexer length are different");
@@ -137,14 +114,18 @@ impl<T, U> Series<T, U>
 
     pub fn groupby<G>(&self, other: Vec<G>) -> SeriesGroupBy<T, U, G>
         where G: Copy + Eq + Hash + Ord {
-        return SeriesGroupBy::new(self.copy(), other);
+        return SeriesGroupBy::new(&self, other);
     }
 
+    /// Apply passed function to each columns
     pub fn apply<W: Copy>(&self, func: &Fn(&Vec<T>) -> W) -> W {
-        /*
-        Apply passed function to each columns.
-        */
         return func(&self.values);
+    }
+}
+
+impl<T: PartialEq, U: Hash + Eq> PartialEq for Series<T, U> {
+    fn eq(&self, other: &Series<T, U>) -> bool {
+        (self.index == other.index) && (self.values == other.values)
     }
 }
 
@@ -161,7 +142,7 @@ mod tests {
         let s = Series::<f64, i64>::from_vec(values);
 
         let exp_values: Vec<f64> = vec![1., 2., 3.];
-        let exp_index: Vec<i64> = vec![0, 1, 2];
+        let exp_index: Vec<usize> = vec![0, 1, 2];
         assert_eq!(&s.values, &exp_values);
         assert_eq!(&s.index.values, &exp_index);
 
@@ -191,7 +172,7 @@ mod tests {
         let index: Vec<i64> = vec![5, 6, 7];
 
         let s = Series::<f64, i64>::new(values, index);
-        let copied = s.copy();
+        let copied = s.clone();
 
         let exp_values: Vec<f64> = vec![1., 2., 3.];
         let exp_index: Vec<i64> = vec![5, 6, 7];
@@ -204,9 +185,11 @@ mod tests {
         let s1 = Series::<f64, i64>::new(vec![1., 2., 3.], vec![5, 6, 7]);
         let s2 = Series::<f64, i64>::new(vec![1., 2., 3.], vec![9, 6, 7]);;
         let s3 = Series::<f64, i64>::new(vec![1., 2., 3.], vec![5, 6, 7]);;
+        let s4 = Series::<f64, i64>::new(vec![1., 2., 4.], vec![5, 6, 7]);;
 
-        assert_eq!(&s1.equals(&s2), &false);
-        assert_eq!(&s1.equals(&s3), &true);
+        assert_eq!(s1 == s2, false);
+        assert_eq!(s1 == s3, true);
+        assert_eq!(s1 == s4, false);
     }
 
     #[test]

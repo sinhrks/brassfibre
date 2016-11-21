@@ -31,5 +31,5 @@ fn main() {
     println!("{:?}\n", &bg.sum());
 
     println!("** Numeric Op **");
-    println!("{:?}\n", &(b + 5));
+    println!("{:?}\n", &(&b + 5));
 }

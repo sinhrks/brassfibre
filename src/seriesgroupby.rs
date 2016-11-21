@@ -7,22 +7,22 @@ use std::hash::Hash;
 
 use super::series::Series;
 
-pub struct SeriesGroupBy<T, U: Hash, G: Hash> {
+pub struct SeriesGroupBy<'a, T: 'a, U: 'a + Hash, G: 'a + Hash> {
     /// Grouped Series
     /// T: type of Series values
     /// U: type of Series indexer
     /// V: type of Group indexer
 
-    pub series: Series<T, U>,
+    pub series: &'a Series<T, U>,
     pub grouper: MultiMap<G, usize>,
 }
 
-impl<T, U, G> SeriesGroupBy<T, U, G>
+impl<'a, T, U, G> SeriesGroupBy<'a, T, U, G>
     where T: Copy,
           U: Copy + Eq + Hash,
           G: Copy + Eq + Hash + Ord {
 
-    pub fn new(series: Series<T, U>, indexer: Vec<G>) -> SeriesGroupBy<T, U, G>{
+    pub fn new(series: &Series<T, U>, indexer: Vec<G>) -> SeriesGroupBy<T, U, G>{
 
         if series.len() != indexer.len() {
             panic!("Series and Indexer length are different");
@@ -50,7 +50,7 @@ impl<T, U, G> SeriesGroupBy<T, U, G>
     }
 
     pub fn groups(&self) -> Vec<G> {
-        let mut keys: Vec<G> = self.grouper.keys().map(|x| *x).collect();
+        let mut keys: Vec<G> = self.grouper.keys().cloned().collect();
         keys.sort();
         return keys;
     }
@@ -72,7 +72,7 @@ impl<T, U, G> SeriesGroupBy<T, U, G>
 
 // Aggregation
 
-impl<T, U, G> SeriesGroupBy<T, U, G>
+impl<'a, T, U, G> SeriesGroupBy<'a, T, U, G>
     where T: Copy + Eq + Hash + Num + Zero + ToPrimitive,
           U: Copy + Eq + Hash,
           G: Copy + Eq + Hash + Ord {
@@ -115,21 +115,21 @@ mod tests {
     #[test]
     fn test_series_get_group() {
         let values: Vec<f64> = vec![1., 2., 3., 4., 5., 6.];
-        let s = Series::<f64, i64>::from_vec(values);
+        let s = Series::<f64, usize>::from_vec(values);
 
         // Instanciate directly method
-        let sg = SeriesGroupBy::<f64, i64, i64>::new(s, vec![1, 1, 1, 2, 2, 2]);
+        let sg = SeriesGroupBy::<f64, usize, i64>::new(&s, vec![1, 1, 1, 2, 2, 2]);
         assert_eq!(&sg.groups().len(), &2);
 
         let s1 = sg.get_group(&1);
         let exp_values: Vec<f64> = vec![1., 2., 3.];
-        let exp_index: Vec<i64> = vec![0, 1, 2];
+        let exp_index: Vec<usize> = vec![0, 1, 2];
         assert_eq!(&s1.values, &exp_values);
         assert_eq!(&s1.index.values, &exp_index);
 
         let s2 = sg.get_group(&2);
         let exp_values: Vec<f64> = vec![4., 5., 6.];
-        let exp_index: Vec<i64> = vec![3, 4, 5];
+        let exp_index: Vec<usize> = vec![3, 4, 5];
         assert_eq!(&s2.values, &exp_values);
         assert_eq!(&s2.index.values, &exp_index);
     }
@@ -138,7 +138,7 @@ mod tests {
     #[test]
     fn test_series_groupby_method() {
         let values: Vec<f64> = vec![1., 2., 3., 4., 5., 6.];
-        let s = Series::<f64, i64>::from_vec(values);
+        let s = Series::<f64, usize>::from_vec(values);
 
         // Use Series method
         let sg = s.groupby(vec![1, 1, 1, 2, 2, 2]);
@@ -146,13 +146,13 @@ mod tests {
 
         let s1 = sg.get_group(&1);
         let exp_values: Vec<f64> = vec![1., 2., 3.];
-        let exp_index: Vec<i64> = vec![0, 1, 2];
+        let exp_index: Vec<usize> = vec![0, 1, 2];
         assert_eq!(&s1.values, &exp_values);
         assert_eq!(&s1.index.values, &exp_index);
 
         let s2 = sg.get_group(&2);
         let exp_values: Vec<f64> = vec![4., 5., 6.];
-        let exp_index: Vec<i64> = vec![3, 4, 5];
+        let exp_index: Vec<usize> = vec![3, 4, 5];
         assert_eq!(&s2.values, &exp_values);
         assert_eq!(&s2.index.values, &exp_index);
     }
@@ -163,7 +163,7 @@ mod tests {
         let index: Vec<i64> = vec![10, 20, 30, 40, 50];
         let s = Series::<i64, i64>::new(values, index);
 
-        let sg = SeriesGroupBy::<i64, i64, i64>::new(s, vec![1, 1, 1, 2, 2]);
+        let sg = SeriesGroupBy::<i64, i64, i64>::new(&s, vec![1, 1, 1, 2, 2]);
         let sum = sg.sum();
 
         let exp_values: Vec<i64> = vec![6, 9];
@@ -177,7 +177,7 @@ mod tests {
         let values: Vec<i64> = vec![1, 2, 3, 4, 5];
         let index: Vec<i64> = vec![10, 20, 30, 40, 50];
         let s = Series::<i64, i64>::new(values, index);
-        let sg = SeriesGroupBy::<i64, i64, &str>::new(s, vec!["A", "A", "A", "B", "B"]);
+        let sg = SeriesGroupBy::<i64, i64, &str>::new(&s, vec!["A", "A", "A", "B", "B"]);
         let sum = sg.sum();
 
         let exp_values: Vec<i64> = vec![6, 9];
@@ -192,7 +192,7 @@ mod tests {
         let index: Vec<i64> = vec![10, 20, 30, 40, 50];
         let s = Series::<i64, i64>::new(values, index);
 
-        let sg = SeriesGroupBy::<i64, i64, i64>::new(s, vec![1, 1, 1, 2, 2]);
+        let sg = SeriesGroupBy::<i64, i64, i64>::new(&s, vec![1, 1, 1, 2, 2]);
         let sum = sg.mean();
 
         let exp_values: Vec<f64> = vec![2.0, 4.5];

@@ -1,5 +1,6 @@
 extern crate num;
 
+use std::cmp;
 use num::{Num, Zero, Float, ToPrimitive};
 
 // Aggregation
@@ -54,25 +55,74 @@ pub fn vec_unbiased_std<T>(values: &Vec<T>) -> f64
 
 // MIN / MAX
 
+pub trait NanMinMax<A> {
+    fn nanmin(&self, n: A) -> A;
+    fn nanmax(&self, n: A) -> A;
+    fn nanmin_value() -> A;
+    fn nanmax_value() -> A;
+}
+
+macro_rules! define_int_stats(
+    ($t:ident) => {
+        impl NanMinMax<$t> for $t {
+            fn nanmin(&self, n: $t) -> $t {
+                cmp::min(*self, n)
+            }
+            fn nanmax(&self, n: $t) -> $t {
+                cmp::max(*self, n)
+            }
+            fn nanmin_value() -> $t {
+                $t::min_value()
+            }
+            fn nanmax_value() -> $t {
+                $t::max_value()
+            }
+        }
+    }
+);
+
+macro_rules! define_float_stats(
+    ($t:ident) => {
+        impl NanMinMax<$t> for $t {
+            fn nanmin(&self, n: $t) -> $t {
+                self.min(n)
+            }
+            fn nanmax(&self, n: $t) -> $t {
+                self.max(n)
+            }
+            fn nanmin_value() -> $t {
+                $t::min_value()
+            }
+            fn nanmax_value() -> $t {
+                $t::max_value()
+            }
+        }
+    }
+);
+
+define_int_stats!(i64);
+define_int_stats!(i32);
+define_int_stats!(i16);
+define_int_stats!(i8);
+define_int_stats!(isize);
+define_int_stats!(u64);
+define_int_stats!(u32);
+define_int_stats!(u16);
+define_int_stats!(u8);
+define_int_stats!(usize);
+define_float_stats!(f64);
+define_float_stats!(f32);
+
+
 pub fn vec_min<T>(values: &Vec<T>) -> T
-    where T: Copy + Num + Ord {
-    return *(values.iter().min().unwrap());
+    where T: Copy + Num + NanMinMax<T> {
+    // can't use normal min(a, b), because it can't handle NaN
+    return values.iter().fold(T::nanmax_value(), |a, b| a.nanmin(*b));
 }
 
 pub fn vec_max<T>(values: &Vec<T>) -> T
-    where T: Copy + Num + Ord {
-    return *(values.iter().max().unwrap());
-}
-
-pub fn vec_min_float<T>(values: &Vec<T>) -> T
-    where T: Copy + Num + Float {
-    // can't use normal min(a, b), because it can't handle NaN
-    return values.iter().fold(Float::max_value(), |a, b| a.min(*b));
-}
-
-pub fn vec_max_float<T>(values: &Vec<T>) -> T
-    where T: Copy + Num + Float {
-    return values.iter().fold(Float::min_value(), |a, b| a.max(*b));
+    where T: Copy + Num + NanMinMax<T> {
+    return values.iter().fold(T::nanmin_value(), |a, b| a.nanmax(*b));
 }
 
 #[cfg(test)]
@@ -136,6 +186,16 @@ mod tests {
     }
 
     #[test]
+    fn test_scalar_minmax() {
+        use super::NanMinMax;
+        assert_eq!(3.nanmax(4), 4);
+        assert_eq!(3.nanmin(4), 3);
+
+        assert_eq!(3.1.nanmax(4.1), 4.1);
+        assert_eq!(3.1.nanmin(4.1), 3.1);
+    }
+
+    #[test]
     fn test_vec_mimnax() {
         let values: Vec<i64> = vec![3, 2, 1, 5, 2, 6, 3];
         assert_eq!(&super::vec_min(&values), &1);
@@ -145,7 +205,7 @@ mod tests {
     #[test]
     fn test_vec_mimnax_float() {
         let values: Vec<f64> = vec![3., 2., 1., 5., 2., 6., 3.];
-        assert_eq!(&super::vec_min_float(&values), &1.);
-        assert_eq!(&super::vec_max_float(&values), &6.);
+        assert_eq!(&super::vec_min(&values), &1.);
+        assert_eq!(&super::vec_max(&values), &6.);
     }
 }

@@ -7,6 +7,7 @@ use std::ops::Index;
 mod formatting;
 mod ops;
 
+#[derive(Clone)]
 pub struct Indexer<U: Hash> {
     // index must be hashable, note that float can't be hashed
     pub values: Vec<U>,
@@ -17,11 +18,8 @@ pub struct Indexer<U: Hash> {
 impl<U> Indexer<U>
     where U: Copy + Eq + Hash {
 
-    pub fn from_len(len: usize) -> Indexer<i64> {
-        let mut index: Vec<i64> = vec![];
-        for i in 0..len as i64 {
-            index.push(i);
-        }
+    pub fn from_len(len: usize) -> Indexer<usize> {
+        let index: Vec<usize> = (0..len).collect();
         Indexer {
             values: index,
             label_mapper: HashMap::new(),
@@ -43,24 +41,10 @@ impl<U> Indexer<U>
         return self.values.clone();
     }
 
-    pub fn copy(&self) -> Indexer<U> {
-        return Indexer::new(self.copy_values());
-    }
-
+    /// Whether Indexer contains label or not
     pub fn contains(&mut self, label: &U) -> bool {
-        /*
-        Whether Indexer contains label or not
-        */
         self.init_label_mapper();
         return self.label_mapper.contains_key(label);
-    }
-
-    pub fn equals(&self, other: &Indexer<U>) -> bool
-        where U: PartialEq {
-        /*
-        Whether Indexer is equal to other
-        */
-        return self.values == other.values;
     }
 
     pub fn push(&mut self, label: U) {
@@ -75,18 +59,14 @@ impl<U> Indexer<U>
         self.values.push(label);
     }
 
+    /// Return label location (usize) corresponding to given label (Scalar)
     pub fn get_label_loc(&mut self, label: &U) -> usize {
-        /*
-        return label location (usize) corresponding to given label (Scalar).
-        */
         self.init_label_mapper();
         return *self.label_mapper.get(label).unwrap()
     }
 
+    /// Return label locations (Vector) corresponding to given labels (Vector)
     pub fn slice_label_loc(&mut self, labels: &Vec<U>) -> Vec<usize> {
-        /*
-        return label locations (Vector) corresponding to given labels (Vector).
-        */
         return labels.iter().map(|label| self.get_label_loc(&label)).collect();
     }
 
@@ -116,6 +96,12 @@ impl<U> Index<usize> for Indexer<U>
     type Output = U;
     fn index(&self, index: usize) -> &U {
         return &self.values[index];
+    }
+}
+
+impl<U: Hash + Eq> PartialEq for Indexer<U> {
+    fn eq(&self, other: &Indexer<U>) -> bool {
+        self.values == other.values
     }
 }
 
@@ -171,6 +157,17 @@ impl<U> Indexer<U>
 mod tests {
 
     use super::Indexer;
+
+    #[test]
+    fn test_index_creation_from_len() {
+        let idx: Indexer<usize> = Indexer::<usize>::from_len(3);
+        assert_eq!(&idx.values, &vec![0, 1, 2]);
+        assert_eq!(&idx.len(), &3);
+
+        let idx: Indexer<usize> = Indexer::<usize>::from_len(0);
+        assert_eq!(&idx.values, &vec![]);
+        assert_eq!(&idx.len(), &0);
+    }
 
     #[test]
     fn test_index_creation_int64() {
@@ -257,7 +254,7 @@ mod tests {
         assert_eq!(&copied, &exp_values);
 
         // copy Indexer
-        let copied = idx.copy();
+        let copied = idx.clone();
         let exp_values: Vec<&str> = vec!["A", "B", "C"];
         assert_eq!(&copied.values, &exp_values);
     }
@@ -267,13 +264,14 @@ mod tests {
         let idx = Indexer::<&str>::new(vec!["A", "B", "C"]);
 
         let other = Indexer::<&str>::new(vec!["A", "B"]);
-        assert_eq!(&idx.equals(&other), &false);
+        assert_eq!(idx == other, false);
 
         let other = Indexer::<&str>::new(vec!["A", "B", "X"]);
-        assert_eq!(&idx.equals(&other), &false);
+        assert_eq!(idx == other, false);
 
         let other = Indexer::<&str>::new(vec!["A", "B", "C"]);
-        assert_eq!(&idx.equals(&other), &true);
+        assert_eq!(idx == other, true);
+        assert_eq!(idx, other);
     }
 
     #[test]

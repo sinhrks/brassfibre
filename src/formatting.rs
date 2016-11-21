@@ -3,17 +3,13 @@ use std::string::ToString;
 
 use super::computations;
 
+/// Convert each element in a vector to String
 fn to_string_vector<T: ToString>(values: &Vec<T>) -> Vec<String> {
-    /*
-    Convert each element in a vector to String
-    */
     return values.iter().map(|x| x.to_string()).collect();
 }
 
+/// Get max number of characters in a vector of String
 fn get_width(values: &Vec<String>) -> usize {
-    /*
-    Get max number of characters in a vector of String
-    */
     let lens: Vec<usize> = values.iter().map(|x| x.len()).collect();
     return computations::vec_max(&lens);
 }
@@ -33,19 +29,15 @@ fn pad_str(s: &str, pad: usize) -> String {
     }
 }
 
+/// Convert passed values to Vec of equally padded String
 pub fn pad_string_vector<T: ToString>(values: &Vec<T>) -> Vec<String> {
-    /*
-    Convert passed values to Vec of equally padded String
-    */
     let strs = to_string_vector(values);
     let pad = get_width(&strs);
     return strs.iter().map(|x| pad_str(x, pad)).collect();
 }
 
+/// Convert passed values and header to Vec of equally padded String
 pub fn pad_string_vector_with_header<T: ToString>(values: &Vec<T>, header: String) -> Vec<String> {
-    /*
-    Convert passed values and header to Vec of equally padded String
-    */
     let mut strs = to_string_vector(values);
     strs.insert(0, header);
     return pad_string_vector(&strs);

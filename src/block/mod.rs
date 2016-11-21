@@ -1,6 +1,6 @@
 extern crate num;
 
-use num::{Num, Zero, Float, ToPrimitive};
+use num::{Num, Zero, ToPrimitive};
 use std::hash::Hash;
 
 use super::blockgroupby::BlockGroupBy;
@@ -11,6 +11,7 @@ use super::series::Series;
 mod formatting;
 mod ops;
 
+#[derive(Clone)]
 pub struct Block<T, U: Hash, V: Hash> {
     /// 2-dimentional block contains a single type.
     /// T: type of values
@@ -30,10 +31,8 @@ impl<T, U, V> Block<T, U, V>
           U: Copy + Eq + Hash,
           V: Copy + Eq + Hash {
 
+    /// Instanciate from column-wise Vec
     pub fn from_col_vec(values: Vec<T>, index: Vec<U>, columns: Vec<V>) -> Block<T, U, V> {
-        /*
-        Instanciate from column-wise Vec.
-        */
         let len: usize = index.len();
         let cols: usize = columns.len();
 
@@ -43,7 +42,7 @@ impl<T, U, V> Block<T, U, V>
 
         let mut new_values: Vec<Vec<T>> = vec![];
         for value in values.chunks(len) {
-            let v: Vec<T> = value.iter().map(|x| *x).collect();
+            let v: Vec<T> = value.iter().cloned().collect();
             new_values.push(v);
         }
         Block {
@@ -53,10 +52,8 @@ impl<T, U, V> Block<T, U, V>
         }
     }
 
+    /// Instanciate from column-wise Vec
     pub fn from_row_vec(values: Vec<T>, index: Vec<U>, columns: Vec<V>) -> Block<T, U, V> {
-        /*
-        Instanciate from column-wise Vec.
-        */
         let len: usize = index.len();
         let cols: usize = columns.len();
 
@@ -79,10 +76,8 @@ impl<T, U, V> Block<T, U, V>
         }
     }
 
+    /// Instanciate from nested Vec
     pub fn from_nested_vec(values: Vec<Vec<T>>, index: Vec<U>, columns: Vec<V>) -> Block<T, U, V> {
-        /*
-        Instanciate from nested Vec.
-        */
         if values.len() != columns.len() {
             panic!("Length mismatch!");
         }
@@ -99,10 +94,8 @@ impl<T, U, V> Block<T, U, V>
         }
     }
 
+    /// Instanciate from Series
     pub fn from_series(series: Series<T, U>, name: V) -> Block<T, U, V> {
-        /*
-        Instanciate from Series
-        */
         let mut values: Vec<Vec<T>> = vec![];
         values.push(series.values);
 
@@ -117,11 +110,9 @@ impl<T, U, V> Block<T, U, V>
         }
     }
 
+    /// Instanciate from instanciated MultiMap and Indexer. Used internally
     fn from_internal(values: Vec<Vec<T>>, index: Indexer<U>,
                      columns: Indexer<V>) -> Block<T, U, V> {
-        /*
-        Instanciate from instanciated MultiMap and Indexer. Used internally
-        */
         Block {
             values: values,
             index: index,
@@ -130,10 +121,10 @@ impl<T, U, V> Block<T, U, V>
     }
 
     fn assert_binop(&self, other: &Block<T, U, V>) {
-        if !self.index.equals(&other.index) {
+        if self.index != other.index {
             panic!("index must be the same!");
         }
-        if !self.columns.equals(&other.columns) {
+        if self.columns != other.columns {
             panic!("columns must be the same!");
         }
     }
@@ -148,16 +139,6 @@ impl<T, U, V> Block<T, U, V>
 
     pub fn len(&self) -> usize {
         return self.index.len();
-    }
-
-    pub fn copy(&self) -> Block<T, U, V> {
-        let mut new_values: Vec<Vec<T>> = vec![];
-        for value in self.values.iter() {
-            new_values.push(value.clone());
-        }
-        return Block::from_internal(new_values,
-                                    self.index.copy(),
-                                    self.columns.copy());
     }
 
     pub fn get_column_by_label(&mut self, label: &V) -> Series<T, U> {
@@ -183,11 +164,11 @@ impl<T, U, V> Block<T, U, V>
         }
         return Block::<T, U, V>::from_internal(new_values,
                                                Indexer::new(new_index),
-                                               self.columns.copy());
+                                               self.columns.clone());
     }
 
     pub fn append(&self, other: &Block<T, U, V>) -> Block<T, U, V> {
-        if !self.columns.equals(&other.columns) {
+        if self.columns != other.columns {
             panic!("columns must be the same!")
         }
 
@@ -207,13 +188,11 @@ impl<T, U, V> Block<T, U, V>
 
     pub fn groupby<G>(&self, other: Vec<G>) -> BlockGroupBy<T, U, V, G>
         where G: Copy + Eq + Hash + Ord {
-        return BlockGroupBy::new(self.copy(), other);
+        return BlockGroupBy::new(&self, other);
     }
 
+    /// Apply passed function to each columns.
     pub fn apply<W: Copy>(&self, func: &Fn(&Vec<T>) -> W) -> Series<W, V> {
-        /*
-        Apply passed function to each columns.
-        */
         let mut new_values = vec![];
         for current in self.values.iter() {
             new_values.push(func(&current));
@@ -231,8 +210,17 @@ impl<T, U, V> Block<T, U, V>
             }
             new_values.push(new_value);
         }
-        return Block::from_internal(new_values, self.columns.copy(),
-                                    self.index.copy());
+        return Block::from_internal(new_values,
+                                    self.columns.clone(),
+                                    self.index.clone());
+    }
+}
+
+impl<T: PartialEq, U: Hash + Eq, V: Hash + Eq> PartialEq for Block<T, U, V> {
+    fn eq(&self, other: &Block<T, U, V>) -> bool {
+        (self.index == other.index) &&
+        (self.columns == other.columns) &&
+        (self.values == other.values)
     }
 }
 
@@ -273,9 +261,8 @@ impl<T, U, V> Block<T, U, V>
     }
 }
 
-// Integer (Ord)
 impl<T, U, V> Block<T, U, V>
-    where T: Copy + Num + Zero + ToPrimitive + Ord,
+    where T: Copy + Num + Zero + computations::NanMinMax<T>,
           U: Copy + Eq + Hash,
           V: Copy + Eq + Hash {
 
@@ -285,20 +272,6 @@ impl<T, U, V> Block<T, U, V>
 
     pub fn max(&self) -> Series<T, V> {
         return self.apply(&computations::vec_max);
-    }
-}
-
-impl<T, U, V> Block<T, U, V>
-    where T: Copy + Num + Zero + ToPrimitive + Float,
-          U: Copy + Eq + Hash,
-          V: Copy + Eq + Hash {
-
-    pub fn min(&self) -> Series<T, V> {
-        return self.apply(&computations::vec_min_float);
-    }
-
-    pub fn max(&self) -> Series<T, V> {
-        return self.apply(&computations::vec_max_float);
     }
 }
 

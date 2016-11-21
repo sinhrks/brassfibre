@@ -1,7 +1,7 @@
 extern crate num;
 
 use multimap::MultiMap;
-use num::{Num, Zero, Float, ToPrimitive};
+use num::{Num, Zero, ToPrimitive};
 use std::hash::Hash;
 
 use super::Series;
@@ -41,9 +41,8 @@ impl<T, U> Series<T, U>
     }
 }
 
-// Integer (Ord)
 impl<T, U> Series<T, U>
-    where T: Copy + Num + Zero + ToPrimitive + Ord,
+    where T: Copy + Num + Zero + ToPrimitive + computations::NanMinMax<T>,
           U: Copy + Eq + Hash {
 
     pub fn min(&self) -> T {
@@ -66,35 +65,6 @@ impl<T, U> Series<T, U>
                                         self.std(),
                                         min,
                                         max];
-        return Series::new(new_values, new_index);
-    }
-}
-
-impl<T, U> Series<T, U>
-    where T: Copy + Num + Zero + ToPrimitive + Float,
-          U: Copy + Eq + Hash {
-
-    pub fn min(&self) -> T {
-        return self.apply(&computations::vec_min_float);
-    }
-
-    pub fn max(&self) -> T {
-        return self.apply(&computations::vec_max_float);
-    }
-
-    pub fn describe(&self) -> Series<f64, &str> {
-        let new_index: Vec<&str> = vec!["count", "mean", "std", "min", "max"];
-        let count_f64 = computations::vec_count_as_f64(&self.values);
-
-        let min = ToPrimitive::to_f64(&self.min()).unwrap();
-        let max = ToPrimitive::to_f64(&self.max()).unwrap();
-
-        let new_values: Vec<f64> = vec![count_f64,
-                                        self.mean(),
-                                        self.std(),
-                                        min,
-                                        max];
-        // ToDo:: min / max
         return Series::new(new_values, new_index);
     }
 }
