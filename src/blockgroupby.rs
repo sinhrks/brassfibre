@@ -1,10 +1,9 @@
-extern crate multimap;
 
-use multimap::MultiMap;
 use num::{Num, Zero, ToPrimitive};
 use std::cmp::Ord;
 use std::hash::Hash;
 
+use super::algos::groupby::{GroupBy, HashGroupBy};
 use super::block::Block;
 
 pub struct BlockGroupBy<'a, T: 'a, U: 'a + Hash, V: 'a + Hash, G: 'a + Hash> {
@@ -15,7 +14,7 @@ pub struct BlockGroupBy<'a, T: 'a, U: 'a + Hash, V: 'a + Hash, G: 'a + Hash> {
     /// G: type of Group indexer
 
     pub block: &'a Block<T, U, V>,
-    pub grouper: MultiMap<G, usize>,
+    pub grouper: HashGroupBy<G>,
 }
 
 impl<'a, T, U, V, G> BlockGroupBy<'a, T, U, V, G>
@@ -30,21 +29,17 @@ impl<'a, T, U, V, G> BlockGroupBy<'a, T, U, V, G>
             panic!("Block and Indexer length are different");
         }
 
-        let mut mapper = MultiMap::new();
-
-        for (loc, label) in indexer.iter().enumerate() {
-            mapper.insert(*label, loc);
-        }
+        let grouper: HashGroupBy<G> = HashGroupBy::groupby(&indexer);
 
         BlockGroupBy {
             block: block,
-            grouper: mapper,
+            grouper: grouper,
         }
     }
 
     pub fn get_group(&self, group: &G) -> Block<T, U, V> {
 
-        if let Some(locs) = self.grouper.get_vec(group) {
+        if let Some(locs) = self.grouper.get(group) {
             return self.block.slice_by_index(&locs.clone());
         } else {
             panic!("Group not found!");
@@ -52,7 +47,7 @@ impl<'a, T, U, V, G> BlockGroupBy<'a, T, U, V, G>
     }
 
     pub fn groups(&self) -> Vec<G> {
-        let mut keys: Vec<G> = self.grouper.keys().map(|x| *x).collect();
+        let mut keys: Vec<G> = self.grouper.keys();
         keys.sort();
         return keys;
     }

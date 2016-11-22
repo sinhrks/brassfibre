@@ -1,7 +1,9 @@
 extern crate num;
 
-use multimap::MultiMap;
 use num::{Num, Zero, ToPrimitive};
+
+use std::collections::HashMap;
+use std::collections::hash_map::Entry;
 use std::hash::Hash;
 
 use super::Series;
@@ -76,20 +78,29 @@ impl<T, U> Series<T, U>
           U: Copy + Eq + Hash {
 
     pub fn value_counts(&self) -> Series<usize, T> {
-        let mut mapper = MultiMap::<T, T>::new();
-        for value in self.values.iter() {
-            mapper.insert(*value, *value);
+
+        let mut map: HashMap<T, usize> = HashMap::new();
+
+        for v in self.values.iter() {
+            match map.entry(*v) {
+                Entry::Occupied(mut e) => {
+                    *e.get_mut() += 1;
+                },
+                Entry::Vacant(e) => {
+                    e.insert(1);
+                }
+            }
         }
-        let mut new_index: Vec<T> = vec![];
-        let mut new_values: Vec<usize> = vec![];
-        for (k, v) in mapper.iter_all() {
-            new_index.push(*k);
-            new_values.push(v.len());
+        let mut values: Vec<usize> = Vec::with_capacity(map.len());
+        let mut index: Vec<T> = Vec::with_capacity(map.len());
+
+        for (k, v) in map {
+            values.push(v);
+            index.push(k);
         }
-        return Series::new(new_values, new_index);
+        Series::new(values, index)
     }
 }
-
 
 #[cfg(test)]
 mod tests {

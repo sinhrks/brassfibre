@@ -3,38 +3,44 @@ use std::collections::hash_map::Entry;
 use std::hash::Hash;
 
 
-pub struct HashGroupBy<T, U> {
-    pub groups: HashMap<T, Vec<U>>
+pub struct HashGroupBy<T> {
+    pub groups: HashMap<T, Vec<usize>>
 }
 
-trait GroupBy<T, U> {
+pub trait GroupBy<T> {
     // ToDo: Implement efficient multimap
-    fn groupby(key: &Vec<T>, values: &Vec<U>) -> HashGroupBy<T, U>;
-    fn get(&self, key: &T) -> Option<&Vec<U>>;
+    fn groupby(key: &Vec<T>) -> HashGroupBy<T>;
+    fn get(&self, key: &T) -> Option<&Vec<usize>>;
+    fn keys(&self) -> Vec<T>;
 }
 
-impl<T, U> GroupBy<T, U> for HashGroupBy<T, U>
-    where T: Hash + Eq + Copy, U: Copy {
+impl<T> GroupBy<T> for HashGroupBy<T>
+    where T: Hash + Eq + Copy {
 
-    fn groupby(key: &Vec<T>, values: &Vec<U>) -> HashGroupBy<T, U> {
+    fn groupby(key: &Vec<T>) -> HashGroupBy<T> {
 
-        let mut map: HashMap<T, Vec<U>> = HashMap::new();
+        let mut map: HashMap<T, Vec<usize>> = HashMap::new();
 
-        for (k, v) in key.iter().zip(values) {
+        for (i, k) in key.iter().enumerate() {
             match map.entry(*k) {
                 Entry::Occupied(mut e) => {
-                    e.get_mut().push(*v);
+                    e.get_mut().push(i);
                 },
                 Entry::Vacant(e) => {
-                    e.insert(vec![*v]);
+                    e.insert(vec![i]);
                 }
             }
         }
         HashGroupBy { groups: map }
     }
 
-    fn get(&self, key: &T) -> Option<&Vec<U>> {
+    fn get(&self, key: &T) -> Option<&Vec<usize>> {
         self.groups.get(key)
+    }
+
+    fn keys(&self) -> Vec<T> {
+        let keys: Vec<T> = self.groups.keys().cloned().collect();
+        keys
     }
 }
 
@@ -48,33 +54,29 @@ mod tests {
     #[test]
     fn test_vec_groupby_int() {
         let key = vec![1, 1, 2, 2];
-        let values = vec![1, 2, 3, 4];
+        let res = HashGroupBy::groupby(&key);
 
-        let res = HashGroupBy::groupby(&key, &values);
-
-        let mut exp: HashMap<i32, Vec<i32>> = HashMap::new();
-        exp.insert(1, vec![1, 2]);
-        exp.insert(2, vec![3, 4]);
+        let mut exp: HashMap<i32, Vec<usize>> = HashMap::new();
+        exp.insert(1, vec![0, 1]);
+        exp.insert(2, vec![2, 3]);
         assert_eq!(res.groups, exp);
 
-        assert_eq!(res.get(&1), Some(&vec![1, 2]));
-        assert_eq!(res.get(&2), Some(&vec![3, 4]));
+        assert_eq!(res.get(&1), Some(&vec![0, 1]));
+        assert_eq!(res.get(&2), Some(&vec![2, 3]));
     }
 
     #[test]
     fn test_vec_groupby_str() {
         let key = vec!["a", "b", "a", "b"];
-        let values = vec![1, 2, 3, 4];
+        let res = HashGroupBy::groupby(&key);
 
-        let res = HashGroupBy::groupby(&key, &values);
-
-        let mut exp: HashMap<&str, Vec<i32>> = HashMap::new();
-        exp.insert("a", vec![1, 3]);
-        exp.insert("b", vec![2, 4]);
+        let mut exp: HashMap<&str, Vec<usize>> = HashMap::new();
+        exp.insert("a", vec![0, 2]);
+        exp.insert("b", vec![1, 3]);
         assert_eq!(res.groups, exp);
 
-        assert_eq!(res.get(&"a"), Some(&vec![1, 3]));
-        assert_eq!(res.get(&"b"), Some(&vec![2, 4]));
+        assert_eq!(res.get(&"a"), Some(&vec![0, 2]));
+        assert_eq!(res.get(&"b"), Some(&vec![1, 3]));
     }
 
 }

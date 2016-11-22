@@ -1,4 +1,4 @@
 mod duplicates;
-mod groupby;
+pub mod groupby;
 mod join;
 mod set;

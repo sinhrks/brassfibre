@@ -1,5 +1,4 @@
 extern crate itertools;
-extern crate multimap;
 extern crate num;
 
 pub mod algos;

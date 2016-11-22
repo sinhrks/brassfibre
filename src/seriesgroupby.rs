@@ -1,10 +1,9 @@
-extern crate multimap;
 
-use multimap::MultiMap;
 use num::{Num, Zero, ToPrimitive};
 use std::cmp::Ord;
 use std::hash::Hash;
 
+use super::algos::groupby::{GroupBy, HashGroupBy};
 use super::series::Series;
 
 pub struct SeriesGroupBy<'a, T: 'a, U: 'a + Hash, G: 'a + Hash> {
@@ -14,7 +13,7 @@ pub struct SeriesGroupBy<'a, T: 'a, U: 'a + Hash, G: 'a + Hash> {
     /// V: type of Group indexer
 
     pub series: &'a Series<T, U>,
-    pub grouper: MultiMap<G, usize>,
+    pub grouper: HashGroupBy<G>,
 }
 
 impl<'a, T, U, G> SeriesGroupBy<'a, T, U, G>
@@ -28,21 +27,17 @@ impl<'a, T, U, G> SeriesGroupBy<'a, T, U, G>
             panic!("Series and Indexer length are different");
         }
 
-        let mut mapper = MultiMap::new();
-
-        for (loc, label) in indexer.iter().enumerate() {
-            mapper.insert(*label, loc);
-        }
+        let grouper: HashGroupBy<G> = HashGroupBy::groupby(&indexer);
 
         SeriesGroupBy {
             series: series,
-            grouper: mapper,
+            grouper: grouper,
         }
     }
 
     pub fn get_group(&self, group: &G) -> Series<T, U> {
 
-        if let Some(locs) = self.grouper.get_vec(group) {
+        if let Some(locs) = self.grouper.get(group) {
             return self.series.slice_by_index(&locs.clone());
         } else {
             panic!("Group not found!");
@@ -50,7 +45,7 @@ impl<'a, T, U, G> SeriesGroupBy<'a, T, U, G>
     }
 
     pub fn groups(&self) -> Vec<G> {
-        let mut keys: Vec<G> = self.grouper.keys().cloned().collect();
+        let mut keys: Vec<G> = self.grouper.keys();
         keys.sort();
         return keys;
     }
