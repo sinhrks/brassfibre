@@ -14,22 +14,25 @@ fn main() {
                                 vec![10, 20, 30, 40, 50],
                                 vec!["X", "YYY", "ZZ"]);
     println!("{:?}\n", &b);
-    println!("** Slicing / Calculation **");
 
-    println!("{:?}\n", &b.locs(&vec![20, 30, 40]));
-    println!("{:?}\n", &b.transpose());
+    println!("** Selection **");
 
-    println!("{:?}\n", &b.get(&"YYY"));
-    println!("{:?}\n", &b.sum());
-    println!("{:?}\n", &b.mean());
+    println!("by single columns label\n{:?}\n", &b.get(&"YYY"));
+    println!("by single columns location\n{:?}\n", &b.iget(&0));
+    println!("by multiple index labels\n{:?}\n", &b.locs(&vec![20, 30, 40]));
+    println!("by multiple index locations\n{:?}\n", &b.ilocs(&vec![0, 2, 1]));
+
+    println!("** Calculation **");
+    println!("elemwise\n{:?}\n", &(&b + 5));
+    println!("with another Block\n{:?}\n", &(&b + (&b * 2)));
+    println!("sum\n{:?}\n", &b.sum());
+    println!("mean\n{:?}\n", &b.mean());
 
     println!("** GroupBy **");
     let bg = b.groupby(vec!["A", "A", "B", "A", "B"]);
-    let a = bg.get_group(&"A");
-    println!("{:?}\n", &a);
+    println!("get group\n{:?}\n", &bg.get_group(&"A"));
 
-    println!("{:?}\n", &bg.sum());
+    println!("grouped sum\n{:?}\n", &bg.sum());
 
-    println!("** Numeric Op **");
-    println!("{:?}\n", &(&b + 5));
+
 }
