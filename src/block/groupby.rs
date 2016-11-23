@@ -110,7 +110,6 @@ impl<'a, T, U, V, G> BlockGroupBy<'a, T, U, V, G>
 mod tests {
 
     use super::super::Block;
-    use super::super::super::traits::ColIndexer;
 
     #[test]
     fn test_block_get_group() {

@@ -2,13 +2,13 @@
 
 pub trait RowIndexer<T>: Sized {
 
-    fn reindex(&mut self, labels: &Vec<T>) -> Self;
+    fn reindex(&self, labels: &Vec<T>) -> Self;
     fn reindex_by_index(&self, locations: &Vec<usize>) -> Self;
 
     // selection
 
     /// Slice using given labels (slice by LOCationS)
-    fn locs(&mut self, labels: &Vec<T>) -> Self {
+    fn locs(&self, labels: &Vec<T>) -> Self {
         self.reindex(labels)
     }
 
@@ -24,13 +24,13 @@ pub trait RowIndexer<T>: Sized {
 pub trait ColIndexer<T, S>: Sized {
 
     /// Get column using label
-    fn get(&mut self, label: &T) -> S;
+    fn get(&self, label: &T) -> S;
 
     /// Get column using given index
     fn iget(&self, label: &usize) -> S;
 
     /// Slice columns using labels
-    fn gets(&mut self, labels: &Vec<T>) -> Self;
+    fn gets(&self, labels: &Vec<T>) -> Self;
 
     /// Slice columns given indices
     fn igets(&self, locations: &Vec<usize>) -> Self;

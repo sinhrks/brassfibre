@@ -167,7 +167,6 @@ define_numeric_op!(Rem, rem);
 mod tests {
 
     use super::super::Block;
-    use super::super::super::traits::ColIndexer;
 
     #[test]
     fn test_block_ops_i64_broadcast() {

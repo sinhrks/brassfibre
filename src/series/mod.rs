@@ -30,7 +30,7 @@ impl<T, U> RowIndexer<U> for Series<T, U>
     where T: Copy,
           U: Copy + Eq + Hash {
 
-    fn reindex(&mut self, labels: &Vec<U>) -> Self {
+    fn reindex(&self, labels: &Vec<U>) -> Self {
         let locs = self.index.get_locs(labels);
         let new_values = Sorter::reindex(&self.values, &locs);
         Series::new(new_values, labels.to_owned())
@@ -106,7 +106,7 @@ impl<T, U> Series<T, U>
     }
 
     /// Return single value corresponding to given label
-    pub fn get_by_label(&mut self, label: &U) -> T {
+    pub fn get_by_label(&self, label: &U) -> T {
         let loc = self.index.get_loc(&label);
         self.get_by_index(&loc)
     }
@@ -234,7 +234,7 @@ mod tests {
         let values: Vec<f64> = vec![1., 2., 3., 4., 5.];
         let index: Vec<i64> = vec![10, 20, 30, 40, 50];
 
-        let mut s = Series::new(values, index);
+        let s = Series::new(values, index);
 
         // test construction
         let exp_values: Vec<f64> = vec![1., 2., 3., 4., 5.];
@@ -290,7 +290,7 @@ mod tests {
 
     #[test]
     fn test_series_reindex() {
-        let mut s: Series<&str, &str> = Series::new(vec!["a", "b", "c", "d"],
+        let s: Series<&str, &str> = Series::new(vec!["a", "b", "c", "d"],
                                                     vec!["A", "B", "C", "D"]);
         let res = s.reindex(&vec!["D", "C", "A"]);
         let exp: Series<&str, &str> = Series::new(vec!["d", "c", "a"],

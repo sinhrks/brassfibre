@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::hash::Hash;
 
@@ -14,19 +15,21 @@ mod sort;
 pub struct Indexer<U: Hash> {
     // index must be hashable, note that float can't be hashed
     pub values: Vec<U>,
-    pub label_mapper: HashMap<U, usize>,
+
+    // provides interior mutability
+    htable: RefCell<HashMap<U, usize>>,
 }
 
 pub trait IndexerIndexer<U: Hash> {
     fn len(&self) -> usize;
-    fn contains(&mut self, label: &U) -> bool;
+    fn contains(&self, label: &U) -> bool;
     fn push(&mut self, label: U);
-    fn get_loc(&mut self, label: &U) -> usize;
-    fn get_locs(&mut self, labels: &Vec<U>) -> Vec<usize>;
+    fn get_loc(&self, label: &U) -> usize;
+    fn get_locs(&self, labels: &Vec<U>) -> Vec<usize>;
     fn reindex(&self, locations: &Vec<usize>) -> Self;
 
     // temp
-    fn init_state(&mut self);
+    fn init_state(&self);
 }
 
 impl<U> Indexer<U> where U: Copy + Eq + Hash {
@@ -39,7 +42,7 @@ impl<U> Indexer<U> where U: Copy + Eq + Hash {
     pub fn new(values: Vec<U>) -> Self {
         Indexer {
             values: values,
-            label_mapper: HashMap::new(),
+            htable: RefCell::new(HashMap::new()),
         }
     }
 }
@@ -51,16 +54,17 @@ impl<U> IndexerIndexer<U> for Indexer<U>  where U: Copy + Eq + Hash {
     }
 
     /// Whether Indexer contains label or not
-    fn contains(&mut self, label: &U) -> bool {
+    fn contains(&self, label: &U) -> bool {
         self.init_state();
-        self.label_mapper.contains_key(label)
+        self.htable.borrow().contains_key(label)
     }
 
     fn push(&mut self, label: U) {
         let loc = self.len();
         // ToDo: merge with init_label_mapper
-        if !self.label_mapper.contains_key(&label) {
-            self.label_mapper.insert(label, loc);
+        let mut mapper = self.htable.borrow_mut();
+        if !mapper.contains_key(&label) {
+            mapper.insert(label, loc);
         } else {
             // temp, do not allow duplicates for now
             panic!("Duplicated key!");
@@ -69,13 +73,13 @@ impl<U> IndexerIndexer<U> for Indexer<U>  where U: Copy + Eq + Hash {
     }
 
     /// Return label location (usize) corresponding to given label (Scalar)
-    fn get_loc(&mut self, label: &U) -> usize {
+    fn get_loc(&self, label: &U) -> usize {
         self.init_state();
-        *self.label_mapper.get(label).unwrap()
+        *self.htable.borrow().get(label).unwrap()
     }
 
     /// Return label locations (Vector) corresponding to given labels (Vector)
-    fn get_locs(&mut self, labels: &Vec<U>) -> Vec<usize> {
+    fn get_locs(&self, labels: &Vec<U>) -> Vec<usize> {
         labels.iter().map(|label| self.get_loc(&label)).collect()
     }
 
@@ -84,14 +88,15 @@ impl<U> IndexerIndexer<U> for Indexer<U>  where U: Copy + Eq + Hash {
         Indexer::new(new_values)
     }
 
-    fn init_state(&mut self) {
-        // update label_mapper
-        if self.label_mapper.len() != 0 {
+    fn init_state(&self) {
+        // update htable
+        let mut htable = self.htable.borrow_mut();
+        if htable.len() != 0 {
             return;
         }
         for (loc, label) in self.values.iter().enumerate() {
-            if !self.label_mapper.contains_key(label) {
-                self.label_mapper.insert(*label, loc);
+            if !htable.contains_key(label) {
+                htable.insert(*label, loc);
             } else {
                 // temp, do not allow duplicates for now
                 panic!("Duplicated key!");

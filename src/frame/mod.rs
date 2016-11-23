@@ -1,10 +1,7 @@
 use std::hash::Hash;
 
-use super::algos::sort::Sorter;
-use super::eval::Applicable;
 use super::indexer::{Indexer, IndexerIndexer};
 use super::internals::Array;
-use super::series::Series;
 use super::traits::{RowIndexer, ColIndexer};
 
 #[derive(Clone)]
@@ -27,7 +24,7 @@ impl<U, V> RowIndexer<U> for DataFrame<U, V>
     where U: Copy + Eq + Hash,
           V: Copy + Eq + Hash {
 
-    fn reindex(&mut self, labels: &Vec<U>) -> Self {
+    fn reindex(&self, labels: &Vec<U>) -> Self {
         let locations = self.index.get_locs(labels);
         self.reindex_by_index(&locations)
     }
@@ -55,7 +52,7 @@ impl<U, V> ColIndexer<V, Array> for DataFrame<U, V>
     where U: Copy + Eq + Hash,
           V: Copy + Eq + Hash {
 
-    fn get(&mut self, label: &V) -> Array {
+    fn get(&self, label: &V) -> Array {
         unimplemented!();
     }
 
@@ -63,7 +60,7 @@ impl<U, V> ColIndexer<V, Array> for DataFrame<U, V>
         unimplemented!();
     }
 
-    fn gets(&mut self, labels: &Vec<V>) -> Self {
+    fn gets(&self, labels: &Vec<V>) -> Self {
         let locs = self.columns.get_locs(labels);
         self.igets(&locs)
     }
@@ -185,9 +182,9 @@ mod tests {
         let values = vec![Array::Int64Array(vec![1, 2, 3, 4, 5]),
                           Array::Float64Array(vec![6., 7., 8., 9., 10.]),
                           Array::Int64Array(vec![11, 12, 13, 14, 15])];
-        let mut df = DataFrame::from_vec(values,
-                                         vec!["A", "BB", "CC", "D", "EEE"],
-                                         vec!["X", "YYY", "ZZ"]);
+        let df = DataFrame::from_vec(values,
+                                     vec!["A", "BB", "CC", "D", "EEE"],
+                                     vec!["X", "YYY", "ZZ"]);
         assert_eq!(df.len(), 5);
 
         let res = df.locs(&vec!["A", "D", "CC"]);
@@ -229,9 +226,9 @@ mod tests {
         let values = vec![Array::Int64Array(vec![1, 2, 3, 4, 5]),
                           Array::Float64Array(vec![6., 7., 8., 9., 10.]),
                           Array::Int64Array(vec![11, 12, 13, 14, 15])];
-        let mut b = DataFrame::from_vec(values,
-                                        vec!["A", "BB", "CC", "D", "EEE"],
-                                        vec!["X", "YYY", "ZZ"]);
+        let b = DataFrame::from_vec(values,
+                                    vec!["A", "BB", "CC", "D", "EEE"],
+                                    vec!["X", "YYY", "ZZ"]);
 
         let exp_values = vec![Array::Float64Array(vec![6., 7., 8., 9., 10.]),
                               Array::Int64Array(vec![1, 2, 3, 4, 5])];

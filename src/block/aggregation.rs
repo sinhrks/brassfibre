@@ -63,7 +63,6 @@ mod tests {
 
     use super::super::Block;
     use super::super::super::indexer::Indexer;
-    use super::super::super::series::Series;
 
     #[test]
     fn test_block_sum() {
@@ -71,7 +70,7 @@ mod tests {
                                          vec![6, 7, 8, 9, 10]];
         let index: Vec<i64> = vec![10, 20, 30, 40, 50];
         let columns: Vec<&str> = vec!["X", "Y"];
-        let mut b = Block::from_vec(values, index, columns);
+        let b = Block::from_vec(values, index, columns);
 
         let sum = b.sum();
 
@@ -87,7 +86,7 @@ mod tests {
                                          vec![6, 7, 8, 9, 10]];
         let index: Vec<i64> = vec![10, 20, 30, 40, 50];
         let columns: Vec<&str> = vec!["X", "Y"];
-        let mut b = Block::from_vec(values, index, columns);
+        let b = Block::from_vec(values, index, columns);
 
         let mean = b.mean();
 
