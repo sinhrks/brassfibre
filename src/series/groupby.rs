@@ -3,8 +3,8 @@ use num::{Num, Zero, ToPrimitive};
 use std::cmp::Ord;
 use std::hash::Hash;
 
-use super::algos::groupby::{GroupBy, HashGroupBy};
-use super::series::Series;
+use super::super::algos::groupby::{GroupBy, HashGroupBy};
+use super::Series;
 
 pub struct SeriesGroupBy<'a, T: 'a, U: 'a + Hash, G: 'a + Hash> {
     /// Grouped Series
@@ -21,7 +21,7 @@ impl<'a, T, U, G> SeriesGroupBy<'a, T, U, G>
           U: Copy + Eq + Hash,
           G: Copy + Eq + Hash + Ord {
 
-    pub fn new(series: &Series<T, U>, indexer: Vec<G>) -> SeriesGroupBy<T, U, G>{
+    pub fn new(series: &Series<T, U>, indexer: Vec<G>) -> SeriesGroupBy<T, U, G> {
 
         if series.len() != indexer.len() {
             panic!("Series and Indexer length are different");
@@ -38,7 +38,7 @@ impl<'a, T, U, G> SeriesGroupBy<'a, T, U, G>
     pub fn get_group(&self, group: &G) -> Series<T, U> {
 
         if let Some(locs) = self.grouper.get(group) {
-            return self.series.slice_by_index(&locs.clone());
+            self.series.slice_by_index(&locs.clone())
         } else {
             panic!("Group not found!");
         }
@@ -47,21 +47,21 @@ impl<'a, T, U, G> SeriesGroupBy<'a, T, U, G>
     pub fn groups(&self) -> Vec<G> {
         let mut keys: Vec<G> = self.grouper.keys();
         keys.sort();
-        return keys;
+        keys
     }
 
     pub fn apply<W: Copy>(&self, func: &Fn(&Series<T, U>) -> W) -> Series<W, G> {
         /*
         Apply passed function to each group.
         */
-        let mut new_values: Vec<W> = vec![];
+        let mut new_values: Vec<W> = Vec::with_capacity(self.grouper.len());
 
         let groups = self.groups();
         for g in groups.iter() {
             let s = self.get_group(&g);
             new_values.push(func(&s));
         }
-        return Series::new(new_values, groups);
+        Series::new(new_values, groups)
     }
 }
 
@@ -73,38 +73,38 @@ impl<'a, T, U, G> SeriesGroupBy<'a, T, U, G>
           G: Copy + Eq + Hash + Ord {
 
     pub fn sum(&self) -> Series<T, G> {
-        return self.apply(&|x: &Series<T, U>| x.sum());
+        self.apply(&|x: &Series<T, U>| x.sum())
     }
 
     pub fn count(&self) -> Series<usize, G> {
-        return self.apply(&|x: &Series<T, U>| x.count());
+        self.apply(&|x: &Series<T, U>| x.count())
     }
 
     pub fn mean(&self) -> Series<f64, G> {
-        return self.apply(&|x: &Series<T, U>| x.mean());
+        self.apply(&|x: &Series<T, U>| x.mean())
     }
 
     pub fn var(&self) -> Series<f64, G> {
-        return self.apply(&|x: &Series<T, U>| x.var());
+        self.apply(&|x: &Series<T, U>| x.var())
     }
 
     pub fn unbiased_var(&self) -> Series<f64, G> {
-        return self.apply(&|x: &Series<T, U>| x.unbiased_var());
+        self.apply(&|x: &Series<T, U>| x.unbiased_var())
     }
 
     pub fn std(&self) -> Series<f64, G> {
-        return self.apply(&|x: &Series<T, U>| x.std());
+        self.apply(&|x: &Series<T, U>| x.std())
     }
 
     pub fn unbiased_std(&self) -> Series<f64, G> {
-        return self.apply(&|x: &Series<T, U>| x.unbiased_std());
+        self.apply(&|x: &Series<T, U>| x.unbiased_std())
     }
 }
 
 #[cfg(test)]
 mod tests {
 
-    use super::super::series::Series;
+    use super::super::Series;
     use super::SeriesGroupBy;
 
     #[test]

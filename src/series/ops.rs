@@ -1,5 +1,3 @@
-extern crate num;
-
 use num::{Num};
 use std::hash::Hash;
 use std::ops::{Add, Mul, Sub, Div, Rem};
@@ -7,11 +5,11 @@ use std::ops::{Add, Mul, Sub, Div, Rem};
 use super::Series;
 
 fn elemwise<T>(left: &Vec<T>, right: &Vec<T>,
-            func: &Fn((&T, &T)) -> T) -> Vec<T>
+               func: &Fn((&T, &T)) -> T) -> Vec<T>
     where T: Copy + Num {
-    return left.iter()
-               .zip(right.iter())
-               .map(func).collect();
+    left.iter()
+        .zip(right.iter())
+        .map(func).collect()
 }
 
 macro_rules! define_numric_op(
@@ -22,10 +20,10 @@ macro_rules! define_numric_op(
         where T: Copy + Num,
               U: Copy + Eq + Hash {
 
-        type Output = Series<T, U>;
-        fn $m(self, _rhs: T) -> Series<T, U> {
+        type Output = Self;
+        fn $m(self, _rhs: T) -> Self {
             let new_values = self.values.iter().map(|x: &T| (*x).$m(_rhs)).collect();
-            return Series::new(new_values, self.index.copy_values());
+            Series::new(new_values, self.index.clone())
         }
     }
 
@@ -33,10 +31,10 @@ macro_rules! define_numric_op(
         where T: Copy + Num,
               U: Copy + Eq + Hash {
 
-        type Output = Series<T, U>;
-        fn $m(self, _rhs: &T) -> Series<T, U> {
+        type Output = Self;
+        fn $m(self, _rhs: &T) -> Self {
             let new_values = self.values.iter().map(|x: &T| (*x).$m(*_rhs)).collect();
-            return Series::new(new_values, self.index.copy_values());
+            Series::new(new_values, self.index.clone())
         }
     }
 
@@ -47,7 +45,7 @@ macro_rules! define_numric_op(
         type Output = Series<T, U>;
         fn $m(self, _rhs: T) -> Series<T, U> {
             let new_values = self.values.iter().map(|x: &T| (*x).$m(_rhs)).collect();
-            return Series::new(new_values, self.index.copy_values());
+            Series::new(new_values, self.index.clone())
         }
     }
 
@@ -58,7 +56,7 @@ macro_rules! define_numric_op(
         type Output = Series<T, U>;
         fn $m(self, _rhs: &T) -> Series<T, U> {
             let new_values = self.values.iter().map(|x: &T| (*x).$m(*_rhs)).collect();
-            return Series::new(new_values, self.index.copy_values());
+            Series::new(new_values, self.index.clone())
         }
     }
 
@@ -67,12 +65,12 @@ macro_rules! define_numric_op(
         where T: Copy + Num,
               U: Copy + Eq + Hash {
 
-        type Output = Series<T, U>;
-        fn $m(self, _rhs: Series<T, U>) -> Series<T, U> {
+        type Output = Self;
+        fn $m(self, _rhs: Self) -> Self {
             self.assert_binop(&_rhs);
             let new_values = elemwise(&self.values, &_rhs.values,
                                       &|(x, y)| (*x).$m(*y));
-            return Series::new(new_values, self.index.copy_values());
+            Series::new(new_values, self.index.clone())
         }
     }
 
@@ -80,12 +78,12 @@ macro_rules! define_numric_op(
         where T: Copy + Num,
               U: Copy + Eq + Hash {
 
-        type Output = Series<T, U>;
-        fn $m(self, _rhs: &Series<T, U>) -> Series<T, U> {
+        type Output = Self;
+        fn $m(self, _rhs: &Series<T, U>) -> Self {
             self.assert_binop(&_rhs);
             let new_values = elemwise(&self.values, &_rhs.values,
                                       &|(x, y)| (*x).$m(*y));
-            return Series::new(new_values, self.index.copy_values());
+            Series::new(new_values, self.index.clone())
         }
     }
 
@@ -98,7 +96,7 @@ macro_rules! define_numric_op(
             self.assert_binop(&_rhs);
             let new_values = elemwise(&self.values, &_rhs.values,
                                       &|(x, y)| (*x).$m(*y));
-            return Series::new(new_values, self.index.copy_values());
+            Series::new(new_values, self.index.clone())
         }
     }
 
@@ -111,7 +109,7 @@ macro_rules! define_numric_op(
             self.assert_binop(&_rhs);
             let new_values = elemwise(&self.values, &_rhs.values,
                                       &|(x, y)| (*x).$m(*y));
-            return Series::new(new_values, self.index.copy_values());
+            Series::new(new_values, self.index.clone())
         }
     }
 

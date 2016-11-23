@@ -3,8 +3,8 @@ use num::{Num, Zero, ToPrimitive};
 use std::cmp::Ord;
 use std::hash::Hash;
 
-use super::algos::groupby::{GroupBy, HashGroupBy};
-use super::block::Block;
+use super::super::algos::groupby::{GroupBy, HashGroupBy};
+use super::Block;
 
 pub struct BlockGroupBy<'a, T: 'a, U: 'a + Hash, V: 'a + Hash, G: 'a + Hash> {
     /// Grouped Block
@@ -40,7 +40,7 @@ impl<'a, T, U, V, G> BlockGroupBy<'a, T, U, V, G>
     pub fn get_group(&self, group: &G) -> Block<T, U, V> {
 
         if let Some(locs) = self.grouper.get(group) {
-            return self.block.slice_by_index(&locs.clone());
+            self.block.slice_by_index(&locs.clone())
         } else {
             panic!("Group not found!");
         }
@@ -49,22 +49,22 @@ impl<'a, T, U, V, G> BlockGroupBy<'a, T, U, V, G>
     pub fn groups(&self) -> Vec<G> {
         let mut keys: Vec<G> = self.grouper.keys();
         keys.sort();
-        return keys;
+        keys
     }
 
     pub fn apply<W: Copy>(&self, func: &Fn(&Block<T, U, V>) -> Vec<W>) -> Block<W, G, V> {
         /*
         Apply passed function to each group.
         */
-        let mut new_values: Vec<W> = vec![];
+        let mut new_values: Vec<W> = Vec::with_capacity(self.grouper.len());
 
         let groups = self.groups();
         for g in groups.iter() {
             let s = self.get_group(&g);
             new_values.append(&mut func(&s));
         }
-        return Block::from_row_vec(new_values, groups,
-                                      self.block.columns.copy_values(), );
+        Block::from_row_vec(new_values, groups,
+                            self.block.columns.clone())
     }
 }
 
@@ -76,31 +76,31 @@ impl<'a, T, U, V, G> BlockGroupBy<'a, T, U, V, G>
           G: Copy + Eq + Hash + Ord {
 
     pub fn sum(&self) -> Block<T, G, V> {
-        return self.apply(&|x: &Block<T, U, V>| x.sum().values);
+        self.apply(&|x: &Block<T, U, V>| x.sum().values)
     }
 
     pub fn count(&self) -> Block<usize, G, V> {
-        return self.apply(&|x: &Block<T, U, V>| x.count().values);
+        self.apply(&|x: &Block<T, U, V>| x.count().values)
     }
 
     pub fn mean(&self) -> Block<f64, G, V> {
-        return self.apply(&|x: &Block<T, U, V>| x.mean().values);
+        self.apply(&|x: &Block<T, U, V>| x.mean().values)
     }
 
     pub fn var(&self) -> Block<f64, G, V> {
-        return self.apply(&|x: &Block<T, U, V>| x.var().values);
+        self.apply(&|x: &Block<T, U, V>| x.var().values)
     }
 
     pub fn unbiased_var(&self) -> Block<f64, G, V> {
-        return self.apply(&|x: &Block<T, U, V>| x.unbiased_var().values);
+        self.apply(&|x: &Block<T, U, V>| x.unbiased_var().values)
     }
 
     pub fn std(&self) -> Block<f64, G, V> {
-        return self.apply(&|x: &Block<T, U, V>| x.std().values);
+        self.apply(&|x: &Block<T, U, V>| x.std().values)
     }
 
     pub fn unbiased_std(&self) -> Block<f64, G, V> {
-        return self.apply(&|x: &Block<T, U, V>| x.unbiased_std().values);
+        self.apply(&|x: &Block<T, U, V>| x.unbiased_std().values)
     }
 
 }
@@ -108,7 +108,7 @@ impl<'a, T, U, V, G> BlockGroupBy<'a, T, U, V, G>
 #[cfg(test)]
 mod tests {
 
-    use super::super::block::Block;
+    use super::super::Block;
 
     #[test]
     fn test_block_get_group() {

@@ -10,9 +10,9 @@ use super::Indexer;
 fn elemwise<T>(left: &Vec<T>, right: &Vec<T>,
             func: &Fn((&T, &T)) -> T) -> Vec<T>
     where T: Copy + Num {
-    return left.iter()
-               .zip(right.iter())
-               .map(func).collect();
+    left.iter()
+        .zip(right.iter())
+        .map(func).collect()
 }
 
 macro_rules! define_numric_op(
@@ -22,30 +22,31 @@ macro_rules! define_numric_op(
     impl<U> $t<U> for Indexer<U>
         where U: Copy + Eq + Hash + Num {
 
-        type Output = Indexer<U>;
-        fn $m(self, _rhs: U) -> Indexer<U> {
+        type Output = Self;
+        fn $m(self, _rhs: U) -> Self {
             let new_values = self.values.iter().map(|x: &U| (*x).$m(_rhs)).collect();
-            return Indexer::new(new_values);
+            Indexer::new(new_values)
         }
     }
 
     impl<'a, U> $t<&'a U> for Indexer<U>
         where U: Copy + Eq + Hash + Num {
 
-        type Output = Indexer<U>;
-        fn $m(self, _rhs: &U) -> Indexer<U> {
+        type Output = Self;
+        fn $m(self, _rhs: &U) -> Self {
             let new_values = self.values.iter().map(|x: &U| (*x).$m(*_rhs)).collect();
-            return Indexer::new(new_values);
+            Indexer::new(new_values)
         }
     }
 
     impl<'b, U> $t<U> for &'b Indexer<U>
         where U: Copy + Eq + Hash + Num {
 
+        // can't use self as impl is for reference?
         type Output = Indexer<U>;
         fn $m(self, _rhs: U) -> Indexer<U> {
             let new_values = self.values.iter().map(|x: &U| (*x).$m(_rhs)).collect();
-            return Indexer::new(new_values);
+            Indexer::new(new_values)
         }
     }
 
@@ -55,7 +56,7 @@ macro_rules! define_numric_op(
         type Output = Indexer<U>;
         fn $m(self, _rhs: &U) -> Indexer<U> {
             let new_values = self.values.iter().map(|x: &U| (*x).$m(*_rhs)).collect();
-            return Indexer::new(new_values);
+            Indexer::new(new_values)
         }
     }
 
@@ -63,20 +64,20 @@ macro_rules! define_numric_op(
     impl<U> $t<Indexer<U>> for Indexer<U>
         where U: Copy + Eq + Hash + Num {
 
-        type Output = Indexer<U>;
-        fn $m(self, _rhs: Indexer<U>) -> Indexer<U> {
+        type Output = Self;
+        fn $m(self, _rhs: Self) -> Self {
             let new_values = elemwise(&self.values, &_rhs.values, &|(x, y)| (*x).$m(*y));
-            return Indexer::new(new_values);
+            Indexer::new(new_values)
         }
     }
 
     impl<'a, U> $t<&'a Indexer<U>> for Indexer<U>
         where U: Copy + Eq + Hash + Num {
 
-        type Output = Indexer<U>;
-        fn $m(self, _rhs: &Indexer<U>) -> Indexer<U> {
+        type Output = Self;
+        fn $m(self, _rhs: &Self) -> Self {
             let new_values = elemwise(&self.values, &_rhs.values, &|(x, y)| (*x).$m(*y));
-            return Indexer::new(new_values);
+            Indexer::new(new_values)
         }
     }
 
@@ -86,7 +87,7 @@ macro_rules! define_numric_op(
         type Output = Indexer<U>;
         fn $m(self, _rhs: Indexer<U>) -> Indexer<U> {
             let new_values = elemwise(&self.values, &_rhs.values, &|(x, y)| (*x).$m(*y));
-            return Indexer::new(new_values);
+            Indexer::new(new_values)
         }
     }
 
@@ -96,7 +97,7 @@ macro_rules! define_numric_op(
         type Output = Indexer<U>;
         fn $m(self, _rhs: &Indexer<U>) -> Indexer<U> {
             let new_values = elemwise(&self.values, &_rhs.values, &|(x, y)| (*x).$m(*y));
-            return Indexer::new(new_values);
+            Indexer::new(new_values)
         }
     }
 

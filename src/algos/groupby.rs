@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::collections::hash_map::Entry;
 use std::hash::Hash;
 
 
@@ -12,6 +11,7 @@ pub trait GroupBy<T> {
     fn groupby(key: &Vec<T>) -> HashGroupBy<T>;
     fn get(&self, key: &T) -> Option<&Vec<usize>>;
     fn keys(&self) -> Vec<T>;
+    fn len(&self) -> usize;
 }
 
 impl<T> GroupBy<T> for HashGroupBy<T>
@@ -22,14 +22,8 @@ impl<T> GroupBy<T> for HashGroupBy<T>
         let mut map: HashMap<T, Vec<usize>> = HashMap::new();
 
         for (i, k) in key.iter().enumerate() {
-            match map.entry(*k) {
-                Entry::Occupied(mut e) => {
-                    e.get_mut().push(i);
-                },
-                Entry::Vacant(e) => {
-                    e.insert(vec![i]);
-                }
-            }
+            let e = map.entry(*k).or_insert(Vec::<usize>::new());
+            e.push(i);
         }
         HashGroupBy { groups: map }
     }
@@ -41,6 +35,10 @@ impl<T> GroupBy<T> for HashGroupBy<T>
     fn keys(&self) -> Vec<T> {
         let keys: Vec<T> = self.groups.keys().cloned().collect();
         keys
+    }
+
+    fn len(&self) -> usize {
+        self.groups.len()
     }
 }
 
@@ -60,6 +58,7 @@ mod tests {
         exp.insert(1, vec![0, 1]);
         exp.insert(2, vec![2, 3]);
         assert_eq!(res.groups, exp);
+        assert_eq!(res.len(), 2);
 
         assert_eq!(res.get(&1), Some(&vec![0, 1]));
         assert_eq!(res.get(&2), Some(&vec![2, 3]));
@@ -74,6 +73,7 @@ mod tests {
         exp.insert("a", vec![0, 2]);
         exp.insert("b", vec![1, 3]);
         assert_eq!(res.groups, exp);
+        assert_eq!(res.len(), 2);
 
         assert_eq!(res.get(&"a"), Some(&vec![0, 2]));
         assert_eq!(res.get(&"b"), Some(&vec![1, 3]));

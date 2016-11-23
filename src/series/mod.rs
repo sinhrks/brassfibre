@@ -4,12 +4,16 @@ extern crate num;
 use itertools::Zip;
 use std::hash::Hash;
 
-use super::seriesgroupby::SeriesGroupBy;
-use super::indexer::Indexer;
+use super::algos::sort::Sorter;
+use super::eval::Applicable;
+use super::indexer::{Indexer, IndexerTrait};
 
 mod aggregation;
+mod convert;
 mod formatting;
+mod groupby;
 mod ops;
+mod sort;
 
 #[derive(Clone)]
 pub struct Series<T, U: Hash> {
@@ -32,13 +36,17 @@ impl<T, U> Series<T, U>
         }
     }
 
-    pub fn new(values: Vec<T>, index: Vec<U>) -> Series<T, U> {
+    pub fn new<I>(values: Vec<T>, index: I) -> Self
+        where I: Into<Indexer<U>> {
+
+        let index: Indexer<U> = index.into();
+
         if values.len() != index.len() {
             panic!("Length mismatch!");
         }
         Series {
             values: values,
-            index: Indexer::new(index),
+            index: index,
         }
     }
 
@@ -49,50 +57,41 @@ impl<T, U> Series<T, U>
     }
 
     pub fn len(&self) -> usize {
-        return self.values.len();
+        self.values.len()
     }
 
     /// Return single value corresponding to given label
     pub fn get_by_label(&mut self, label: &U) -> T {
-        let loc = self.index.get_label_loc(&label);
-        return self.get_by_index(&loc);
+        let loc = self.index.get_loc(&label);
+        self.get_by_index(&loc)
     }
 
     /// Return single value corresponding to given location
     pub fn get_by_index(&self, location: &usize) -> T {
-        return self.values[*location];
+        self.values[*location]
     }
 
     /// Slice Series using given labels.
-    pub fn slice_by_label(&mut self, labels: &Vec<U>) -> Series<T, U> {
-
-        // self must be mut to update label_mapper
-        let locs = self.index.slice_label_loc(labels);
-        return self.slice_by_index(&locs);
+    pub fn slice_by_label(&mut self, labels: &Vec<U>) -> Self {
+        self.reindex(labels)
     }
 
     /// Slice Series using given locations.
-    pub fn slice_by_index(&self, locations: &Vec<usize>) -> Series<T, U> {
-        let mut new_values: Vec<T> = vec![];
-        let mut new_index: Vec<U> = vec![];
-
-        for loc in locations {
-            new_values.push(self.values[*loc]);
-            new_index.push(self.index.values[*loc]);
-        }
-        return Series::<T, U>::new(new_values, new_index);
+    pub fn slice_by_index(&self, locations: &Vec<usize>) -> Self {
+        self.reindex_by_index(locations)
     }
 
     /// Slice Series using given bool flags.
-    pub fn slice_by_bool(&self, flags: &Vec<bool>) -> Series<T, U> {
+    pub fn slice_by_bool(&self, flags: &Vec<bool>) -> Self {
 
         if self.len() != flags.len() {
             panic!("Values and Indexer length are different");
         }
 
-        let mut new_values: Vec<T> = vec![];
-        let mut new_index: Vec<U> = vec![];
+        let mut new_values: Vec<T> = Vec::with_capacity(self.len());
+        let mut new_index: Vec<U> = Vec::with_capacity(self.len());
 
+        // ToDo: remove itertools
         for (&flag, &v, &i) in Zip::new((flags, &self.values,
                                          &self.index.values)) {
             if flag {
@@ -100,26 +99,42 @@ impl<T, U> Series<T, U>
                 new_index.push(i);
             }
         }
-        return Series::<T, U>::new(new_values, new_index);
+        Series::new(new_values, new_index)
     }
 
-    pub fn append(&self, other: &Series<T, U>) -> Series<T, U> {
+    pub fn reindex(&mut self, labels: &Vec<U>) -> Self {
+        let locs = self.index.get_locs(labels);
+        let new_values = Sorter::reindex(&self.values, &locs);
+        Series::new(new_values, labels.to_owned())
+    }
+
+    pub fn reindex_by_index(&self, locations: &Vec<usize>) -> Self {
+        let new_index = self.index.reindex(&locations);
+        let new_values = Sorter::reindex(&self.values, &locations);
+        Series::new(new_values, new_index)
+    }
+
+    pub fn append(&self, other: &Series<T, U>) -> Self {
         let mut new_values: Vec<T> = self.values.clone();
         let mut new_index: Vec<U> = self.index.values.clone();
         new_values.append(&mut other.values.clone());
         new_index.append(&mut other.index.values.clone());
 
-        return Series::<T, U>::new(new_values, new_index);
+        Series::new(new_values, new_index)
     }
 
-    pub fn groupby<G>(&self, other: Vec<G>) -> SeriesGroupBy<T, U, G>
+    pub fn groupby<G>(&self, other: Vec<G>) -> groupby::SeriesGroupBy<T, U, G>
         where G: Copy + Eq + Hash + Ord {
-        return SeriesGroupBy::new(&self, other);
+        groupby::SeriesGroupBy::new(&self, other)
     }
+}
 
-    /// Apply passed function to each columns
-    pub fn apply<W: Copy>(&self, func: &Fn(&Vec<T>) -> W) -> W {
-        return func(&self.values);
+impl<T, U, R> Applicable<T, R, R> for Series<T, U>
+    where T: Copy,
+          U: Copy + Eq + Hash {
+
+    fn apply(&self, func: &Fn(&Vec<T>) -> R) -> R {
+        func(&self.values)
     }
 }
 
@@ -134,6 +149,7 @@ impl<T: PartialEq, U: Hash + Eq> PartialEq for Series<T, U> {
 mod tests {
 
     use super::Series;
+    use super::super::indexer::{Indexer, IndexerTrait};
 
     #[test]
     fn test_series_creation_from_vec() {
@@ -143,11 +159,11 @@ mod tests {
 
         let exp_values: Vec<f64> = vec![1., 2., 3.];
         let exp_index: Vec<usize> = vec![0, 1, 2];
-        assert_eq!(&s.values, &exp_values);
-        assert_eq!(&s.index.values, &exp_index);
+        assert_eq!(s.values, exp_values);
+        assert_eq!(s.index.values, exp_index);
 
-        assert_eq!(&s.len(), &3);
-        assert_eq!(&s.index.len(), &3);
+        assert_eq!(s.len(), 3);
+        assert_eq!(s.index.len(), 3);
     }
 
     #[test]
@@ -158,12 +174,28 @@ mod tests {
         let s = Series::<f64, i64>::new(values, index);
 
         let exp_values: Vec<f64> = vec![1., 2., 3.];
-        let exp_index: Vec<i64> = vec![5, 6, 7];
-        assert_eq!(&s.values, &exp_values);
-        assert_eq!(&s.index.values, &exp_index);
+        let exp_index: Indexer<i64> = Indexer::new(vec![5, 6, 7]);
+        assert_eq!(s.values, exp_values);
+        assert_eq!(s.index, exp_index);
 
-        assert_eq!(&s.len(), &3);
-        assert_eq!(&s.index.len(), &3);
+        assert_eq!(s.len(), 3);
+        assert_eq!(s.index.len(), 3);
+    }
+
+    #[test]
+    fn test_series_creation_from_into_index() {
+        let values: Vec<f64> = vec![1., 2., 3.];
+        let index: Indexer<i64> = Indexer::new(vec![5, 6, 7]);
+
+        let s = Series::<f64, i64>::new(values, index);
+
+        let exp_values: Vec<f64> = vec![1., 2., 3.];
+        let exp_index: Indexer<i64> = Indexer::new(vec![5, 6, 7]);
+        assert_eq!(s.values, exp_values);
+        assert_eq!(s.index, exp_index);
+
+        assert_eq!(s.len(), 3);
+        assert_eq!(s.index.len(), 3);
     }
 
     #[test]
@@ -175,9 +207,11 @@ mod tests {
         let copied = s.clone();
 
         let exp_values: Vec<f64> = vec![1., 2., 3.];
-        let exp_index: Vec<i64> = vec![5, 6, 7];
-        assert_eq!(&copied.values, &exp_values);
-        assert_eq!(&copied.index.values, &exp_index);
+        let exp_index: Indexer<i64> = Indexer::new(vec![5, 6, 7]);
+        assert_eq!(copied.values, exp_values);
+        assert_eq!(copied.index, exp_index);
+
+        assert_eq!(copied, s);
     }
 
     #[test]
@@ -197,7 +231,7 @@ mod tests {
         let values: Vec<f64> = vec![1., 2., 3., 4., 5.];
         let index: Vec<i64> = vec![10, 20, 30, 40, 50];
 
-        let mut s = Series::<f64, i64>::new(values, index);
+        let mut s = Series::new(values, index);
 
         // test construction
         let exp_values: Vec<f64> = vec![1., 2., 3., 4., 5.];
@@ -207,11 +241,8 @@ mod tests {
 
         // test label slice
         let res = s.slice_by_label(&vec![20, 30, 50]);
-
-        let exp_values: Vec<f64> = vec![2., 3., 5.];
-        let exp_index: Vec<i64> = vec![20, 30, 50];
-        assert_eq!(&res.values, &exp_values);
-        assert_eq!(&res.index.values, &exp_index);
+        let exp: Series<f64, i64> = Series::new(vec![2., 3., 5.], vec![20, 30, 50]);
+        assert_eq!(res, exp);
     }
 
     #[test]
@@ -224,16 +255,14 @@ mod tests {
         // test construction
         let exp_values: Vec<f64> = vec![1., 2., 3., 4., 5.];
         let exp_index: Vec<i64> = vec![10, 20, 30, 40, 50];
-        assert_eq!(&s.values, &exp_values);
-        assert_eq!(&s.index.values, &exp_index);
+        assert_eq!(s.values, exp_values);
+        assert_eq!(s.index.values, exp_index);
 
         // test index slice
         let res = s.slice_by_index(&vec![0, 2, 4]);
 
-        let exp_values: Vec<f64> = vec![1., 3., 5.];
-        let exp_index: Vec<i64> = vec![10, 30, 50];
-        assert_eq!(&res.values, &exp_values);
-        assert_eq!(&res.index.values, &exp_index);
+        let exp: Series<f64, i64> = Series::new(vec![1., 3., 5.], vec![10, 30, 50]);
+        assert_eq!(res, exp);
     }
 
     #[test]
@@ -246,16 +275,36 @@ mod tests {
         // test construction
         let exp_values: Vec<f64> = vec![1., 2., 3., 4., 5.];
         let exp_index: Vec<i64> = vec![10, 20, 30, 40, 50];
-        assert_eq!(&s.values, &exp_values);
-        assert_eq!(&s.index.values, &exp_index);
+        assert_eq!(s.values, exp_values);
+        assert_eq!(s.index.values, exp_index);
 
         // test bool slice
         let res = s.slice_by_bool(&vec![true, false, false, true, true]);
 
-        let exp_values: Vec<f64> = vec![1., 4., 5.];
-        let exp_index: Vec<i64> = vec![10, 40, 50];
-        assert_eq!(&res.values, &exp_values);
-        assert_eq!(&res.index.values, &exp_index);
+        let exp: Series<f64, i64> = Series::new(vec![1., 4., 5.], vec![10, 40, 50]);
+        assert_eq!(res, exp);
+    }
+
+    #[test]
+    fn test_series_reindex() {
+        let mut s: Series<&str, &str> = Series::new(vec!["a", "b", "c", "d"],
+                                                    vec!["A", "B", "C", "D"]);
+        let res = s.reindex(&vec!["D", "C", "A"]);
+        let exp: Series<&str, &str> = Series::new(vec!["d", "c", "a"],
+                                                  vec!["D", "C", "A"]);
+
+        assert_eq!(res, exp);
+    }
+
+    #[test]
+    fn test_series_reindex_by_index() {
+        let s: Series<&str, &str> = Series::new(vec!["a", "b", "c", "d"],
+                                                vec!["A", "B", "C", "D"]);
+        let res = s.reindex_by_index(&vec![1, 3, 0]);
+        let exp: Series<&str, &str> = Series::new(vec!["b", "d", "a"],
+                                                  vec!["B", "D", "A"]);
+
+        assert_eq!(res, exp);
     }
 
     #[test]
@@ -263,17 +312,16 @@ mod tests {
         let values: Vec<f64> = vec![1., 2., 3., 4., 5.];
         let index: Vec<i64> = vec![10, 20, 30, 40, 50];
 
-        let s1 = Series::<f64, i64>::new(values, index);
+        let s1 = Series::new(values, index);
 
         let values: Vec<f64> = vec![11., 12., 13., 14., 15.];
         let index: Vec<i64> = vec![110, 120, 130, 140, 150];
 
-        let s2 = Series::<f64, i64>::new(values, index);
+        let s2 = Series::new(values, index);
 
         let res = s1.append(&s2);
-        let exp_values: Vec<f64> = vec![1., 2., 3., 4., 5., 11., 12., 13., 14., 15.];
-        let exp_index: Vec<i64> = vec![10, 20, 30, 40, 50, 110, 120, 130, 140, 150];
-        assert_eq!(&res.values, &exp_values);
-        assert_eq!(&res.index.values, &exp_index);
+        let exp: Series<f64, i64> = Series::new(vec![1., 2., 3., 4., 5., 11., 12., 13., 14., 15.],
+                                                vec![10, 20, 30, 40, 50, 110, 120, 130, 140, 150]);
+        assert_eq!(res, exp);
     }
 }

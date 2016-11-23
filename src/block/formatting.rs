@@ -11,7 +11,7 @@ impl<T, U, V> fmt::Display for Block<T, U, V>
           V: Copy + Eq + Hash + fmt::Debug {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        return write!(f, "Block(columns={:?})", &self.columns.values);
+        write!(f, "Block(columns={:?})", &self.columns.values)
     }
 
 }
@@ -43,6 +43,6 @@ impl<T, U, V> fmt::Debug for Block<T, U, V>
             result.push(row_vec.join(" "));
         }
         // debug expression {:?} outputs linesep as character, do not use
-        return write!(f, "{:}", &result.join("\n"));
+        write!(f, "{:}", &result.join("\n"))
     }
 }

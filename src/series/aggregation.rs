@@ -2,12 +2,12 @@ extern crate num;
 
 use num::{Num, Zero, ToPrimitive};
 
-use std::collections::HashMap;
-use std::collections::hash_map::Entry;
 use std::hash::Hash;
 
 use super::Series;
+use super::super::algos::counter::Counter;
 use super::super::computations;
+use super::super::eval::Applicable;
 
 
 impl<T, U> Series<T, U>
@@ -15,31 +15,31 @@ impl<T, U> Series<T, U>
           U: Copy + Eq + Hash {
 
     pub fn sum(&self) -> T {
-        return self.apply(&computations::vec_sum);
+        self.apply(&computations::vec_sum)
     }
 
     pub fn count(&self) -> usize {
-        return self.apply(&computations::vec_count);
+        self.apply(&computations::vec_count)
     }
 
     pub fn mean(&self) -> f64 {
-        return self.apply(&computations::vec_mean);
+        self.apply(&computations::vec_mean)
     }
 
     pub fn var(&self) -> f64 {
-        return self.apply(&computations::vec_var);
+        self.apply(&computations::vec_var)
     }
 
     pub fn unbiased_var(&self) -> f64 {
-        return self.apply(&computations::vec_unbiased_var);
+        self.apply(&computations::vec_unbiased_var)
     }
 
     pub fn std(&self) -> f64 {
-        return self.apply(&computations::vec_std);
+        self.apply(&computations::vec_std)
     }
 
     pub fn unbiased_std(&self) -> f64 {
-        return self.apply(&computations::vec_unbiased_std);
+        self.apply(&computations::vec_unbiased_std)
     }
 }
 
@@ -48,11 +48,11 @@ impl<T, U> Series<T, U>
           U: Copy + Eq + Hash {
 
     pub fn min(&self) -> T {
-        return self.apply(&computations::vec_min);
+        self.apply(&computations::vec_min)
     }
 
     pub fn max(&self) -> T {
-        return self.apply(&computations::vec_max);
+        self.apply(&computations::vec_max)
     }
 
     pub fn describe(&self) -> Series<f64, &str> {
@@ -67,7 +67,7 @@ impl<T, U> Series<T, U>
                                         self.std(),
                                         min,
                                         max];
-        return Series::new(new_values, new_index);
+        Series::new(new_values, new_index)
     }
 }
 
@@ -78,27 +78,9 @@ impl<T, U> Series<T, U>
           U: Copy + Eq + Hash {
 
     pub fn value_counts(&self) -> Series<usize, T> {
-
-        let mut map: HashMap<T, usize> = HashMap::new();
-
-        for v in self.values.iter() {
-            match map.entry(*v) {
-                Entry::Occupied(mut e) => {
-                    *e.get_mut() += 1;
-                },
-                Entry::Vacant(e) => {
-                    e.insert(1);
-                }
-            }
-        }
-        let mut values: Vec<usize> = Vec::with_capacity(map.len());
-        let mut index: Vec<T> = Vec::with_capacity(map.len());
-
-        for (k, v) in map {
-            values.push(v);
-            index.push(k);
-        }
-        Series::new(values, index)
+        let c = Counter::new(&self.values);
+        let (keys, counts) = c.get_results();
+        Series::new(counts, keys)
     }
 }
 
@@ -188,18 +170,23 @@ mod tests {
         assert_eq!(&d.index.values, &exp_index);
     }
 
-    /*  Disable for now, as indexer order cannot be guaranteed
     #[test]
-    fn test_series_value_counts() {
-        let values: Vec<i64> = vec![1, 1, 3, 4, 1, 1, 2, 3];
-        let s = Series::<i64, i64>::from_vec(values);
+    fn test_series_value_counts_int() {
+        let values: Vec<i64> = vec![1, 1, 3, 4, 2, 1, 1, 2, 3, 3];
+        let s = Series::<i64, usize>::from_vec(values);
 
         let d = s.value_counts();
-        let exp_values: Vec<usize> = vec![4, 1, 2, 1];
-        let exp_index: Vec<i64> = vec![1, 2, 3, 4];
-        assert_eq!(&d.values, &exp_values);
-        assert_eq!(&d.index.values, &exp_index);
+        let exp: Series<usize, i64> = Series::new(vec![4, 3, 2, 1], vec![1, 3, 2, 4]);
+        assert_eq!(&d, &exp);
     }
-    */
 
+    #[test]
+    fn test_series_value_counts_str() {
+        let values: Vec<&str> = vec!["a", "bb", "bb", "c", "a", "a"];
+        let s = Series::<&str, usize>::from_vec(values);
+
+        let d = s.value_counts();
+        let exp: Series<usize, &str> = Series::new(vec![3, 2, 1], vec!["a", "bb", "c"]);
+        assert_eq!(&d, &exp);
+    }
 }

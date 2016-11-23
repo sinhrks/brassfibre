@@ -12,7 +12,7 @@ impl<T, U> fmt::Display for Series<T, U>
           U: Copy + Eq + Hash {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        return write!(f, "Series({:?})", &self.values);
+        write!(f, "Series({:?})", &self.values)
     }
 
 }
@@ -31,7 +31,7 @@ impl<T, U> fmt::Debug for Series<T, U>
             result.push(row.join(" "));
         }
         // debug expression {:?} outputs linesep as character, do not use
-        return write!(f, "{:}", &result.join("\n"));
+        write!(f, "{:}", &result.join("\n"))
     }
 
 }

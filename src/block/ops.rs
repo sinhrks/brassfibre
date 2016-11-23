@@ -8,26 +8,26 @@ use super::Block;
 
 
 fn broadcast<T>(left: &Vec<Vec<T>>, func: &Fn(&T) -> T) -> Vec<Vec<T>> {
-    let mut new_values: Vec<Vec<T>> = vec![];
+    let mut new_values: Vec<Vec<T>> = Vec::with_capacity(left.len());
     for value in left.iter() {
         let new_value = value.iter().map(func).collect();
         new_values.push(new_value);
     }
-    return new_values;
+    new_values
 }
 
 fn elemwise<T>(left: &Vec<Vec<T>>, right: &Vec<Vec<T>>,
             func: &Fn((&T, &T)) -> T) -> Vec<Vec<T>>
     where T: Copy + Num {
 
-    let mut new_values: Vec<Vec<T>> = vec![];
+    let mut new_values: Vec<Vec<T>> = Vec::with_capacity(left.len());
     for (value, rvalue) in left.iter().zip(right.iter()) {
         let new_value = value.iter()
                              .zip(rvalue.iter())
                              .map(func).collect();
         new_values.push(new_value);
     }
-    return new_values;
+    new_values
 }
 
 macro_rules! define_numeric_op(
@@ -42,9 +42,9 @@ macro_rules! define_numeric_op(
         type Output = Block<T, U, V>;
         fn $m(self, _rhs: T) -> Block<T, U, V> {
             let new_values = broadcast(&self.values, &|x| (*x).$m(_rhs));
-            return Block::from_nested_vec(new_values,
-                                          self.index.copy_values(),
-                                          self.columns.copy_values());
+            Block::from_nested_vec(new_values,
+                                   self.index.clone(),
+                                   self.columns.clone())
         }
     }
 
@@ -56,9 +56,9 @@ macro_rules! define_numeric_op(
         type Output = Block<T, U, V>;
         fn $m(self, _rhs: &T) -> Block<T, U, V> {
             let new_values = broadcast(&self.values, &|x: &T| (*x).$m(*_rhs));
-            return Block::from_nested_vec(new_values,
-                                          self.index.copy_values(),
-                                          self.columns.copy_values());
+            Block::from_nested_vec(new_values,
+                                   self.index.clone(),
+                                   self.columns.clone())
         }
     }
 
@@ -70,9 +70,9 @@ macro_rules! define_numeric_op(
         type Output = Block<T, U, V>;
         fn $m(self, _rhs: T) -> Block<T, U, V> {
             let new_values = broadcast(&self.values, &|x: &T| (*x).$m(_rhs));
-            return Block::from_nested_vec(new_values,
-                                          self.index.copy_values(),
-                                          self.columns.copy_values());
+            Block::from_nested_vec(new_values,
+                                   self.index.clone(),
+                                   self.columns.clone())
         }
     }
 
@@ -84,9 +84,9 @@ macro_rules! define_numeric_op(
         type Output = Block<T, U, V>;
         fn $m(self, _rhs: &T) -> Block<T, U, V> {
             let new_values = broadcast(&self.values, &|x: &T| (*x).$m(*_rhs));
-            return Block::from_nested_vec(new_values,
-                                          self.index.copy_values(),
-                                          self.columns.copy_values());
+            Block::from_nested_vec(new_values,
+                                   self.index.clone(),
+                                   self.columns.clone())
         }
     }
 
@@ -101,9 +101,9 @@ macro_rules! define_numeric_op(
             self.assert_binop(&_rhs);
             let new_values = elemwise(&self.values, &_rhs.values,
                                       &|(x, y)| (*x).$m(*y));
-            return Block::from_nested_vec(new_values,
-                                          self.index.copy_values(),
-                                          self.columns.copy_values());
+            Block::from_nested_vec(new_values,
+                                   self.index.clone(),
+                                   self.columns.clone())
         }
     }
 
@@ -117,9 +117,9 @@ macro_rules! define_numeric_op(
             self.assert_binop(&_rhs);
             let new_values = elemwise(&self.values, &_rhs.values,
                                       &|(x, y)| (*x).$m(*y));
-            return Block::from_nested_vec(new_values,
-                                          self.index.copy_values(),
-                                          self.columns.copy_values());
+            Block::from_nested_vec(new_values,
+                                   self.index.clone(),
+                                   self.columns.clone())
         }
     }
 
@@ -133,9 +133,9 @@ macro_rules! define_numeric_op(
             self.assert_binop(&_rhs);
             let new_values = elemwise(&self.values, &_rhs.values,
                                       &|(x, y)| (*x).$m(*y));
-            return Block::from_nested_vec(new_values,
-                                          self.index.copy_values(),
-                                          self.columns.copy_values());
+            Block::from_nested_vec(new_values,
+                                   self.index.clone(),
+                                   self.columns.clone())
         }
     }
 
@@ -149,9 +149,9 @@ macro_rules! define_numeric_op(
             self.assert_binop(&_rhs);
             let new_values = elemwise(&self.values, &_rhs.values,
                                       &|(x, y)| (*x).$m(*y));
-            return Block::from_nested_vec(new_values,
-                                          self.index.copy_values(),
-                                          self.columns.copy_values());
+            Block::from_nested_vec(new_values,
+                                   self.index.clone(),
+                                   self.columns.clone())
         }
     }
 
