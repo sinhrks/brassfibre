@@ -3,8 +3,10 @@ use num::{Num, Zero, ToPrimitive};
 use std::cmp::Ord;
 use std::hash::Hash;
 
-use super::super::algos::groupby::{GroupBy, HashGroupBy};
+
 use super::Series;
+use super::super::algos::groupby::{GroupBy, HashGroupBy};
+use super::super::traits::RowIndexer;
 
 pub struct SeriesGroupBy<'a, T: 'a, U: 'a + Hash, G: 'a + Hash> {
     /// Grouped Series
@@ -38,7 +40,7 @@ impl<'a, T, U, G> SeriesGroupBy<'a, T, U, G>
     pub fn get_group(&self, group: &G) -> Series<T, U> {
 
         if let Some(locs) = self.grouper.get(group) {
-            self.series.slice_by_index(&locs.clone())
+            self.series.ilocs(&locs)
         } else {
             panic!("Group not found!");
         }
@@ -104,8 +106,10 @@ impl<'a, T, U, G> SeriesGroupBy<'a, T, U, G>
 #[cfg(test)]
 mod tests {
 
-    use super::super::Series;
+
     use super::SeriesGroupBy;
+    use super::super::Series;
+    use super::super::super::indexer::Indexer;
 
     #[test]
     fn test_series_get_group() {
@@ -114,19 +118,19 @@ mod tests {
 
         // Instanciate directly method
         let sg = SeriesGroupBy::<f64, usize, i64>::new(&s, vec![1, 1, 1, 2, 2, 2]);
-        assert_eq!(&sg.groups().len(), &2);
+        assert_eq!(sg.groups().len(), 2);
 
         let s1 = sg.get_group(&1);
         let exp_values: Vec<f64> = vec![1., 2., 3.];
-        let exp_index: Vec<usize> = vec![0, 1, 2];
-        assert_eq!(&s1.values, &exp_values);
-        assert_eq!(&s1.index.values, &exp_index);
+        let exp_index: Indexer<usize> = Indexer::new(vec![0, 1, 2]);
+        assert_eq!(s1.values, exp_values);
+        assert_eq!(s1.index, exp_index);
 
         let s2 = sg.get_group(&2);
         let exp_values: Vec<f64> = vec![4., 5., 6.];
-        let exp_index: Vec<usize> = vec![3, 4, 5];
-        assert_eq!(&s2.values, &exp_values);
-        assert_eq!(&s2.index.values, &exp_index);
+        let exp_index: Indexer<usize> = Indexer::new(vec![3, 4, 5]);
+        assert_eq!(s2.values, exp_values);
+        assert_eq!(s2.index, exp_index);
     }
 
 
@@ -137,19 +141,19 @@ mod tests {
 
         // Use Series method
         let sg = s.groupby(vec![1, 1, 1, 2, 2, 2]);
-        assert_eq!(&sg.groups().len(), &2);
+        assert_eq!(sg.groups().len(), 2);
 
         let s1 = sg.get_group(&1);
         let exp_values: Vec<f64> = vec![1., 2., 3.];
-        let exp_index: Vec<usize> = vec![0, 1, 2];
-        assert_eq!(&s1.values, &exp_values);
-        assert_eq!(&s1.index.values, &exp_index);
+        let exp_index: Indexer<usize> = Indexer::new(vec![0, 1, 2]);
+        assert_eq!(s1.values, exp_values);
+        assert_eq!(s1.index, exp_index);
 
         let s2 = sg.get_group(&2);
         let exp_values: Vec<f64> = vec![4., 5., 6.];
-        let exp_index: Vec<usize> = vec![3, 4, 5];
-        assert_eq!(&s2.values, &exp_values);
-        assert_eq!(&s2.index.values, &exp_index);
+        let exp_index: Indexer<usize> = Indexer::new(vec![3, 4, 5]);
+        assert_eq!(s2.values, exp_values);
+        assert_eq!(s2.index, exp_index);
     }
 
     #[test]
@@ -162,9 +166,9 @@ mod tests {
         let sum = sg.sum();
 
         let exp_values: Vec<i64> = vec![6, 9];
-        let exp_index: Vec<i64> = vec![1, 2];
-        assert_eq!(&sum.values, &exp_values);
-        assert_eq!(&sum.index.values, &exp_index);
+        let exp_index: Indexer<i64> = Indexer::new(vec![1, 2]);
+        assert_eq!(sum.values, exp_values);
+        assert_eq!(sum.index, exp_index);
     }
 
     #[test]
@@ -176,9 +180,9 @@ mod tests {
         let sum = sg.sum();
 
         let exp_values: Vec<i64> = vec![6, 9];
-        let exp_index: Vec<&str> = vec!["A", "B"];
-        assert_eq!(&sum.values, &exp_values);
-        assert_eq!(&sum.index.values, &exp_index);
+        let exp_index: Indexer<&str> = Indexer::new(vec!["A", "B"]);
+        assert_eq!(sum.values, exp_values);
+        assert_eq!(sum.index, exp_index);
     }
 
     #[test]
@@ -191,9 +195,9 @@ mod tests {
         let sum = sg.mean();
 
         let exp_values: Vec<f64> = vec![2.0, 4.5];
-        let exp_index: Vec<i64> = vec![1, 2];
-        assert_eq!(&sum.values, &exp_values);
-        assert_eq!(&sum.index.values, &exp_index);
+        let exp_index: Indexer<i64> = Indexer::new(vec![1, 2]);
+        assert_eq!(sum.values, exp_values);
+        assert_eq!(sum.index, exp_index);
     }
 
 }

@@ -17,7 +17,7 @@ pub struct Indexer<U: Hash> {
     pub label_mapper: HashMap<U, usize>,
 }
 
-pub trait IndexerTrait<U: Hash> {
+pub trait IndexerIndexer<U: Hash> {
     fn len(&self) -> usize;
     fn contains(&mut self, label: &U) -> bool;
     fn push(&mut self, label: U);
@@ -44,7 +44,7 @@ impl<U> Indexer<U> where U: Copy + Eq + Hash {
     }
 }
 
-impl<U> IndexerTrait<U> for Indexer<U>  where U: Copy + Eq + Hash {
+impl<U> IndexerIndexer<U> for Indexer<U>  where U: Copy + Eq + Hash {
 
     fn len(&self) -> usize {
         self.values.len()
@@ -113,7 +113,7 @@ impl<U: Hash + Eq> PartialEq for Indexer<U> {
 #[cfg(test)]
 mod tests {
 
-    use super::{Indexer, IndexerTrait};
+    use super::{Indexer, IndexerIndexer};
 
     #[test]
     fn test_index_creation_from_len() {

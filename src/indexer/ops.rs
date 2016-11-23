@@ -15,100 +15,100 @@ fn elemwise<T>(left: &Vec<T>, right: &Vec<T>,
         .map(func).collect()
 }
 
-macro_rules! define_numric_op(
-  ($t:ident $m:ident) => (
+macro_rules! define_numric_op {
+    ($t:ident $m:ident) => {
 
-    // Broadcast
-    impl<U> $t<U> for Indexer<U>
-        where U: Copy + Eq + Hash + Num {
+        // Broadcast
+        impl<U> $t<U> for Indexer<U>
+            where U: Copy + Eq + Hash + Num {
 
-        type Output = Self;
-        fn $m(self, _rhs: U) -> Self {
-            let new_values = self.values.iter().map(|x: &U| (*x).$m(_rhs)).collect();
-            Indexer::new(new_values)
+            type Output = Self;
+            fn $m(self, _rhs: U) -> Self {
+                let new_values = self.values.iter().map(|x: &U| (*x).$m(_rhs)).collect();
+                Indexer::new(new_values)
+            }
+        }
+
+        impl<'a, U> $t<&'a U> for Indexer<U>
+            where U: Copy + Eq + Hash + Num {
+
+            type Output = Self;
+            fn $m(self, _rhs: &U) -> Self {
+                let new_values = self.values.iter().map(|x: &U| (*x).$m(*_rhs)).collect();
+                Indexer::new(new_values)
+            }
+        }
+
+        impl<'b, U> $t<U> for &'b Indexer<U>
+            where U: Copy + Eq + Hash + Num {
+
+            // can't use self as impl is for reference?
+            type Output = Indexer<U>;
+            fn $m(self, _rhs: U) -> Indexer<U> {
+                let new_values = self.values.iter().map(|x: &U| (*x).$m(_rhs)).collect();
+                Indexer::new(new_values)
+            }
+        }
+
+        impl<'a, 'b, U> $t<&'a U> for &'b Indexer<U>
+            where U: Copy + Eq + Hash + Num {
+
+            type Output = Indexer<U>;
+            fn $m(self, _rhs: &U) -> Indexer<U> {
+                let new_values = self.values.iter().map(|x: &U| (*x).$m(*_rhs)).collect();
+                Indexer::new(new_values)
+            }
+        }
+
+        // Element-wise
+        impl<U> $t<Indexer<U>> for Indexer<U>
+            where U: Copy + Eq + Hash + Num {
+
+            type Output = Self;
+            fn $m(self, _rhs: Self) -> Self {
+                let new_values = elemwise(&self.values, &_rhs.values, &|(x, y)| (*x).$m(*y));
+                Indexer::new(new_values)
+            }
+        }
+
+        impl<'a, U> $t<&'a Indexer<U>> for Indexer<U>
+            where U: Copy + Eq + Hash + Num {
+
+            type Output = Self;
+            fn $m(self, _rhs: &Self) -> Self {
+                let new_values = elemwise(&self.values, &_rhs.values, &|(x, y)| (*x).$m(*y));
+                Indexer::new(new_values)
+            }
+        }
+
+        impl<'b, U> $t<Indexer<U>> for &'b Indexer<U>
+            where U: Copy + Eq + Hash + Num {
+
+            type Output = Indexer<U>;
+            fn $m(self, _rhs: Indexer<U>) -> Indexer<U> {
+                let new_values = elemwise(&self.values, &_rhs.values, &|(x, y)| (*x).$m(*y));
+                Indexer::new(new_values)
+            }
+        }
+
+        impl<'a, 'b, U> $t<&'a Indexer<U>> for &'b Indexer<U>
+            where U: Copy + Eq + Hash + Num {
+
+            type Output = Indexer<U>;
+            fn $m(self, _rhs: &Indexer<U>) -> Indexer<U> {
+                let new_values = elemwise(&self.values, &_rhs.values, &|(x, y)| (*x).$m(*y));
+                Indexer::new(new_values)
+            }
         }
     }
-
-    impl<'a, U> $t<&'a U> for Indexer<U>
-        where U: Copy + Eq + Hash + Num {
-
-        type Output = Self;
-        fn $m(self, _rhs: &U) -> Self {
-            let new_values = self.values.iter().map(|x: &U| (*x).$m(*_rhs)).collect();
-            Indexer::new(new_values)
-        }
-    }
-
-    impl<'b, U> $t<U> for &'b Indexer<U>
-        where U: Copy + Eq + Hash + Num {
-
-        // can't use self as impl is for reference?
-        type Output = Indexer<U>;
-        fn $m(self, _rhs: U) -> Indexer<U> {
-            let new_values = self.values.iter().map(|x: &U| (*x).$m(_rhs)).collect();
-            Indexer::new(new_values)
-        }
-    }
-
-    impl<'a, 'b, U> $t<&'a U> for &'b Indexer<U>
-        where U: Copy + Eq + Hash + Num {
-
-        type Output = Indexer<U>;
-        fn $m(self, _rhs: &U) -> Indexer<U> {
-            let new_values = self.values.iter().map(|x: &U| (*x).$m(*_rhs)).collect();
-            Indexer::new(new_values)
-        }
-    }
-
-    // Element-wise
-    impl<U> $t<Indexer<U>> for Indexer<U>
-        where U: Copy + Eq + Hash + Num {
-
-        type Output = Self;
-        fn $m(self, _rhs: Self) -> Self {
-            let new_values = elemwise(&self.values, &_rhs.values, &|(x, y)| (*x).$m(*y));
-            Indexer::new(new_values)
-        }
-    }
-
-    impl<'a, U> $t<&'a Indexer<U>> for Indexer<U>
-        where U: Copy + Eq + Hash + Num {
-
-        type Output = Self;
-        fn $m(self, _rhs: &Self) -> Self {
-            let new_values = elemwise(&self.values, &_rhs.values, &|(x, y)| (*x).$m(*y));
-            Indexer::new(new_values)
-        }
-    }
-
-    impl<'b, U> $t<Indexer<U>> for &'b Indexer<U>
-        where U: Copy + Eq + Hash + Num {
-
-        type Output = Indexer<U>;
-        fn $m(self, _rhs: Indexer<U>) -> Indexer<U> {
-            let new_values = elemwise(&self.values, &_rhs.values, &|(x, y)| (*x).$m(*y));
-            Indexer::new(new_values)
-        }
-    }
-
-    impl<'a, 'b, U> $t<&'a Indexer<U>> for &'b Indexer<U>
-        where U: Copy + Eq + Hash + Num {
-
-        type Output = Indexer<U>;
-        fn $m(self, _rhs: &Indexer<U>) -> Indexer<U> {
-            let new_values = elemwise(&self.values, &_rhs.values, &|(x, y)| (*x).$m(*y));
-            Indexer::new(new_values)
-        }
-    }
-
-  );
-);
+}
 
 define_numric_op!(Add add);
 define_numric_op!(Mul mul);
 define_numric_op!(Sub sub);
 define_numric_op!(Div div);
 define_numric_op!(Rem rem);
+
 
 #[cfg(test)]
 mod tests {

@@ -1,4 +1,3 @@
-use std::convert::{From, Into};
 use std::hash::Hash;
 
 use super::Indexer;

@@ -8,7 +8,6 @@ pub fn vec_sum<T>(values: &Vec<T>) -> T
     where T: Copy + Num + Zero {
 
     // ToDo: Use AsRef
-
     values.iter().fold(T::zero(), |a, b| a + *b)
 }
 
@@ -71,7 +70,7 @@ pub trait NanMinMax<A> {
     fn nanmax_value() -> A;
 }
 
-macro_rules! define_int_stats(
+macro_rules! define_int_stats {
     ($t:ident) => {
         impl NanMinMax<$t> for $t {
             fn nanmin(&self, n: $t) -> $t {
@@ -88,9 +87,9 @@ macro_rules! define_int_stats(
             }
         }
     }
-);
+}
 
-macro_rules! define_float_stats(
+macro_rules! define_float_stats {
     ($t:ident) => {
         impl NanMinMax<$t> for $t {
             fn nanmin(&self, n: $t) -> $t {
@@ -107,7 +106,7 @@ macro_rules! define_float_stats(
             }
         }
     }
-);
+}
 
 define_int_stats!(i64);
 define_int_stats!(i32);
@@ -144,8 +143,6 @@ mod tests {
         let values: Vec<f64> = vec![1., 2., 3.];
         assert_eq!(super::vec_sum(&values), 6.);
         assert_eq!(super::vec_sum(&values), 6.);
-
-
     }
 
     #[test]

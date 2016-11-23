@@ -1,6 +1,6 @@
 extern crate brassfibre;
 
-use brassfibre::block::Block;
+use brassfibre::*;
 
 fn main() {
     // cargo build --example block
@@ -14,12 +14,12 @@ fn main() {
                                     vec![10, 20, 30, 40, 50],
                                     vec!["X", "YYY", "ZZ"]);
     println!("{:?}\n", &b);
-    println!("{:?}\n", &b.slice_by_label(&vec![20, 30, 40]));
+    println!("** Slicing / Calculation **");
 
+    println!("{:?}\n", &b.locs(&vec![20, 30, 40]));
     println!("{:?}\n", &b.transpose());
 
-    println!("** Slicing / Calculation **");
-    println!("{:?}\n", &b.get_column_by_label(&"YYY"));
+    println!("{:?}\n", &b.get(&"YYY"));
     println!("{:?}\n", &b.sum());
     println!("{:?}\n", &b.mean());
 

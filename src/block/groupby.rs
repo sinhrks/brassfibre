@@ -3,8 +3,9 @@ use num::{Num, Zero, ToPrimitive};
 use std::cmp::Ord;
 use std::hash::Hash;
 
-use super::super::algos::groupby::{GroupBy, HashGroupBy};
 use super::Block;
+use super::super::algos::groupby::{GroupBy, HashGroupBy};
+use super::super::traits::RowIndexer;
 
 pub struct BlockGroupBy<'a, T: 'a, U: 'a + Hash, V: 'a + Hash, G: 'a + Hash> {
     /// Grouped Block
@@ -40,7 +41,7 @@ impl<'a, T, U, V, G> BlockGroupBy<'a, T, U, V, G>
     pub fn get_group(&self, group: &G) -> Block<T, U, V> {
 
         if let Some(locs) = self.grouper.get(group) {
-            self.block.slice_by_index(&locs.clone())
+            self.block.ilocs(&locs)
         } else {
             panic!("Group not found!");
         }
@@ -109,6 +110,7 @@ impl<'a, T, U, V, G> BlockGroupBy<'a, T, U, V, G>
 mod tests {
 
     use super::super::Block;
+    use super::super::super::traits::ColIndexer;
 
     #[test]
     fn test_block_get_group() {
@@ -118,20 +120,16 @@ mod tests {
         let b = Block::from_col_vec(values,
                                     vec!["A", "B", "C", "D", "E"],
                                     vec!["X", "Y", "Z"]);
-        assert_eq!(&b.len(), &5);
+        assert_eq!(b.len(), 5);
 
         let bg = b.groupby(vec![1, 2, 1, 1, 2]);
         assert_eq!(&bg.groups().len(), &2);
 
-        let mut b1 = bg.get_group(&1);
-        assert_eq!(&b1.index.values, &vec!["A", "C", "D"]);
-        assert_eq!(&b1.columns.values, &vec!["X", "Y", "Z"]);
-        let c11 = b1.get_column_by_label(&"X");
-        assert_eq!(&c11.values, &vec![1, 3, 4]);
-        let c11 = b1.get_column_by_label(&"Y");
-        assert_eq!(&c11.values, &vec![6, 8, 9]);
-        let c11 = b1.get_column_by_label(&"Z");
-        assert_eq!(&c11.values, &vec![11, 13, 14]);
+        let b1 = bg.get_group(&1);
+        let exp = Block::from_col_vec(vec![1, 3, 4, 6, 8, 9, 11, 13, 14],
+                                      vec!["A", "C", "D"],
+                                      vec!["X", "Y", "Z"]);
+        assert_eq!(b1, exp);
     }
 
     #[test]
@@ -142,20 +140,16 @@ mod tests {
         let b = Block::from_col_vec(values,
                                     vec!["A", "B", "C", "D", "E"],
                                     vec!["X", "Y", "Z"]);
-        assert_eq!(&b.len(), &5);
+        assert_eq!(b.len(), 5);
 
         let bg = b.groupby(vec![1, 2, 1, 1, 2]);
-        let mut bsum = bg.sum();
+        let bsum = bg.sum();
 
-        assert_eq!(&bsum.len(), &2);
-        assert_eq!(&bsum.index.values, &vec![1, 2]);
-        assert_eq!(&bsum.columns.values, &vec!["X", "Y", "Z"]);
-        let c11 = bsum.get_column_by_label(&"X");
-        assert_eq!(&c11.values, &vec![8, 7]);
-        let c11 = bsum.get_column_by_label(&"Y");
-        assert_eq!(&c11.values, &vec![23, 17]);
-        let c11 = bsum.get_column_by_label(&"Z");
-        assert_eq!(&c11.values, &vec![38, 27]);
+        assert_eq!(bsum.len(), 2);
+        let exp = Block::from_col_vec(vec![8, 7, 23, 17, 38, 27],
+                                      vec![1, 2],
+                                      vec!["X", "Y", "Z"]);
+        assert_eq!(bsum, exp);
     }
 
     #[test]
@@ -168,65 +162,51 @@ mod tests {
         assert_eq!(&b.len(), &10);
 
         let bg = b.groupby(vec![1, 1, 1, 2, 2, 2, 1, 1, 1, 2]);
-        let mut bagg = bg.sum();
+        let bagg = bg.sum();
 
         // mean
-        assert_eq!(&bagg.len(), &2);
-        assert_eq!(&bagg.index.values, &vec![1, 2]);
-        assert_eq!(&bagg.columns.values, &vec!["X", "Y"]);
-        let c11 = bagg.get_column_by_label(&"X");
-        assert_eq!(&c11.values, &vec![30, 25]);
-        let c11 = bagg.get_column_by_label(&"Y");
-        assert_eq!(&c11.values, &vec![60, 50]);
+        let exp = Block::from_col_vec(vec![30, 25, 60, 50],
+                                      vec![1, 2],
+                                      vec!["X", "Y"]);
+        assert_eq!(bagg, exp);
 
         // count
-        let mut bagg = bg.count();
-        assert_eq!(&bagg.len(), &2);
-        assert_eq!(&bagg.index.values, &vec![1, 2]);
-        assert_eq!(&bagg.columns.values, &vec!["X", "Y"]);
-        let c11 = bagg.get_column_by_label(&"X");
-        assert_eq!(&c11.values, &vec![6, 4]);
-        let c11 = bagg.get_column_by_label(&"Y");
-        assert_eq!(&c11.values, &vec![6, 4]);
+        let bagg = bg.count();
+        let exp = Block::from_col_vec(vec![6, 4, 6, 4],
+                                      vec![1, 2],
+                                      vec!["X", "Y"]);
+        assert_eq!(bagg, exp);
 
         // var
-        let mut bagg = bg.var();
-        assert_eq!(&bagg.len(), &2);
-        assert_eq!(&bagg.index.values, &vec![1, 2]);
-        assert_eq!(&bagg.columns.values, &vec!["X", "Y"]);
-        let c11 = bagg.get_column_by_label(&"X");
-        assert_eq!(&c11.values, &vec![9.666666666666666, 5.1875]);
-        let c11 = bagg.get_column_by_label(&"Y");
-        assert_eq!(&c11.values, &vec![38.666666666666664, 20.75]);
+        let bagg = bg.var();
+        let exp = Block::from_col_vec(vec![9.666666666666666, 5.1875,
+                                           38.666666666666664, 20.75],
+                                      vec![1, 2],
+                                      vec!["X", "Y"]);
+        assert_eq!(bagg, exp);
 
         // unbiased var
-        let mut bagg = bg.unbiased_var();
-        assert_eq!(&bagg.len(), &2);
-        assert_eq!(&bagg.index.values, &vec![1, 2]);
-        assert_eq!(&bagg.columns.values, &vec!["X", "Y"]);
-        let c11 = bagg.get_column_by_label(&"X");
-        assert_eq!(&c11.values, &vec![11.6, 6.916666666666667]);
-        let c11 = bagg.get_column_by_label(&"Y");
-        assert_eq!(&c11.values, &vec![46.4, 27.666666666666668]);
+        let bagg = bg.unbiased_var();
+        let exp = Block::from_col_vec(vec![11.6, 6.916666666666667,
+                                           46.4, 27.666666666666668],
+                                      vec![1, 2],
+                                      vec!["X", "Y"]);
+        assert_eq!(bagg, exp);
 
         // std
-        let mut bagg = bg.std();
-        assert_eq!(&bagg.len(), &2);
-        assert_eq!(&bagg.index.values, &vec![1, 2]);
-        assert_eq!(&bagg.columns.values, &vec!["X", "Y"]);
-        let c11 = bagg.get_column_by_label(&"X");
-        assert_eq!(&c11.values, &vec![3.1091263510296048, 2.277608394786075]);
-        let c11 = bagg.get_column_by_label(&"Y");
-        assert_eq!(&c11.values, &vec![6.2182527020592095, 4.55521678957215]);
+        let bagg = bg.std();
+        let exp = Block::from_col_vec(vec![3.1091263510296048, 2.277608394786075,
+                                           6.2182527020592095, 4.55521678957215],
+                                      vec![1, 2],
+                                      vec!["X", "Y"]);
+        assert_eq!(bagg, exp);
 
         // unbiased std
-        let mut bagg = bg.unbiased_std();
-        assert_eq!(&bagg.len(), &2);
-        assert_eq!(&bagg.index.values, &vec![1, 2]);
-        assert_eq!(&bagg.columns.values, &vec!["X", "Y"]);
-        let c11 = bagg.get_column_by_label(&"X");
-        assert_eq!(&c11.values, &vec![3.40587727318528, 2.6299556396765835]);
-        let c11 = bagg.get_column_by_label(&"Y");
-        assert_eq!(&c11.values, &vec![6.81175454637056, 5.259911279353167]);
+        let bagg = bg.unbiased_std();
+        let exp = Block::from_col_vec(vec![3.40587727318528, 2.6299556396765835,
+                                           6.81175454637056, 5.259911279353167],
+                                      vec![1, 2],
+                                      vec!["X", "Y"]);
+        assert_eq!(bagg, exp);
     }
 }

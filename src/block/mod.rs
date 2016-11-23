@@ -2,8 +2,9 @@ use std::hash::Hash;
 
 use super::algos::sort::Sorter;
 use super::eval::Applicable;
-use super::indexer::{Indexer, IndexerTrait};
+use super::indexer::{Indexer, IndexerIndexer};
 use super::series::Series;
+use super::traits::{RowIndexer, ColIndexer};
 
 mod aggregation;
 mod formatting;
@@ -23,7 +24,71 @@ pub struct Block<T, U: Hash, V: Hash> {
     pub columns: Indexer<V>,
 }
 
+////////////////////////////////////////////////////////////////////////////////
 // Indexing
+////////////////////////////////////////////////////////////////////////////////
+
+impl<T, U, V> RowIndexer<U> for Block<T, U, V>
+    where T: Copy,
+          U: Copy + Eq + Hash,
+          V: Copy + Eq + Hash {
+
+    fn reindex(&mut self, labels: &Vec<U>) -> Self {
+        let locations = self.index.get_locs(labels);
+        self.reindex_by_index(&locations)
+    }
+
+    fn reindex_by_index(&self, locations: &Vec<usize>) -> Self {
+        let new_index = self.index.reindex(locations);
+
+        let mut new_values: Vec<Vec<T>> = Vec::with_capacity(self.columns.len());
+        for current in self.values.iter() {
+            let new_value = Sorter::reindex(current, locations);
+            new_values.push(new_value);
+        }
+        Block::from_vec(new_values, new_index, self.columns.clone())
+    }
+
+    fn blocs(&self, labels: &Vec<bool>) -> Self {
+        unimplemented!()
+        // ToDo: fix Series impl
+    }
+}
+
+impl<T, U, V> ColIndexer<V, Series<T, U>> for Block<T, U, V>
+    where T: Copy,
+          U: Copy + Eq + Hash,
+          V: Copy + Eq + Hash {
+
+    fn get(&mut self, label: &V) -> Series<T, U> {
+        let loc = self.columns.get_loc(label);
+        self.iget(&loc)
+    }
+
+    fn iget(&self, loc: &usize) -> Series<T, U> {
+        let new_values = self.values[*loc].clone();
+        Series::new(new_values, self.index.clone())
+    }
+
+    fn gets(&mut self, labels: &Vec<V>) -> Self {
+        let locs = self.columns.get_locs(labels);
+        self.igets(&locs)
+    }
+
+    fn igets(&self, locations: &Vec<usize>) -> Self {
+        let new_columns = self.columns.reindex(locations);
+
+        let mut new_values: Vec<Vec<T>> = Vec::with_capacity(new_columns.len());
+        for loc in locations {
+            new_values.push(self.values[*loc].clone());
+        }
+        Block::from_vec(new_values, self.index.clone(), new_columns)
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Misc
+////////////////////////////////////////////////////////////////////////////////
 
 impl<T, U, V> Block<T, U, V>
     where T: Copy,
@@ -31,7 +96,7 @@ impl<T, U, V> Block<T, U, V>
           V: Copy + Eq + Hash {
 
     /// Instanciate from column-wise Vec
-    pub fn from_col_vec<I, C>(values: Vec<T>, index: I, columns: C) -> Block<T, U, V>
+    pub fn from_col_vec<I, C>(values: Vec<T>, index: I, columns: C) -> Self
         where I: Into<Indexer<U>>,
               C: Into<Indexer<V>> {
 
@@ -58,7 +123,7 @@ impl<T, U, V> Block<T, U, V>
     }
 
     /// Instanciate from column-wise Vec
-    pub fn from_row_vec<I, C>(values: Vec<T>, index: I, columns: C) -> Block<T, U, V>
+    pub fn from_row_vec<I, C>(values: Vec<T>, index: I, columns: C) -> Self
         where I: Into<Indexer<U>>,
               C: Into<Indexer<V>> {
 
@@ -88,7 +153,7 @@ impl<T, U, V> Block<T, U, V>
     }
 
     /// Instanciate from nested Vec
-    pub fn from_nested_vec<I, C>(values: Vec<Vec<T>>, index: I, columns: C) -> Block<T, U, V>
+    pub fn from_vec<I, C>(values: Vec<Vec<T>>, index: I, columns: C) -> Self
         where I: Into<Indexer<U>>,
               C: Into<Indexer<V>> {
 
@@ -111,8 +176,15 @@ impl<T, U, V> Block<T, U, V>
         }
     }
 
+    /// Instanciate from nested Vec
+    pub fn from_nested_vec<I, C>(values: Vec<Vec<T>>, index: I, columns: C) -> Self
+        where I: Into<Indexer<U>>,
+              C: Into<Indexer<V>> {
+        Block::from_vec(values, index, columns)
+    }
+
     /// Instanciate from Series
-    pub fn from_series(series: Series<T, U>, name: V) -> Block<T, U, V> {
+    pub fn from_series(series: Series<T, U>, name: V) -> Self {
         let values: Vec<Vec<T>> = vec![series.values];
 
         // mapper is not updated properly by vec![name]
@@ -135,7 +207,8 @@ impl<T, U, V> Block<T, U, V>
         }
     }
 
-    pub fn add_columns(&mut self, values: Vec<T>, name: V) {
+    /// Add columns inplace
+    pub fn insert(&mut self, name: V, values: Vec<T>) {
         if self.len() != values.len() {
             panic!("Length mismatch!");
         }
@@ -145,38 +218,6 @@ impl<T, U, V> Block<T, U, V>
 
     pub fn len(&self) -> usize {
         self.index.len()
-    }
-
-    pub fn get_column_by_label(&mut self, label: &V) -> Series<T, U> {
-        let loc = self.columns.get_loc(label);
-        let new_values = self.values[loc].clone();
-        Series::new(new_values, self.index.clone())
-    }
-
-    pub fn slice_by_label(&mut self, labels: &Vec<U>) -> Block<T, U, V> {
-        self.reindex(labels)
-    }
-
-    pub fn slice_by_index(&self, locations: &Vec<usize>) -> Block<T, U, V> {
-        self.reindex_by_index(locations)
-    }
-
-    pub fn reindex(&mut self, labels: &Vec<U>) -> Self {
-        let locations = self.index.get_locs(labels);
-        self.reindex_by_index(&locations)
-    }
-
-    pub fn reindex_by_index(&self, locations: &Vec<usize>) -> Self {
-        let new_index = self.index.reindex(locations);
-
-        let mut new_values: Vec<Vec<T>> = Vec::with_capacity(self.columns.len());
-        for current in self.values.iter() {
-            let new_value = Sorter::reindex(current, locations);
-            new_values.push(new_value);
-        }
-        Block::from_nested_vec(new_values,
-                               new_index,
-                               self.columns.clone())
     }
 
     pub fn append(&self, other: &Block<T, U, V>) -> Block<T, U, V> {
@@ -194,8 +235,7 @@ impl<T, U, V> Block<T, U, V>
             new_values.push(new_value);
         }
 
-        Block::from_nested_vec(new_values, new_index,
-                               self.columns.clone())
+        Block::from_vec(new_values, new_index, self.columns.clone())
     }
 
     pub fn groupby<G>(&self, other: Vec<G>) -> groupby::BlockGroupBy<T, U, V, G>
@@ -213,9 +253,7 @@ impl<T, U, V> Block<T, U, V>
             }
             new_values.push(new_value);
         }
-        Block::from_nested_vec(new_values,
-                               self.columns.clone(),
-                               self.index.clone())
+        Block::from_vec(new_values, self.columns.clone(), self.index.clone())
     }
 }
 
@@ -236,9 +274,9 @@ impl<T, U, V, R> Applicable<T, R, Series<R, V>> for Block<T, U, V>
 
 impl<T: PartialEq, U: Hash + Eq, V: Hash + Eq> PartialEq for Block<T, U, V> {
     fn eq(&self, other: &Block<T, U, V>) -> bool {
-        (self.index == other.index) &&
-        (self.columns == other.columns) &&
-        (self.values == other.values)
+        (self.index.eq(&other.index)) &&
+        (self.columns.eq(&other.columns)) &&
+        (self.values.eq(&other.values))
     }
 }
 
@@ -246,8 +284,9 @@ impl<T: PartialEq, U: Hash + Eq, V: Hash + Eq> PartialEq for Block<T, U, V> {
 mod tests {
 
     use super::Block;
-    use super::super::indexer::{Indexer, IndexerTrait};
+    use super::super::indexer::{Indexer, IndexerIndexer};
     use super::super::series::Series;
+    use super::super::traits::{RowIndexer, ColIndexer};
 
     #[test]
     fn test_block_creation_from_col_vec() {
@@ -257,27 +296,27 @@ mod tests {
         let mut b = Block::from_col_vec(values,
                                         vec!["A", "BB", "CC", "D", "EEE"],
                                         vec!["X", "YYY", "ZZ"]);
-        assert_eq!(&b.len(), &5);
+        assert_eq!(b.len(), 5);
 
-        let exp_index: Vec<&str> = vec!["A", "BB", "CC", "D", "EEE"];
-        let exp_columns: Vec<&str> = vec!["X", "YYY", "ZZ"];
-        assert_eq!(&b.index.values, &exp_index);
-        assert_eq!(&b.columns.values, &exp_columns);
+        let exp_index: Indexer<&str> = Indexer::new(vec!["A", "BB", "CC", "D", "EEE"]);
+        let exp_columns: Indexer<&str> = Indexer::new(vec!["X", "YYY", "ZZ"]);
+        assert_eq!(b.index, exp_index);
+        assert_eq!(b.columns, exp_columns);
 
-        let c = b.get_column_by_label(&"X");
+        let c = b.get(&"X");
         let exp_values: Vec<i64> = vec![1, 2, 3, 4, 5];
-        assert_eq!(&c.values, &exp_values);
-        assert_eq!(&c.index.values, &exp_index);
+        assert_eq!(c.values, exp_values);
+        assert_eq!(c.index, exp_index);
 
-        let c = b.get_column_by_label(&"YYY");
+        let c = b.get(&"YYY");
         let exp_values: Vec<i64> = vec![6, 7, 8, 9, 10];
-        assert_eq!(&c.values, &exp_values);
-        assert_eq!(&c.index.values, &exp_index);
+        assert_eq!(c.values, exp_values);
+        assert_eq!(c.index, exp_index);
 
-        let c = b.get_column_by_label(&"ZZ");
+        let c = b.get(&"ZZ");
         let exp_values: Vec<i64> = vec![11, 12, 13, 14, 15];
-        assert_eq!(&c.values, &exp_values);
-        assert_eq!(&c.index.values, &exp_index);
+        assert_eq!(c.values, exp_values);
+        assert_eq!(c.index, exp_index);
     }
 
     #[test]
@@ -290,27 +329,58 @@ mod tests {
         let mut b = Block::from_row_vec(values,
                                         vec!["A", "BB", "CC", "D", "EEE"],
                                         vec!["X", "YYY", "ZZ"]);
-        assert_eq!(&b.len(), &5);
+        assert_eq!(b.len(), 5);
 
-        let exp_index: Vec<&str> = vec!["A", "BB", "CC", "D", "EEE"];
-        let exp_columns: Vec<&str> = vec!["X", "YYY", "ZZ"];
-        assert_eq!(&b.index.values, &exp_index);
-        assert_eq!(&b.columns.values, &exp_columns);
+        let exp_index: Indexer<&str> = Indexer::new(vec!["A", "BB", "CC", "D", "EEE"]);
+        let exp_columns: Indexer<&str> = Indexer::new(vec!["X", "YYY", "ZZ"]);
+        assert_eq!(b.index, exp_index);
+        assert_eq!(b.columns, exp_columns);
 
-        let c = b.get_column_by_label(&"X");
+        let c = b.get(&"X");
         let exp_values: Vec<i64> = vec![1, 2, 3, 4, 5];
-        assert_eq!(&c.values, &exp_values);
-        assert_eq!(&c.index.values, &exp_index);
+        assert_eq!(c.values, exp_values);
+        assert_eq!(c.index, exp_index);
 
-        let c = b.get_column_by_label(&"YYY");
+        let c = b.get(&"YYY");
         let exp_values: Vec<i64> = vec![6, 7, 8, 9, 10];
-        assert_eq!(&c.values, &exp_values);
-        assert_eq!(&c.index.values, &exp_index);
+        assert_eq!(c.values, exp_values);
+        assert_eq!(c.index, exp_index);
 
-        let c = b.get_column_by_label(&"ZZ");
+        let c = b.get(&"ZZ");
         let exp_values: Vec<i64> = vec![11, 12, 13, 14, 15];
-        assert_eq!(&c.values, &exp_values);
-        assert_eq!(&c.index.values, &exp_index);
+        assert_eq!(c.values, exp_values);
+        assert_eq!(c.index, exp_index);
+    }
+
+    #[test]
+    fn test_block_creation_from_vec() {
+        let values = vec![vec![1, 2, 3, 4, 5],
+                          vec![6, 7, 8, 9, 10],
+                          vec![11, 12, 13, 14, 15]];
+        let mut b = Block::from_vec(values,
+                                    vec!["A", "BB", "CC", "D", "EEE"],
+                                    vec!["X", "YYY", "ZZ"]);
+        assert_eq!(b.len(), 5);
+
+        let exp_index: Indexer<&str> = Indexer::new(vec!["A", "BB", "CC", "D", "EEE"]);
+        let exp_columns: Indexer<&str> = Indexer::new(vec!["X", "YYY", "ZZ"]);
+        assert_eq!(b.index, exp_index);
+        assert_eq!(b.columns, exp_columns);
+
+        let c = b.get(&"X");
+        let exp_values: Vec<i64> = vec![1, 2, 3, 4, 5];
+        assert_eq!(c.values, exp_values);
+        assert_eq!(c.index, exp_index);
+
+        let c = b.get(&"YYY");
+        let exp_values: Vec<i64> = vec![6, 7, 8, 9, 10];
+        assert_eq!(c.values, exp_values);
+        assert_eq!(c.index, exp_index);
+
+        let c = b.get(&"ZZ");
+        let exp_values: Vec<i64> = vec![11, 12, 13, 14, 15];
+        assert_eq!(c.values, exp_values);
+        assert_eq!(c.index, exp_index);
     }
 
     #[test]
@@ -321,27 +391,15 @@ mod tests {
         let mut b = Block::from_nested_vec(values,
                                            vec!["A", "BB", "CC", "D", "EEE"],
                                            vec!["X", "YYY", "ZZ"]);
-        assert_eq!(&b.len(), &5);
+        assert_eq!(b.len(), 5);
 
-        let exp_index: Vec<&str> = vec!["A", "BB", "CC", "D", "EEE"];
-        let exp_columns: Vec<&str> = vec!["X", "YYY", "ZZ"];
-        assert_eq!(&b.index.values, &exp_index);
-        assert_eq!(&b.columns.values, &exp_columns);
-
-        let c = b.get_column_by_label(&"X");
-        let exp_values: Vec<i64> = vec![1, 2, 3, 4, 5];
-        assert_eq!(&c.values, &exp_values);
-        assert_eq!(&c.index.values, &exp_index);
-
-        let c = b.get_column_by_label(&"YYY");
-        let exp_values: Vec<i64> = vec![6, 7, 8, 9, 10];
-        assert_eq!(&c.values, &exp_values);
-        assert_eq!(&c.index.values, &exp_index);
-
-        let c = b.get_column_by_label(&"ZZ");
-        let exp_values: Vec<i64> = vec![11, 12, 13, 14, 15];
-        assert_eq!(&c.values, &exp_values);
-        assert_eq!(&c.index.values, &exp_index);
+        let exp_values = vec![vec![1, 2, 3, 4, 5],
+                              vec![6, 7, 8, 9, 10],
+                              vec![11, 12, 13, 14, 15]];
+        let exp = Block::from_vec(exp_values,
+                                  vec!["A", "BB", "CC", "D", "EEE"],
+                                  vec!["X", "YYY", "ZZ"]);
+        assert_eq!(b, exp);
     }
 
     #[test]
@@ -351,17 +409,17 @@ mod tests {
         let s = Series::<f64, &str>::new(values, index);
 
         let mut b = Block::<f64, &str, i64>::from_series(s, 1);
-        assert_eq!(&b.len(), &3);
+        assert_eq!(b.len(), 3);
 
-        let exp_index: Vec<&str> = vec!["A", "B", "C"];
-        let exp_columns: Vec<i64> = vec![1];
-        assert_eq!(&b.index.values, &exp_index);
-        assert_eq!(&b.columns.values, &exp_columns);
+        let exp_index: Indexer<&str> = Indexer::new(vec!["A", "B", "C"]);
+        let exp_columns: Indexer<i64> = Indexer::new(vec![1]);
+        assert_eq!(b.index, exp_index);
+        assert_eq!(b.columns, exp_columns);
 
-        let c = b.get_column_by_label(&1);
+        let c = b.get(&1);
         let exp_values: Vec<f64> = vec![1., 2., 3.];
-        assert_eq!(&c.values, &exp_values);
-        assert_eq!(&c.index.values, &exp_index);
+        assert_eq!(c.values, exp_values);
+        assert_eq!(c.index, exp_index);
     }
 
     #[test]
@@ -401,92 +459,131 @@ mod tests {
     }
 
     #[test]
-    fn test_add_columns() {
+    fn test_block_columns_get() {
+        let values = vec![1, 2, 3, 4, 5,
+                          6, 7, 8, 9, 10,
+                          11, 12, 13, 14, 15];
+        let mut b = Block::from_col_vec(values,
+                                        vec!["A", "BB", "CC", "D", "EEE"],
+                                        vec!["X", "YYY", "ZZ"]);
+
+        let res = b.get(&"YYY");
+        let exp: Series<i64, &str> = Series::new(vec![6, 7, 8, 9, 10],
+                                                 vec!["A", "BB", "CC", "D", "EEE"]);
+        assert_eq!(res, exp);
+
+        let res = b.iget(&1);
+        let exp: Series<i64, &str> = Series::new(vec![6, 7, 8, 9, 10],
+                                                 vec!["A", "BB", "CC", "D", "EEE"]);
+        assert_eq!(res, exp);
+    }
+
+    #[test]
+    fn test_block_columns_slice() {
+        let values = vec![1, 2, 3, 4, 5,
+                          6, 7, 8, 9, 10,
+                          11, 12, 13, 14, 15];
+        let mut b = Block::from_col_vec(values,
+                                        vec!["A", "BB", "CC", "D", "EEE"],
+                                        vec!["X", "YYY", "ZZ"]);
+
+        let exp = Block::from_col_vec(vec![6, 7, 8, 9, 10, 1, 2, 3, 4, 5,],
+                                      vec!["A", "BB", "CC", "D", "EEE"],
+                                      vec!["YYY", "X"]);
+        let res = b.gets(&vec!["YYY", "X"]);
+        assert_eq!(res, exp);
+
+        let res = b.igets(&vec![1, 0]);
+        assert_eq!(res, exp);
+    }
+
+    #[test]
+    fn test_insert() {
         let values: Vec<f64> = vec![1., 2., 3.];
         let index: Vec<&str> = vec!["A", "B", "C"];
         let s = Series::<f64, &str>::new(values, index);
 
         let mut b = Block::<f64, &str, i64>::from_series(s, 1);
 
-        assert_eq!(&b.len(), &3);
-        let exp_index: Vec<&str> = vec!["A", "B", "C"];
-        let exp_columns: Vec<i64> = vec![1];
-        assert_eq!(&b.index.values, &exp_index);
-        assert_eq!(&b.columns.values, &exp_columns);
+        assert_eq!(b.len(), 3);
+        let exp_index: Indexer<&str> = Indexer::new(vec!["A", "B", "C"]);
+        let exp_columns: Indexer<i64> = Indexer::new(vec![1]);
+        assert_eq!(b.index, exp_index);
+        assert_eq!(b.columns, exp_columns);
 
         // add columns
         let values2: Vec<f64> = vec![4., 5., 6.];
-        b.add_columns(values2, 3);
-        assert_eq!(&b.len(), &3);
-        let exp_columns: Vec<i64> = vec![1, 3];
-        assert_eq!(&b.index.values, &exp_index);
-        assert_eq!(&b.columns.values, &exp_columns);
+        b.insert(3, values2);
+        assert_eq!(b.len(), 3);
+        let exp_columns: Indexer<i64> = Indexer::new(vec![1, 3]);
+        assert_eq!(b.index, exp_index);
+        assert_eq!(b.columns, exp_columns);
 
-        assert_eq!(&b.columns.get_loc(&1), &0);
-        assert_eq!(&b.columns.get_loc(&3), &1);
-        let c = b.get_column_by_label(&1);
+        assert_eq!(b.columns.get_loc(&1), 0);
+        assert_eq!(b.columns.get_loc(&3), 1);
+        let c = b.get(&1);
         let exp_values: Vec<f64> = vec![1., 2., 3.];
-        assert_eq!(&c.values, &exp_values);
-        assert_eq!(&c.index.values, &exp_index);
+        assert_eq!(c.values, exp_values);
+        assert_eq!(c.index, exp_index);
 
-        let c = b.get_column_by_label(&3);
+        let c = b.get(&3);
         let exp_values: Vec<f64> = vec![4., 5., 6.];
-        assert_eq!(&c.values, &exp_values);
-        assert_eq!(&c.index.values, &exp_index);
+        assert_eq!(c.values, exp_values);
+        assert_eq!(c.index, exp_index);
     }
 
     #[test]
-    fn test_slice_by_index() {
+    fn test_slice_ilocs() {
         let values: Vec<f64> = vec![1., 2., 3.];
         let index: Vec<&str> = vec!["A", "B", "C"];
         let s = Series::<f64, &str>::new(values, index);
         let mut b = Block::<f64, &str, i64>::from_series(s, 1);
         // add columns
         let values2: Vec<f64> = vec![4., 5., 6.];
-        b.add_columns(values2, 3);
-        assert_eq!(&b.len(), &3);
+        b.insert(3, values2);
+        assert_eq!(b.len(), 3);
 
         // slice
-        let mut sliced = b.slice_by_index(&vec![0, 2]);
-        let exp_index: Vec<&str> = vec!["A", "C"];
-        let exp_columns: Vec<i64> = vec![1, 3];
-        assert_eq!(&sliced.index.values, &exp_index);
-        assert_eq!(&sliced.columns.values, &exp_columns);
+        let mut sliced = b.ilocs(&vec![0, 2]);
+        let exp_index: Indexer<&str> = Indexer::new(vec!["A", "C"]);
+        let exp_columns: Indexer<i64> = Indexer::new(vec![1, 3]);
+        assert_eq!(sliced.index, exp_index);
+        assert_eq!(sliced.columns, exp_columns);
 
         // compare columns
-        let c = sliced.get_column_by_label(&1);
+        let c = sliced.get(&1);
         let exp_values: Vec<f64> = vec![1., 3.];
-        assert_eq!(&c.values, &exp_values);
-        let c = sliced.get_column_by_label(&3);
+        assert_eq!(c.values, exp_values);
+        let c = sliced.get(&3);
         let exp_values: Vec<f64> = vec![4., 6.];
-        assert_eq!(&c.values, &exp_values);
+        assert_eq!(c.values, exp_values);
     }
 
     #[test]
-    fn test_slice_by_label() {
+    fn test_slice_locs() {
         let values: Vec<f64> = vec![1., 2., 3.];
         let index: Vec<&str> = vec!["A", "B", "C"];
         let s = Series::<f64, &str>::new(values, index);
         let mut b = Block::<f64, &str, i64>::from_series(s, 1);
         // add columns
         let values2: Vec<f64> = vec![4., 5., 6.];
-        b.add_columns(values2, 3);
-        assert_eq!(&b.len(), &3);
+        b.insert(3, values2);
+        assert_eq!(b.len(), 3);
 
         // slice
-        let mut sliced = b.slice_by_label(&vec!["B", "C"]);
-        let exp_index: Vec<&str> = vec!["B", "C"];
-        let exp_columns: Vec<i64> = vec![1, 3];
-        assert_eq!(&sliced.index.values, &exp_index);
-        assert_eq!(&sliced.columns.values, &exp_columns);
+        let mut sliced = b.locs(&vec!["B", "C"]);
+        let exp_index: Indexer<&str> = Indexer::new(vec!["B", "C"]);
+        let exp_columns: Indexer<i64> = Indexer::new(vec![1, 3]);
+        assert_eq!(sliced.index, exp_index);
+        assert_eq!(sliced.columns, exp_columns);
 
         // compare columns
-        let c = sliced.get_column_by_label(&1);
+        let c = sliced.get(&1);
         let exp_values: Vec<f64> = vec![2., 3.];
-        assert_eq!(&c.values, &exp_values);
-        let c = sliced.get_column_by_label(&3);
+        assert_eq!(c.values, exp_values);
+        let c = sliced.get(&3);
         let exp_values: Vec<f64> = vec![5., 6.];
-        assert_eq!(&c.values, &exp_values);
+        assert_eq!(c.values, exp_values);
     }
 
     #[test]
@@ -538,15 +635,15 @@ mod tests {
 
         let mut res = b1.append(&b2);
 
-        let exp_index: Vec<&str> = vec!["A", "B", "C", "D", "E", "F"];
-        let exp_columns: Vec<&str> = vec!["X", "Y"];
-        assert_eq!(&res.index.values, &exp_index);
-        assert_eq!(&res.columns.values, &exp_columns);
+        let exp_index: Indexer<&str> = Indexer::new(vec!["A", "B", "C", "D", "E", "F"]);
+        let exp_columns: Indexer<&str> = Indexer::new(vec!["X", "Y"]);
+        assert_eq!(res.index, exp_index);
+        assert_eq!(res.columns, exp_columns);
 
-        let c = res.get_column_by_label(&"X");
-        assert_eq!(&c.values, &vec![1., 2., 3., 7., 8., 9.]);
-        let c = res.get_column_by_label(&"Y");
-        assert_eq!(&c.values, &vec![4., 5., 6., 10., 11., 12.]);
+        let c = res.get(&"X");
+        assert_eq!(c.values, vec![1., 2., 3., 7., 8., 9.]);
+        let c = res.get(&"Y");
+        assert_eq!(c.values, vec![4., 5., 6., 10., 11., 12.]);
     }
 
     #[test]
@@ -556,16 +653,9 @@ mod tests {
                                      vec!["X", "Y"]);
         let mut res = b1.transpose();
 
-        let exp_index: Vec<&str> = vec!["X", "Y"];
-        let exp_columns: Vec<&str> = vec!["A", "B", "C"];
-        assert_eq!(&res.index.values, &exp_index);
-        assert_eq!(&res.columns.values, &exp_columns);
-
-        let c = res.get_column_by_label(&"A");
-        assert_eq!(&c.values, &vec![1., 4.]);
-        let c = res.get_column_by_label(&"B");
-        assert_eq!(&c.values, &vec![2., 5.]);
-        let c = res.get_column_by_label(&"C");
-        assert_eq!(&c.values, &vec![3., 6.]);
+        let exp = Block::from_row_vec(vec![1., 2., 3., 4., 5., 6.],
+                                      vec!["X", "Y"],
+                                      vec!["A", "B", "C"]);
+        assert_eq!(res, exp);
     }
 }

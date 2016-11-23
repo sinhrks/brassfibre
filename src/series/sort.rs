@@ -1,7 +1,7 @@
 use std::hash::Hash;
 
 use super::Series;
-use super::super::indexer::{Indexer, IndexerTrait};
+use super::super::indexer::{Indexer, IndexerIndexer};
 use super::super::algos::sort::Sorter;
 
 //**********************************************

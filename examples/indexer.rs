@@ -1,6 +1,6 @@
 extern crate brassfibre;
 
-use brassfibre::indexer::Indexer;
+use brassfibre::*;
 
 fn main() {
     // cargo build --example indexer

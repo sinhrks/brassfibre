@@ -16,7 +16,7 @@ impl<T: Hash + Eq + Copy> Counter<T> {
             let e = map.entry(*v).or_insert(0);
             *e += 1;
         }
-        Counter { counts: map}
+        Counter { counts: map }
     }
 
     pub fn len(&self) -> usize {

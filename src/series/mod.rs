@@ -6,7 +6,8 @@ use std::hash::Hash;
 
 use super::algos::sort::Sorter;
 use super::eval::Applicable;
-use super::indexer::{Indexer, IndexerTrait};
+use super::indexer::{Indexer, IndexerIndexer};
+use super::traits::RowIndexer;
 
 mod aggregation;
 mod convert;
@@ -21,7 +22,51 @@ pub struct Series<T, U: Hash> {
     pub index: Indexer<U>,
 }
 
+////////////////////////////////////////////////////////////////////////////////
 // Indexing
+////////////////////////////////////////////////////////////////////////////////
+
+impl<T, U> RowIndexer<U> for Series<T, U>
+    where T: Copy,
+          U: Copy + Eq + Hash {
+
+    fn reindex(&mut self, labels: &Vec<U>) -> Self {
+        let locs = self.index.get_locs(labels);
+        let new_values = Sorter::reindex(&self.values, &locs);
+        Series::new(new_values, labels.to_owned())
+    }
+
+    fn reindex_by_index(&self, locations: &Vec<usize>) -> Self {
+        let new_index = self.index.reindex(&locations);
+        let new_values = Sorter::reindex(&self.values, &locations);
+        Series::new(new_values, new_index)
+    }
+
+    /// Slice using given Vec<bool> (slice by Bool LOCationS)
+    fn blocs(&self, flags: &Vec<bool>) -> Self {
+
+        if self.len() != flags.len() {
+            panic!("Values and Indexer length are different");
+        }
+
+        let mut new_values: Vec<T> = Vec::with_capacity(self.len());
+        let mut new_index: Vec<U> = Vec::with_capacity(self.len());
+
+        // ToDo: remove itertools
+        for (&flag, &v, &i) in Zip::new((flags, &self.values,
+                                         &self.index.values)) {
+            if flag {
+                new_values.push(v);
+                new_index.push(i);
+            }
+        }
+        Series::new(new_values, new_index)
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Misc
+////////////////////////////////////////////////////////////////////////////////
 
 impl<T, U> Series<T, U>
     where T: Copy,
@@ -71,49 +116,6 @@ impl<T, U> Series<T, U>
         self.values[*location]
     }
 
-    /// Slice Series using given labels.
-    pub fn slice_by_label(&mut self, labels: &Vec<U>) -> Self {
-        self.reindex(labels)
-    }
-
-    /// Slice Series using given locations.
-    pub fn slice_by_index(&self, locations: &Vec<usize>) -> Self {
-        self.reindex_by_index(locations)
-    }
-
-    /// Slice Series using given bool flags.
-    pub fn slice_by_bool(&self, flags: &Vec<bool>) -> Self {
-
-        if self.len() != flags.len() {
-            panic!("Values and Indexer length are different");
-        }
-
-        let mut new_values: Vec<T> = Vec::with_capacity(self.len());
-        let mut new_index: Vec<U> = Vec::with_capacity(self.len());
-
-        // ToDo: remove itertools
-        for (&flag, &v, &i) in Zip::new((flags, &self.values,
-                                         &self.index.values)) {
-            if flag {
-                new_values.push(v);
-                new_index.push(i);
-            }
-        }
-        Series::new(new_values, new_index)
-    }
-
-    pub fn reindex(&mut self, labels: &Vec<U>) -> Self {
-        let locs = self.index.get_locs(labels);
-        let new_values = Sorter::reindex(&self.values, &locs);
-        Series::new(new_values, labels.to_owned())
-    }
-
-    pub fn reindex_by_index(&self, locations: &Vec<usize>) -> Self {
-        let new_index = self.index.reindex(&locations);
-        let new_values = Sorter::reindex(&self.values, &locations);
-        Series::new(new_values, new_index)
-    }
-
     pub fn append(&self, other: &Series<T, U>) -> Self {
         let mut new_values: Vec<T> = self.values.clone();
         let mut new_index: Vec<U> = self.index.values.clone();
@@ -140,7 +142,7 @@ impl<T, U, R> Applicable<T, R, R> for Series<T, U>
 
 impl<T: PartialEq, U: Hash + Eq> PartialEq for Series<T, U> {
     fn eq(&self, other: &Series<T, U>) -> bool {
-        (self.index == other.index) && (self.values == other.values)
+        (self.index.eq(&other.index)) && (self.values.eq(&other.values))
     }
 }
 
@@ -149,7 +151,8 @@ impl<T: PartialEq, U: Hash + Eq> PartialEq for Series<T, U> {
 mod tests {
 
     use super::Series;
-    use super::super::indexer::{Indexer, IndexerTrait};
+    use super::super::indexer::{Indexer, IndexerIndexer};
+    use super::super::traits::RowIndexer;
 
     #[test]
     fn test_series_creation_from_vec() {
@@ -158,9 +161,9 @@ mod tests {
         let s = Series::<f64, i64>::from_vec(values);
 
         let exp_values: Vec<f64> = vec![1., 2., 3.];
-        let exp_index: Vec<usize> = vec![0, 1, 2];
+        let exp_index: Indexer<usize> = Indexer::new(vec![0, 1, 2]);
         assert_eq!(s.values, exp_values);
-        assert_eq!(s.index.values, exp_index);
+        assert_eq!(s.index, exp_index);
 
         assert_eq!(s.len(), 3);
         assert_eq!(s.index.len(), 3);
@@ -227,7 +230,7 @@ mod tests {
     }
 
     #[test]
-    fn test_series_slice_by_label() {
+    fn test_series_slice_locs() {
         let values: Vec<f64> = vec![1., 2., 3., 4., 5.];
         let index: Vec<i64> = vec![10, 20, 30, 40, 50];
 
@@ -235,18 +238,18 @@ mod tests {
 
         // test construction
         let exp_values: Vec<f64> = vec![1., 2., 3., 4., 5.];
-        let exp_index: Vec<i64> = vec![10, 20, 30, 40, 50];
-        assert_eq!(&s.values, &exp_values);
-        assert_eq!(&s.index.values, &exp_index);
+        let exp_index: Indexer<i64> = Indexer::new(vec![10, 20, 30, 40, 50]);
+        assert_eq!(s.values, exp_values);
+        assert_eq!(s.index, exp_index);
 
         // test label slice
-        let res = s.slice_by_label(&vec![20, 30, 50]);
+        let res = s.locs(&vec![20, 30, 50]);
         let exp: Series<f64, i64> = Series::new(vec![2., 3., 5.], vec![20, 30, 50]);
         assert_eq!(res, exp);
     }
 
     #[test]
-    fn test_series_slice_by_index() {
+    fn test_series_slice_ilocs() {
         let values: Vec<f64> = vec![1., 2., 3., 4., 5.];
         let index: Vec<i64> = vec![10, 20, 30, 40, 50];
 
@@ -254,19 +257,19 @@ mod tests {
 
         // test construction
         let exp_values: Vec<f64> = vec![1., 2., 3., 4., 5.];
-        let exp_index: Vec<i64> = vec![10, 20, 30, 40, 50];
+        let exp_index: Indexer<i64> = Indexer::new(vec![10, 20, 30, 40, 50]);
         assert_eq!(s.values, exp_values);
-        assert_eq!(s.index.values, exp_index);
+        assert_eq!(s.index, exp_index);
 
         // test index slice
-        let res = s.slice_by_index(&vec![0, 2, 4]);
+        let res = s.ilocs(&vec![0, 2, 4]);
 
         let exp: Series<f64, i64> = Series::new(vec![1., 3., 5.], vec![10, 30, 50]);
         assert_eq!(res, exp);
     }
 
     #[test]
-    fn test_series_slice_by_bool() {
+    fn test_series_slice_blocs() {
         let values: Vec<f64> = vec![1., 2., 3., 4., 5.];
         let index: Vec<i64> = vec![10, 20, 30, 40, 50];
 
@@ -274,12 +277,12 @@ mod tests {
 
         // test construction
         let exp_values: Vec<f64> = vec![1., 2., 3., 4., 5.];
-        let exp_index: Vec<i64> = vec![10, 20, 30, 40, 50];
+        let exp_index: Indexer<i64> = Indexer::new(vec![10, 20, 30, 40, 50]);
         assert_eq!(s.values, exp_values);
-        assert_eq!(s.index.values, exp_index);
+        assert_eq!(s.index, exp_index);
 
         // test bool slice
-        let res = s.slice_by_bool(&vec![true, false, false, true, true]);
+        let res = s.blocs(&vec![true, false, false, true, true]);
 
         let exp: Series<f64, i64> = Series::new(vec![1., 4., 5.], vec![10, 40, 50]);
         assert_eq!(res, exp);
