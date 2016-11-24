@@ -1,8 +1,9 @@
 use std::hash::Hash;
 
 use super::Series;
-use super::super::indexer::{Indexer, IndexerIndexer};
 use super::super::algos::sort::Sorter;
+use super::super::indexer::Indexer;
+use super::super::traits::IndexerIndexer;
 
 //**********************************************
 // Soat

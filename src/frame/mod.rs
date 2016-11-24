@@ -1,8 +1,8 @@
 use std::hash::Hash;
 
-use super::indexer::{Indexer, IndexerIndexer};
+use super::indexer::Indexer;
 use super::internals::Array;
-use super::traits::{RowIndexer, ColIndexer};
+use super::traits::{IndexerIndexer, RowIndexer, ColIndexer};
 
 #[derive(Clone)]
 pub struct DataFrame<U: Hash, V: Hash> {
@@ -129,6 +129,10 @@ impl<U, V> DataFrame<U, V>
         self.index.len()
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Eq
+////////////////////////////////////////////////////////////////////////////////
 
 impl<U: Hash + Eq, V: Hash + Eq> PartialEq for DataFrame<U, V> {
     fn eq(&self, other: &DataFrame<U, V>) -> bool {

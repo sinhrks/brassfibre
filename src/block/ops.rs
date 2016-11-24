@@ -418,7 +418,7 @@ mod tests {
         let res = &b + &r;
         assert_eq!(res, exp);
 
-        let mut result = b + &r;
+        let result = b + &r;
         assert_eq!(res, exp);
     }
 }
