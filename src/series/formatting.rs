@@ -33,5 +33,4 @@ impl<T, U> fmt::Debug for Series<T, U>
         // debug expression {:?} outputs linesep as character, do not use
         write!(f, "{:}", &result.join("\n"))
     }
-
 }

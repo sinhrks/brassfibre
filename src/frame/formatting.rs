@@ -1,24 +1,22 @@
 use std::fmt;
 use std::hash::Hash;
 
-use super::Block;
+use super::DataFrame;
 use super::super::formatting;
 
 
-impl<T, U, V> fmt::Display for Block<T, U, V>
-    where T: Copy,
-          U: Copy + Eq + Hash,
+impl<U, V> fmt::Display for DataFrame<U, V>
+    where U: Copy + Eq + Hash,
           V: Copy + Eq + Hash + fmt::Debug {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Block(columns={:?})", &self.columns.values)
+        write!(f, "DataFrame(columns={:?})", &self.columns.values)
     }
 
 }
 
-impl<T, U, V> fmt::Debug for Block<T, U, V>
-    where T: Copy + ToString,
-          U: Copy + Eq + Hash + ToString,
+impl<U, V> fmt::Debug for DataFrame<U, V>
+    where U: Copy + Eq + Hash + ToString,
           V: Copy + Eq + Hash + ToString {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -26,7 +24,7 @@ impl<T, U, V> fmt::Debug for Block<T, U, V>
         let mut str_values: Vec<Vec<String>> = vec![];
 
         for (i, column) in self.columns.values.iter().enumerate() {
-            let current = self.values[i].clone();
+            let current: Vec<String> = self.values[i].to_string_vec();
             let column_str = formatting::pad_string_vector_with_header(&current, column.to_string());
             str_values.push(column_str);
         }

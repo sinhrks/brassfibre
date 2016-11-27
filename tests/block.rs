@@ -330,28 +330,6 @@ fn test_block_reindex_by_index() {
 }
 
 #[test]
-fn test_block_append() {
-    let b1 = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
-                                 vec!["A", "B", "C"],
-                                 vec!["X", "Y"]);
-    let b2 = Block::from_col_vec(vec![7., 8., 9., 10., 11., 12.],
-                                 vec!["D", "E", "F"],
-                                 vec!["X", "Y"]);
-
-    let res = b1.append(&b2);
-
-    let exp_index: Indexer<&str> = Indexer::new(vec!["A", "B", "C", "D", "E", "F"]);
-    let exp_columns: Indexer<&str> = Indexer::new(vec!["X", "Y"]);
-    assert_eq!(res.index, exp_index);
-    assert_eq!(res.columns, exp_columns);
-
-    let c = res.get(&"X");
-    assert_eq!(c.values, vec![1., 2., 3., 7., 8., 9.]);
-    let c = res.get(&"Y");
-    assert_eq!(c.values, vec![4., 5., 6., 10., 11., 12.]);
-}
-
-#[test]
 fn test_block_transpose() {
     let b1 = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
                                  vec!["A", "B", "C"],

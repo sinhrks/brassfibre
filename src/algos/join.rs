@@ -4,13 +4,12 @@ use std::usize;
 
 use super::set::{union, to_enumhashmap};
 
-
 const USIZE_MISSING: usize = usize::MAX;
 
 
-struct HashJoin;
+pub struct HashJoin;
 
-trait Join<T> {
+pub trait Join<T> {
     fn inner(left: &Vec<T>, right: &Vec<T>) -> (Vec<T>, Vec<usize>, Vec<usize>);
     fn left(left: &Vec<T>, right: &Vec<T>) -> (Vec<T>, Vec<usize>, Vec<usize>);
     fn right(left: &Vec<T>, right: &Vec<T>) -> (Vec<T>, Vec<usize>, Vec<usize>);
@@ -29,15 +28,16 @@ impl<T> Join<T> for HashJoin where T: Hash + Eq + Copy {
         let mut lindexer: Vec<usize> = Vec::with_capacity(exp_capacity);
         let mut rindexer: Vec<usize> = Vec::with_capacity(exp_capacity);
 
-        let map = to_enumhashmap(left);
+        let map = to_enumhashmap(right);
 
-        for (i, key) in right.iter().enumerate() {
+        // keep left order
+        for (i, key) in left.iter().enumerate() {
             // ToDo: sort?
             match map.get(&key) {
                 Some(val) => {
                     indexer.push(*key);
-                    lindexer.push(*val);
-                    rindexer.push(i);
+                    lindexer.push(i);
+                    rindexer.push(*val);
                 },
                 None => {}
             }
@@ -138,6 +138,15 @@ mod tests {
         assert_eq!(res.0, vec![2, 3]);
         assert_eq!(res.1, vec![1, 2]);
         assert_eq!(res.2, vec![0, 1]);
+
+        let v3 = vec![1, 2, 3];
+        let v4 = vec![2, 1, 0];
+
+        let res = HashJoin::inner(&v3, &v4);
+
+        assert_eq!(res.0, vec![1, 2]);
+        assert_eq!(res.1, vec![0, 1]);
+        assert_eq!(res.2, vec![1, 0]);
     }
 
     #[test]

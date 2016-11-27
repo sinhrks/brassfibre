@@ -2,22 +2,22 @@ use std::collections::HashMap;
 use std::hash::Hash;
 
 
-pub struct HashGroupBy<T> {
+pub struct HashGrouper<T> {
     pub groups: HashMap<T, Vec<usize>>
 }
 
-pub trait GroupBy<T> {
+pub trait Grouper<T> {
     // ToDo: Implement efficient multimap
-    fn groupby(key: &Vec<T>) -> HashGroupBy<T>;
+    fn groupby(key: &Vec<T>) -> HashGrouper<T>;
     fn get(&self, key: &T) -> Option<&Vec<usize>>;
     fn keys(&self) -> Vec<T>;
     fn len(&self) -> usize;
 }
 
-impl<T> GroupBy<T> for HashGroupBy<T>
+impl<T> Grouper<T> for HashGrouper<T>
     where T: Hash + Eq + Copy {
 
-    fn groupby(key: &Vec<T>) -> HashGroupBy<T> {
+    fn groupby(key: &Vec<T>) -> HashGrouper<T> {
 
         let mut map: HashMap<T, Vec<usize>> = HashMap::new();
 
@@ -25,7 +25,7 @@ impl<T> GroupBy<T> for HashGroupBy<T>
             let e = map.entry(*k).or_insert(Vec::<usize>::new());
             e.push(i);
         }
-        HashGroupBy { groups: map }
+        HashGrouper { groups: map }
     }
 
     fn get(&self, key: &T) -> Option<&Vec<usize>> {
@@ -47,12 +47,12 @@ impl<T> GroupBy<T> for HashGroupBy<T>
 mod tests {
 
     use std::collections::HashMap;
-    use super::{GroupBy, HashGroupBy};
+    use super::{Grouper, HashGrouper};
 
     #[test]
     fn test_vec_groupby_int() {
         let key = vec![1, 1, 2, 2];
-        let res = HashGroupBy::groupby(&key);
+        let res = HashGrouper::groupby(&key);
 
         let mut exp: HashMap<i32, Vec<usize>> = HashMap::new();
         exp.insert(1, vec![0, 1]);
@@ -67,7 +67,7 @@ mod tests {
     #[test]
     fn test_vec_groupby_str() {
         let key = vec!["a", "b", "a", "b"];
-        let res = HashGroupBy::groupby(&key);
+        let res = HashGrouper::groupby(&key);
 
         let mut exp: HashMap<&str, Vec<usize>> = HashMap::new();
         exp.insert("a", vec![0, 2]);

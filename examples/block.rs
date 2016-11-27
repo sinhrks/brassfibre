@@ -1,5 +1,4 @@
 extern crate brassfibre;
-
 use brassfibre::*;
 
 fn main() {
@@ -33,6 +32,4 @@ fn main() {
     println!("get group\n{:?}\n", &bg.get_group(&"A"));
 
     println!("grouped sum\n{:?}\n", &bg.sum());
-
-
 }

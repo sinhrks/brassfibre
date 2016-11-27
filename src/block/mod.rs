@@ -2,14 +2,16 @@ use std::hash::Hash;
 
 use super::algos::sort::Sorter;
 use super::indexer::Indexer;
+use super::groupby::GroupBy;
 use super::series::Series;
-use super::traits::{IndexerIndexer, RowIndexer, ColIndexer, Appender,
+use super::traits::{IndexerIndexer, RowIndexer, ColIndexer,
                     Applicable};
 
 mod aggregation;
 mod formatting;
 mod groupby;
 mod ops;
+mod reshape;
 
 #[derive(Clone)]
 pub struct Block<T, U: Hash, V: Hash> {
@@ -28,12 +30,27 @@ pub struct Block<T, U: Hash, V: Hash> {
 // Indexing
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<T, U, V> RowIndexer<U> for Block<T, U, V>
+impl<T, U, V> RowIndexer for Block<T, U, V>
     where T: Copy,
           U: Copy + Eq + Hash,
           V: Copy + Eq + Hash {
 
-    fn reindex(&self, labels: &Vec<U>) -> Self {
+    type Key = U;
+    type Row = T;
+
+    fn len(&self) -> usize {
+        self.index.len()
+    }
+
+    fn loc(&self, label: &Self::Key) -> Self::Row {
+        unimplemented!()
+    }
+
+    fn iloc(&self, locaiton: &usize) -> Self::Row {
+        unimplemented!()
+    }
+
+    fn reindex(&self, labels: &Vec<Self::Key>) -> Self {
         let locations = self.index.get_locs(labels);
         self.reindex_by_index(&locations)
     }
@@ -55,22 +72,25 @@ impl<T, U, V> RowIndexer<U> for Block<T, U, V>
     }
 }
 
-impl<T, U, V> ColIndexer<V, Series<T, U>> for Block<T, U, V>
+impl<T, U, V> ColIndexer for Block<T, U, V>
     where T: Copy,
           U: Copy + Eq + Hash,
           V: Copy + Eq + Hash {
 
-    fn get(&self, label: &V) -> Series<T, U> {
+    type Key = V;
+    type Column = Series<T, U>;
+
+    fn get(&self, label: &Self::Key) -> Self::Column {
         let loc = self.columns.get_loc(label);
         self.iget(&loc)
     }
 
-    fn iget(&self, loc: &usize) -> Series<T, U> {
+    fn iget(&self, loc: &usize) -> Self::Column {
         let new_values = self.values[*loc].clone();
         Series::new(new_values, self.index.clone())
     }
 
-    fn gets(&self, labels: &Vec<V>) -> Self {
+    fn gets(&self, labels: &Vec<Self::Key>) -> Self {
         let locs = self.columns.get_locs(labels);
         self.igets(&locs)
     }
@@ -106,9 +126,7 @@ impl<T, U, V> Block<T, U, V>
         let len: usize = index.len();
         let cols: usize = columns.len();
 
-        if values.len() != len * cols {
-            panic!("Length mismatch!");
-        }
+        assert!(values.len() == len * cols, "Length mismatch!");
 
         let mut new_values: Vec<Vec<T>> = Vec::with_capacity(columns.len());
         for value in values.chunks(len) {
@@ -133,9 +151,7 @@ impl<T, U, V> Block<T, U, V>
         let len: usize = index.len();
         let cols: usize = columns.len();
 
-        if values.len() != len * cols {
-            panic!("Length mismatch!");
-        }
+        assert!(values.len() == len * cols, "Length mismatch!");
 
         let mut new_values: Vec<Vec<T>> = Vec::with_capacity(columns.len());
         for i in 0..cols {
@@ -160,14 +176,11 @@ impl<T, U, V> Block<T, U, V>
         let index: Indexer<U> = index.into();
         let columns: Indexer<V> = columns.into();
 
-        if values.len() != columns.len() {
-            panic!("Length mismatch!");
-        }
+        assert!(values.len() == columns.len(), "Length mismatch!");
+
         let len = index.len();
         for value in values.iter() {
-            if value.len() != len {
-                panic!("Length mismatch!");
-            }
+            assert!(value.len() == len, "Length mismatch!");
         }
         Block {
             values: values,
@@ -199,30 +212,20 @@ impl<T, U, V> Block<T, U, V>
     }
 
     fn assert_binop(&self, other: &Block<T, U, V>) {
-        if self.index != other.index {
-            panic!("index must be the same!");
-        }
-        if self.columns != other.columns {
-            panic!("columns must be the same!");
-        }
+        assert!(self.index == other.index, "index must be the same!");
+        assert!(self.columns == other.columns, "columns must be the same!");
     }
 
     /// Add columns inplace
     pub fn insert(&mut self, name: V, values: Vec<T>) {
-        if self.len() != values.len() {
-            panic!("Length mismatch!");
-        }
+        assert!(self.len() == values.len(), "Length mismatch!");
         self.values.push(values);
         self.columns.push(name);
     }
 
-    pub fn len(&self) -> usize {
-        self.index.len()
-    }
-
-    pub fn groupby<G>(&self, other: Vec<G>) -> groupby::BlockGroupBy<T, U, V, G>
+    pub fn groupby<G>(&self, other: Vec<G>) -> GroupBy<Block<T, U, V>, G>
         where G: Copy + Eq + Hash + Ord {
-        groupby::BlockGroupBy::new(&self, other)
+        GroupBy::new(&self, other)
     }
 
     pub fn transpose(&self) -> Block<T, V, U> {
@@ -236,33 +239,6 @@ impl<T, U, V> Block<T, U, V>
             new_values.push(new_value);
         }
         Block::from_vec(new_values, self.columns.clone(), self.index.clone())
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Append
-////////////////////////////////////////////////////////////////////////////////
-
-impl<T, U, V> Appender for Block<T, U, V>
-    where T: Copy,
-          U: Copy + Eq + Hash,
-          V: Copy + Eq + Hash {
-
-    fn append(&self, other: &Self) -> Self {
-        if self.columns != other.columns {
-            panic!("columns must be the same!")
-        }
-
-        let new_index = self.index.append(&other.index);
-
-        let mut new_values: Vec<Vec<T>> = Vec::with_capacity(self.columns.len());
-        for (svalues, ovalues) in self.values.iter().zip(&other.values) {
-            let mut new_value = svalues.clone();
-            new_value.append(&mut ovalues.clone());
-            new_values.push(new_value);
-        }
-
-        Block::from_vec(new_values, new_index, self.columns.clone())
     }
 }
 

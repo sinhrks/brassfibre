@@ -4,6 +4,7 @@ use std::ops::{Add, Mul, Sub, Div, Rem};
 
 use super::Series;
 
+
 fn elemwise<T>(left: &Vec<T>, right: &Vec<T>,
                func: &Fn((&T, &T)) -> T) -> Vec<T>
     where T: Copy + Num {

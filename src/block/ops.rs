@@ -418,7 +418,7 @@ mod tests {
         let res = &b + &r;
         assert_eq!(res, exp);
 
-        let result = b + &r;
+        let res = b + &r;
         assert_eq!(res, exp);
     }
 }

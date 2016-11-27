@@ -6,6 +6,7 @@ pub enum Array {
     Float64Array(Vec<f64>)
 }
 
+
 // ToDo: define macro
 macro_rules! add_conversion {
     ($t:ident, $klass:ident) => {
@@ -58,6 +59,17 @@ impl Array {
             },
             &Array::Float64Array(ref vals) => {
                 Array::Float64Array(Sorter::reindex(vals, locations))
+            }
+        }
+    }
+
+    pub fn to_string_vec(&self) -> Vec<String> {
+        match self {
+            &Array::Int64Array(ref vals) => {
+                vals.iter().map(|x| x.to_string()).collect()
+            },
+            &Array::Float64Array(ref vals) => {
+                vals.iter().map(|x| x.to_string()).collect()
             }
         }
     }

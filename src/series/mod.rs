@@ -6,6 +6,7 @@ use std::hash::Hash;
 
 use super::algos::sort::Sorter;
 use super::indexer::Indexer;
+use super::groupby::GroupBy;
 use super::traits::{IndexerIndexer, RowIndexer, Appender, Applicable};
 
 mod aggregation;
@@ -25,11 +26,27 @@ pub struct Series<T, U: Hash> {
 // Indexing
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<T, U> RowIndexer<U> for Series<T, U>
+impl<T, U> RowIndexer for Series<T, U>
     where T: Copy,
           U: Copy + Eq + Hash {
 
-    fn reindex(&self, labels: &Vec<U>) -> Self {
+    type Key = U;
+    type Row = T;
+
+    fn len(&self) -> usize {
+        self.values.len()
+    }
+
+    fn loc(&self, label: &Self::Key) -> Self::Row {
+        let loc = self.index.get_loc(&label);
+        self.iloc(&loc)
+    }
+
+    fn iloc(&self, location: &usize) -> Self::Row {
+        self.values[*location]
+    }
+
+    fn reindex(&self, labels: &Vec<Self::Key>) -> Self {
         let locs = self.index.get_locs(labels);
         let new_values = Sorter::reindex(&self.values, &locs);
         Series::new(new_values, labels.to_owned())
@@ -44,12 +61,11 @@ impl<T, U> RowIndexer<U> for Series<T, U>
     /// Slice using given Vec<bool> (slice by Bool LOCationS)
     fn blocs(&self, flags: &Vec<bool>) -> Self {
 
-        if self.len() != flags.len() {
-            panic!("Values and Indexer length are different");
-        }
+        assert!(self.len() == flags.len(),
+                "Values and Indexer length are different");
 
-        let mut new_values: Vec<T> = Vec::with_capacity(self.len());
-        let mut new_index: Vec<U> = Vec::with_capacity(self.len());
+        let mut new_values: Vec<Self::Row> = Vec::with_capacity(self.len());
+        let mut new_index: Vec<Self::Key> = Vec::with_capacity(self.len());
 
         // ToDo: remove itertools
         for (&flag, &v, &i) in Zip::new((flags, &self.values,
@@ -85,9 +101,8 @@ impl<T, U> Series<T, U>
 
         let index: Indexer<U> = index.into();
 
-        if values.len() != index.len() {
-            panic!("Length mismatch!");
-        }
+        assert!(values.len() == index.len(), "Length mismatch!");
+
         Series {
             values: values,
             index: index,
@@ -95,29 +110,12 @@ impl<T, U> Series<T, U>
     }
 
     fn assert_binop(&self, other: &Series<T, U>) {
-        if self.index != other.index {
-            panic!("index must be the same!");
-        }
+        assert!(self.index == other.index, "index must be the same!");
     }
 
-    pub fn len(&self) -> usize {
-        self.values.len()
-    }
-
-    /// Return single value corresponding to given label
-    pub fn get_by_label(&self, label: &U) -> T {
-        let loc = self.index.get_loc(&label);
-        self.get_by_index(&loc)
-    }
-
-    /// Return single value corresponding to given location
-    pub fn get_by_index(&self, location: &usize) -> T {
-        self.values[*location]
-    }
-
-    pub fn groupby<G>(&self, other: Vec<G>) -> groupby::SeriesGroupBy<T, U, G>
+    pub fn groupby<G>(&self, other: Vec<G>) -> GroupBy<Series<T, U>, G>
         where G: Copy + Eq + Hash + Ord {
-        groupby::SeriesGroupBy::new(&self, other)
+        GroupBy::new(&self, other)
     }
 }
 

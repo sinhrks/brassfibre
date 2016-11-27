@@ -44,7 +44,9 @@ impl<U> Indexer<U> where U: Copy + Eq + Hash {
 // Indexing
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<U> IndexerIndexer<U> for Indexer<U>  where U: Copy + Eq + Hash {
+impl<U> IndexerIndexer for Indexer<U>  where U: Copy + Eq + Hash {
+
+    type Key = U;
 
     fn len(&self) -> usize {
         self.values.len()

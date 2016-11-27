@@ -4,6 +4,9 @@ use super::indexer::Indexer;
 use super::internals::Array;
 use super::traits::{IndexerIndexer, RowIndexer, ColIndexer};
 
+mod formatting;
+mod groupby;
+
 #[derive(Clone)]
 pub struct DataFrame<U: Hash, V: Hash> {
     /// 2-dimentional block contains multiple type.
@@ -20,11 +23,26 @@ pub struct DataFrame<U: Hash, V: Hash> {
 // Indexing
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<U, V> RowIndexer<U> for DataFrame<U, V>
+impl<U, V> RowIndexer for DataFrame<U, V>
     where U: Copy + Eq + Hash,
           V: Copy + Eq + Hash {
 
-    fn reindex(&self, labels: &Vec<U>) -> Self {
+    type Key = U;
+    type Row = Array;
+
+    fn len(&self) -> usize {
+        self.index.len()
+    }
+
+    fn loc(&self, label: &Self::Key) -> Self::Row {
+        unimplemented!()
+    }
+
+    fn iloc(&self, locaiton: &usize) -> Self::Row {
+        unimplemented!()
+    }
+
+    fn reindex(&self, labels: &Vec<Self::Key>) -> Self {
         let locations = self.index.get_locs(labels);
         self.reindex_by_index(&locations)
     }
@@ -48,19 +66,22 @@ impl<U, V> RowIndexer<U> for DataFrame<U, V>
     }
 }
 
-impl<U, V> ColIndexer<V, Array> for DataFrame<U, V>
+impl<U, V> ColIndexer for DataFrame<U, V>
     where U: Copy + Eq + Hash,
           V: Copy + Eq + Hash {
 
-    fn get(&self, label: &V) -> Array {
+    type Key = V;
+    type Column = Array;
+
+    fn get(&self, label: &Self::Key) -> Self::Column {
         unimplemented!();
     }
 
-    fn iget(&self, loc: &usize) -> Array {
+    fn iget(&self, loc: &usize) -> Self::Column {
         unimplemented!();
     }
 
-    fn gets(&self, labels: &Vec<V>) -> Self {
+    fn gets(&self, labels: &Vec<Self::Key>) -> Self {
         let locs = self.columns.get_locs(labels);
         self.igets(&locs)
     }
@@ -92,14 +113,11 @@ impl<U, V> DataFrame<U, V>
         let index: Indexer<U> = index.into();
         let columns: Indexer<V> = columns.into();
 
-        if values.len() != columns.len() {
-            panic!("Length mismatch!");
-        }
+        assert!(values.len() == columns.len(), "Length mismatch!");
+
         let len = index.len();
         for value in values.iter() {
-            if value.len() != len {
-                panic!("Length mismatch!");
-            }
+            assert!(value.len() == len, "Length mismatch!");
         }
         DataFrame {
             values: values,
@@ -109,25 +127,22 @@ impl<U, V> DataFrame<U, V>
     }
 
     fn assert_binop(&self, other: &DataFrame<U, V>) {
-        if self.index != other.index {
-            panic!("index must be the same!");
-        }
-        if self.columns != other.columns {
-            panic!("columns must be the same!");
-        }
+        assert!(self.index == other.index, "index must be the same!");
+        assert!(self.columns == other.columns, "columns must be the same!");
     }
 
     pub fn insert(&mut self, values: Array, name: V) {
-        if self.len() != values.len() {
-            panic!("Length mismatch!");
-        }
+        assert!(self.len() == values.len(), "Length mismatch!");
+
         self.values.push(values);
         self.columns.push(name);
     }
 
-    pub fn len(&self) -> usize {
-        self.index.len()
+    pub fn groupby<G>(&self, other: Vec<G>) -> groupby::DataFrameGroupBy<DataFrame<U, V>, G>
+        where G: Copy + Eq + Hash + Ord {
+        groupby::DataFrameGroupBy::new(&self, other)
     }
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////

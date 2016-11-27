@@ -1,5 +1,4 @@
 extern crate brassfibre;
-
 use brassfibre::*;
 
 fn main() {
