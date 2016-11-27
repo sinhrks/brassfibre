@@ -33,6 +33,14 @@ fn test_creation_macros() {
     let farr = array![1.1, 2.1, 3.1, 4.1];
     assert_eq!(farr.dtype(), "f64");
     assert_eq!(farr.len(), 4);
+
+    let str_arr = array!["A", "B", "C"];
+    assert_eq!(str_arr.dtype(), "str");
+    assert_eq!(str_arr.len(), 3);
+
+    let string_arr = array!["A".to_string(), "B".to_string(), "C".to_string()];
+    assert_eq!(string_arr.dtype(), "str");
+    assert_eq!(string_arr.len(), 3);
 }
 
 #[test]

@@ -66,11 +66,11 @@ impl Sorter {
     }
 
     /// reorder values based on given locations
-    pub fn reindex<T: Copy>(values: &Vec<T>, locs: &Vec<usize>) -> Vec<T> {
+    pub fn reindex<T: Clone>(values: &Vec<T>, locs: &Vec<usize>) -> Vec<T> {
 
         let mut new_values: Vec<T> = Vec::with_capacity(values.len());
         for loc in locs {
-            new_values.push(values[*loc]);
+            new_values.push(values[*loc].clone());
         }
         new_values
     }
