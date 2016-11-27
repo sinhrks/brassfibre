@@ -6,6 +6,7 @@ use super::traits::{IndexerIndexer, RowIndexer, ColIndexer};
 
 mod formatting;
 mod groupby;
+mod reshape;
 
 #[derive(Clone)]
 pub struct DataFrame<U: Hash, V: Hash> {

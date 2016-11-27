@@ -85,7 +85,7 @@ pub trait Concatenator: Sized {
     fn concat(&self, other: &Self) -> Self;
 }
 
-/// Concatenate along columns
+/// Join by index
 pub trait Joiner: Sized {
     fn join_inner(&self, other: &Self) -> Self;
 }

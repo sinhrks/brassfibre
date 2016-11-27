@@ -96,3 +96,18 @@ fn test_container() {
     let dtypes: Vec<String> = container.iter().map(|ref x| x.dtype()).collect();
     assert_eq!(dtypes, vec!["i64", "f64"]);
 }
+
+#[test]
+fn test_append() {
+    let iarr1 = Array::Int64Array(vec![1, 2, 3]);
+    assert_eq!(iarr1.dtype(), "i64");
+
+    let iarr2 = Array::Int64Array(vec![1, 2, 3]);
+    assert_eq!(iarr2.dtype(), "i64");
+
+    let res = iarr1.append(&iarr2);
+    assert_eq!(res.dtype(), "i64");
+
+    let exp = Array::Int64Array(vec![1, 2, 3, 1, 2, 3]);
+    assert_eq!(res, exp);
+}

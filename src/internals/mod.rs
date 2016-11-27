@@ -1,4 +1,5 @@
 use super::algos::sort::Sorter;
+use super::traits::Appender;
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum Array {
@@ -71,6 +72,25 @@ impl Array {
             &Array::Float64Array(ref vals) => {
                 vals.iter().map(|x| x.to_string()).collect()
             }
+        }
+    }
+}
+
+
+impl Appender for Array {
+    fn append(&self, other: &Self) -> Self {
+        match (self, other) {
+            (&Array::Int64Array(ref svals), &Array::Int64Array(ref ovals)) => {
+                let mut new_values = svals.clone();
+                new_values.append(&mut ovals.clone());
+                Array::Int64Array(new_values)
+            },
+            (&Array::Float64Array(ref svals), &Array::Float64Array(ref ovals)) => {
+                let mut new_values = svals.clone();
+                new_values.append(&mut ovals.clone());
+                Array::Float64Array(new_values)
+            },
+            _ => panic!("Unable to append different dtype")
         }
     }
 }

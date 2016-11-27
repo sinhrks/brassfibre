@@ -171,7 +171,7 @@ println!("{:?}\n", &(&b + (&b * 2)));
 
 aggregation
 
-```
+```rust
 println!("{:?}\n", &b.sum());
 //   X 15
 // YYY 40
