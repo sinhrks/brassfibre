@@ -5,10 +5,10 @@ use super::Block;
 use super::super::formatting;
 
 
-impl<T, U, V> fmt::Display for Block<T, U, V>
-    where T: Copy,
-          U: Copy + Eq + Hash,
-          V: Copy + Eq + Hash + fmt::Debug {
+impl<'i, 'c, V, I, C> fmt::Display for Block<'i, 'c, V, I, C>
+    where V: Copy,
+          I: Copy + Eq + Hash,
+          C: Copy + Eq + Hash + fmt::Debug {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Block(columns={:?})", &self.columns.values)
@@ -16,10 +16,10 @@ impl<T, U, V> fmt::Display for Block<T, U, V>
 
 }
 
-impl<T, U, V> fmt::Debug for Block<T, U, V>
-    where T: Copy + ToString,
-          U: Copy + Eq + Hash + ToString,
-          V: Copy + Eq + Hash + ToString {
+impl<'i, 'c, V, I, C> fmt::Debug for Block<'i, 'c, V, I, C>
+    where V: Copy + ToString,
+          I: Copy + Eq + Hash + ToString,
+          C: Copy + Eq + Hash + ToString {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 

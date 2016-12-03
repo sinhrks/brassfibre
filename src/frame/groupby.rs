@@ -1,26 +1,26 @@
-
+use std::borrow::{Borrow, Cow};
 use std::hash::Hash;
 
 use super::DataFrame;
 use super::super::algos::grouper::{Grouper, HashGrouper};
 use super::super::traits::{RowIndexer};
 
-pub struct DataFrameGroupBy<'a, D: 'a, G: Hash> {
+pub struct DataFrameGroupBy<'d, D: 'd, G: Hash> {
     /// Grouped DataFrame
     /// D: grouped data
     /// G: type of Group indexer
 
-    frame: &'a D,
+    frame: &'d D,
     grouper: HashGrouper<G>,
 }
 
-impl<'a, U, V, G> DataFrameGroupBy<'a, DataFrame<U, V>, G>
-    where U: Copy + Eq + Hash,
-          V: Copy + Eq + Hash,
+impl<'i, 'c, 'd, I, C, G> DataFrameGroupBy<'d, DataFrame<'i, 'c, I, C>, G>
+    where I: Copy + Eq + Hash,
+          C: Copy + Eq + Hash,
           G: Copy + Eq + Hash + Ord {
 
-    pub fn new(frame: &'a DataFrame<U, V>, indexer: Vec<G>)
-        -> DataFrameGroupBy<DataFrame<U, V>, G>{
+    pub fn new(frame: &'d DataFrame<'i, 'c, I, C>, indexer: Vec<G>)
+        -> Self {
 
         assert!(frame.len() == indexer.len(),
                 "DataFrame and Indexer length are different");
@@ -33,7 +33,7 @@ impl<'a, U, V, G> DataFrameGroupBy<'a, DataFrame<U, V>, G>
         }
     }
 
-    pub fn get_group(&self, group: &G) -> DataFrame<U, V> {
+    pub fn get_group(&self, group: &G) -> DataFrame<I, C> {
 
         if let Some(locs) = self.grouper.get(group) {
             self.frame.ilocs(&locs)

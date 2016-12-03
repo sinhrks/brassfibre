@@ -13,10 +13,10 @@ pub struct GroupBy<'a, D: 'a, G: Hash> {
 }
 
 impl<'a, D, G> GroupBy<'a, D, G>
-    where D: RowIndexer,
+    where D: RowIndexer<'a>,
           G: Copy + Eq + Hash + Ord {
 
-    pub fn new(data: &D, indexer: Vec<G>) -> GroupBy<D, G> {
+    pub fn new(data: &'a D, indexer: Vec<G>) -> Self {
 
         assert!(data.len() == indexer.len(),
                 "Series and Indexer length are different");

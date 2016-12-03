@@ -2,6 +2,7 @@ extern crate itertools;
 extern crate num;
 
 use itertools::Zip;
+use std::borrow::Cow;
 use std::hash::Hash;
 
 use super::algos::sort::Sorter;
@@ -17,21 +18,21 @@ mod ops;
 mod sort;
 
 #[derive(Clone)]
-pub struct Series<T, U: Hash> {
-    pub values: Vec<T>,
-    pub index: Indexer<U>,
+pub struct Series<'i, V, I: 'i + Clone + Hash> {
+    pub values: Vec<V>,
+    pub index: Cow<'i, Indexer<I>>,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Indexing
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<T, U> RowIndexer for Series<T, U>
-    where T: Copy,
-          U: Copy + Eq + Hash {
+impl<'i, V, I> RowIndexer<'i> for Series<'i, V, I>
+    where V: Copy,
+          I: Copy + Eq + Hash {
 
-    type Key = U;
-    type Row = T;
+    type Key = I;
+    type Row = V;
 
     fn len(&self) -> usize {
         self.values.len()
@@ -49,7 +50,7 @@ impl<T, U> RowIndexer for Series<T, U>
     fn reindex(&self, labels: &Vec<Self::Key>) -> Self {
         let locs = self.index.get_locs(labels);
         let new_values = Sorter::reindex(&self.values, &locs);
-        Series::new(new_values, labels.to_owned())
+        Series::new(new_values, labels.clone())
     }
 
     fn reindex_by_index(&self, locations: &Vec<usize>) -> Self {
@@ -83,37 +84,44 @@ impl<T, U> RowIndexer for Series<T, U>
 // Misc
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<T, U> Series<T, U>
-    where T: Copy,
-          U: Copy + Eq + Hash {
+impl<'i, V, I> Series<'i, V, I>
+    where V: Copy,
+          I: 'i + Copy + Eq + Hash {
 
-    pub fn from_vec(values: Vec<T>) -> Series<T, usize> {
+    pub fn from_vec(values: Vec<V>) -> Series<'i, V, usize> {
         let index: Indexer<usize> = Indexer::<usize>::from_len(values.len());
 
         Series {
             values: values,
-            index: index,
+            index: Cow::Owned(index),
         }
     }
 
-    pub fn new<I>(values: Vec<T>, index: I) -> Self
-        where I: Into<Indexer<U>> {
+    pub fn new<X>(values: Vec<V>, index: X) -> Self
+        where X: Into<Indexer<I>> {
 
-        let index: Indexer<U> = index.into();
+        let index: Indexer<I> = index.into();
 
         assert!(values.len() == index.len(), "Length mismatch!");
 
         Series {
             values: values,
+            index: Cow::Owned(index),
+        }
+    }
+
+    pub fn from_cow(values: Vec<V>, index: Cow<'i, Indexer<I>>) -> Self {
+        Series {
+            values: values,
             index: index,
         }
     }
 
-    fn assert_binop(&self, other: &Series<T, U>) {
+    fn assert_binop(&self, other: &Self) {
         assert!(self.index == other.index, "index must be the same!");
     }
 
-    pub fn groupby<G>(&self, other: Vec<G>) -> GroupBy<Series<T, U>, G>
+    pub fn groupby<G>(&self, other: Vec<G>) -> GroupBy<Series<V, I>, G>
         where G: Copy + Eq + Hash + Ord {
         GroupBy::new(&self, other)
     }
@@ -123,12 +131,12 @@ impl<T, U> Series<T, U>
 // Append
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<T, U> Appender for Series<T, U>
-    where T: Copy,
-          U: Copy + Eq + Hash {
+impl<'i, V, I> Appender<'i> for Series<'i, V, I>
+    where V: Copy,
+          I: Copy + Eq + Hash {
 
     fn append(&self, other: &Self) -> Self {
-        let mut new_values: Vec<T> = self.values.clone();
+        let mut new_values: Vec<V> = self.values.clone();
         new_values.append(&mut other.values.clone());
         let new_index = self.index.append(&other.index);
         Series::new(new_values, new_index)
@@ -139,11 +147,11 @@ impl<T, U> Appender for Series<T, U>
 // Apply
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<T, U, R> Applicable<Vec<T>, R, R> for Series<T, U>
-    where T: Copy,
-          U: Copy + Eq + Hash {
+impl<'i, V, I, R> Applicable<'i, Vec<V>, R, R> for Series<'i, V, I>
+    where V: Copy,
+          I: Copy + Eq + Hash {
 
-    fn apply(&self, func: &Fn(&Vec<T>) -> R) -> R {
+    fn apply<'f>(&'i self, func: &'f Fn(&Vec<V>) -> R) -> R {
         func(&self.values)
     }
 }
@@ -152,8 +160,8 @@ impl<T, U, R> Applicable<Vec<T>, R, R> for Series<T, U>
 // Eq
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<T: PartialEq, U: Hash + Eq> PartialEq for Series<T, U> {
-    fn eq(&self, other: &Series<T, U>) -> bool {
+impl<'i, V: PartialEq, I: Clone + Hash + Eq> PartialEq for Series<'i, V, I> {
+    fn eq(&self, other: &Self) -> bool {
         (self.index.eq(&other.index)) && (self.values.eq(&other.values))
     }
 }

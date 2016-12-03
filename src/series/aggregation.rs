@@ -10,56 +10,56 @@ use super::super::computations;
 use super::super::traits::{Applicable, Aggregator};
 
 
-impl<T, U> Aggregator for Series<T, U>
-    where T: Copy + Num + Zero + ToPrimitive,
-          U: Copy + Eq + Hash {
+impl<'i, V, I> Aggregator<'i, 'i> for Series<'i, V, I>
+    where V: Copy + Num + Zero + ToPrimitive,
+          I: Copy + Eq + Hash {
 
-    type Kept = T;
+    type Kept = V;
     type Counted = usize;
     type Coerced = f64;
 
-    fn sum(&self) -> T {
+    fn sum(&'i self) -> Self::Kept {
         self.apply(&computations::vec_sum)
     }
 
-    fn count(&self) -> usize {
+    fn count(&'i self) -> Self::Counted {
         self.apply(&computations::vec_count)
     }
 
-    fn mean(&self) -> f64 {
+    fn mean(&'i self) -> Self::Coerced {
         self.apply(&computations::vec_mean)
     }
 
-    fn var(&self) -> f64 {
+    fn var(&'i self) -> Self::Coerced {
         self.apply(&computations::vec_var)
     }
 
-    fn unbiased_var(&self) -> f64 {
+    fn unbiased_var(&'i self) -> Self::Coerced {
         self.apply(&computations::vec_unbiased_var)
     }
 
-    fn std(&self) -> f64 {
+    fn std(&'i self) -> Self::Coerced {
         self.apply(&computations::vec_std)
     }
 
-    fn unbiased_std(&self) -> f64 {
+    fn unbiased_std(&'i self) -> f64 {
         self.apply(&computations::vec_unbiased_std)
     }
 }
 
-impl<T, U> Series<T, U>
-    where T: Copy + Num + Zero + ToPrimitive + computations::NanMinMax<T>,
-          U: Copy + Eq + Hash {
+impl<'i, V, I> Series<'i, V, I>
+    where V: Copy + Num + Zero + ToPrimitive + computations::NanMinMax<V>,
+          I: Copy + Eq + Hash {
 
-    pub fn min(&self) -> T {
+    pub fn min(&'i self) -> V {
         self.apply(&computations::vec_min)
     }
 
-    pub fn max(&self) -> T {
+    pub fn max(&'i self) -> V {
         self.apply(&computations::vec_max)
     }
 
-    pub fn describe(&self) -> Series<f64, &str> {
+    pub fn describe<'a>(&self) -> Series<'a, f64, &str> {
         let new_index: Vec<&str> = vec!["count", "mean", "std", "min", "max"];
         let count_f64 = computations::vec_count_as_f64(&self.values);
 
@@ -77,11 +77,11 @@ impl<T, U> Series<T, U>
 
 // Other
 
-impl<T, U> Series<T, U>
-    where T: Copy + Eq + Hash + Ord,
-          U: Copy + Eq + Hash {
+impl<'i, V, I> Series<'i, V, I>
+    where V: Copy + Eq + Hash + Ord,
+          I: Copy + Eq + Hash {
 
-    pub fn value_counts(&self) -> Series<usize, T> {
+    pub fn value_counts<'a>(&self) -> Series<'a, usize, V> {
         let c = Counter::new(&self.values);
         let (keys, counts) = c.get_results();
         Series::new(counts, keys)

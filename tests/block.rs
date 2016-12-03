@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 extern crate brassfibre;
 use brassfibre::*;
 
@@ -13,23 +15,23 @@ fn test_block_creation_from_col_vec() {
 
     let exp_index: Indexer<&str> = Indexer::new(vec!["A", "BB", "CC", "D", "EEE"]);
     let exp_columns: Indexer<&str> = Indexer::new(vec!["X", "YYY", "ZZ"]);
-    assert_eq!(b.index, exp_index);
-    assert_eq!(b.columns, exp_columns);
+    assert_eq!(b.index, Cow::Owned(exp_index));
+    assert_eq!(b.columns, Cow::Owned(exp_columns));
 
     let c = b.get(&"X");
-    let exp_values: Vec<i64> = vec![1, 2, 3, 4, 5];
-    assert_eq!(c.values, exp_values);
-    assert_eq!(c.index, exp_index);
+    let exp: Series<i64, &str> = Series::new(vec![1, 2, 3, 4, 5],
+                                             vec!["A", "BB", "CC", "D", "EEE"]);
+    assert_eq!(c, exp);
 
     let c = b.get(&"YYY");
-    let exp_values: Vec<i64> = vec![6, 7, 8, 9, 10];
-    assert_eq!(c.values, exp_values);
-    assert_eq!(c.index, exp_index);
+    let exp: Series<i64, &str> = Series::new(vec![6, 7, 8, 9, 10],
+                                             vec!["A", "BB", "CC", "D", "EEE"]);
+    assert_eq!(c, exp);
 
     let c = b.get(&"ZZ");
-    let exp_values: Vec<i64> = vec![11, 12, 13, 14, 15];
-    assert_eq!(c.values, exp_values);
-    assert_eq!(c.index, exp_index);
+    let exp: Series<i64, &str> = Series::new(vec![11, 12, 13, 14, 15],
+                                             vec!["A", "BB", "CC", "D", "EEE"]);
+    assert_eq!(c, exp);
 }
 
 #[test]
@@ -46,23 +48,23 @@ fn test_block_creation_from_row_vec() {
 
     let exp_index: Indexer<&str> = Indexer::new(vec!["A", "BB", "CC", "D", "EEE"]);
     let exp_columns: Indexer<&str> = Indexer::new(vec!["X", "YYY", "ZZ"]);
-    assert_eq!(b.index, exp_index);
-    assert_eq!(b.columns, exp_columns);
+    assert_eq!(b.index, Cow::Owned(exp_index));
+    assert_eq!(b.columns, Cow::Owned(exp_columns));
 
     let c = b.get(&"X");
-    let exp_values: Vec<i64> = vec![1, 2, 3, 4, 5];
-    assert_eq!(c.values, exp_values);
-    assert_eq!(c.index, exp_index);
+    let exp: Series<i64, &str> = Series::new(vec![1, 2, 3, 4, 5],
+                                             vec!["A", "BB", "CC", "D", "EEE"]);
+    assert_eq!(c, exp);
 
     let c = b.get(&"YYY");
-    let exp_values: Vec<i64> = vec![6, 7, 8, 9, 10];
-    assert_eq!(c.values, exp_values);
-    assert_eq!(c.index, exp_index);
+    let exp: Series<i64, &str> = Series::new(vec![6, 7, 8, 9, 10],
+                                             vec!["A", "BB", "CC", "D", "EEE"]);
+    assert_eq!(c, exp);
 
     let c = b.get(&"ZZ");
-    let exp_values: Vec<i64> = vec![11, 12, 13, 14, 15];
-    assert_eq!(c.values, exp_values);
-    assert_eq!(c.index, exp_index);
+    let exp: Series<i64, &str> = Series::new(vec![11, 12, 13, 14, 15],
+                                             vec!["A", "BB", "CC", "D", "EEE"]);
+    assert_eq!(c, exp);
 }
 
 #[test]
@@ -77,23 +79,23 @@ fn test_block_creation_from_vec() {
 
     let exp_index: Indexer<&str> = Indexer::new(vec!["A", "BB", "CC", "D", "EEE"]);
     let exp_columns: Indexer<&str> = Indexer::new(vec!["X", "YYY", "ZZ"]);
-    assert_eq!(b.index, exp_index);
-    assert_eq!(b.columns, exp_columns);
+    assert_eq!(b.index, Cow::Owned(exp_index));
+    assert_eq!(b.columns, Cow::Owned(exp_columns));
 
     let c = b.get(&"X");
-    let exp_values: Vec<i64> = vec![1, 2, 3, 4, 5];
-    assert_eq!(c.values, exp_values);
-    assert_eq!(c.index, exp_index);
+    let exp: Series<i64, &str> = Series::new(vec![1, 2, 3, 4, 5],
+                                             vec!["A", "BB", "CC", "D", "EEE"]);
+    assert_eq!(c, exp);
 
     let c = b.get(&"YYY");
-    let exp_values: Vec<i64> = vec![6, 7, 8, 9, 10];
-    assert_eq!(c.values, exp_values);
-    assert_eq!(c.index, exp_index);
+    let exp: Series<i64, &str> = Series::new(vec![6, 7, 8, 9, 10],
+                                             vec!["A", "BB", "CC", "D", "EEE"]);
+    assert_eq!(c, exp);
 
     let c = b.get(&"ZZ");
-    let exp_values: Vec<i64> = vec![11, 12, 13, 14, 15];
-    assert_eq!(c.values, exp_values);
-    assert_eq!(c.index, exp_index);
+    let exp: Series<i64, &str> = Series::new(vec![11, 12, 13, 14, 15],
+                                             vec!["A", "BB", "CC", "D", "EEE"]);
+    assert_eq!(c, exp);
 }
 
 #[test]
@@ -126,13 +128,12 @@ fn test_block_creation_from_series() {
 
     let exp_index: Indexer<&str> = Indexer::new(vec!["A", "B", "C"]);
     let exp_columns: Indexer<i64> = Indexer::new(vec![1]);
-    assert_eq!(b.index, exp_index);
-    assert_eq!(b.columns, exp_columns);
+    assert_eq!(b.index, Cow::Owned(exp_index));
+    assert_eq!(b.columns, Cow::Owned(exp_columns));
 
     let c = b.get(&1);
-    let exp_values: Vec<f64> = vec![1., 2., 3.];
-    assert_eq!(c.values, exp_values);
-    assert_eq!(c.index, exp_index);
+    let exp: Series<f64, &str> = Series::new(vec![1., 2., 3.], vec!["A", "B", "C"]);
+    assert_eq!(c, exp);
 }
 
 #[test]
@@ -221,28 +222,27 @@ fn test_insert() {
     assert_eq!(b.len(), 3);
     let exp_index: Indexer<&str> = Indexer::new(vec!["A", "B", "C"]);
     let exp_columns: Indexer<i64> = Indexer::new(vec![1]);
-    assert_eq!(b.index, exp_index);
-    assert_eq!(b.columns, exp_columns);
+    assert_eq!(b.index, Cow::Owned(exp_index));
+    assert_eq!(b.columns, Cow::Owned(exp_columns));
 
     // add columns
     let values2: Vec<f64> = vec![4., 5., 6.];
     b.insert(3, values2);
     assert_eq!(b.len(), 3);
+    let exp_index: Indexer<&str> = Indexer::new(vec!["A", "B", "C"]);
     let exp_columns: Indexer<i64> = Indexer::new(vec![1, 3]);
-    assert_eq!(b.index, exp_index);
-    assert_eq!(b.columns, exp_columns);
+    assert_eq!(b.index, Cow::Owned(exp_index));
+    assert_eq!(b.columns, Cow::Owned(exp_columns));
 
     assert_eq!(b.columns.get_loc(&1), 0);
     assert_eq!(b.columns.get_loc(&3), 1);
     let c = b.get(&1);
-    let exp_values: Vec<f64> = vec![1., 2., 3.];
-    assert_eq!(c.values, exp_values);
-    assert_eq!(c.index, exp_index);
+    let exp: Series<f64, &str> = Series::new(vec![1., 2., 3.], vec!["A", "B", "C"]);
+    assert_eq!(c, exp);
 
     let c = b.get(&3);
-    let exp_values: Vec<f64> = vec![4., 5., 6.];
-    assert_eq!(c.values, exp_values);
-    assert_eq!(c.index, exp_index);
+    let exp: Series<f64, &str> = Series::new(vec![4., 5., 6.], vec!["A", "B", "C"]);
+    assert_eq!(c, exp);
 }
 
 #[test]
@@ -254,18 +254,18 @@ fn test_slice_ilocs() {
 
     // slice
     let sliced = b.ilocs(&vec![0, 2]);
-    let exp_index: Indexer<&str> = Indexer::new(vec!["A", "C"]);
-    let exp_columns: Indexer<i64> = Indexer::new(vec![1, 3]);
-    assert_eq!(sliced.index, exp_index);
-    assert_eq!(sliced.columns, exp_columns);
+    let exp = Block::<f64, &str, i64>::from_col_vec(vec![1., 3., 4., 6.],
+                                                    vec!["A", "C"],
+                                                    vec![1, 3]);
+    assert_eq!(sliced, exp);
 
     // compare columns
     let c = sliced.get(&1);
-    let exp_values: Vec<f64> = vec![1., 3.];
-    assert_eq!(c.values, exp_values);
+    let exp: Series<f64, &str> = Series::new(vec![1., 3.], vec!["A", "C"]);
+    assert_eq!(c, exp);
     let c = sliced.get(&3);
-    let exp_values: Vec<f64> = vec![4., 6.];
-    assert_eq!(c.values, exp_values);
+    let exp: Series<f64, &str> = Series::new(vec![4., 6.], vec!["A", "C"]);
+    assert_eq!(c, exp);
 }
 
 #[test]
@@ -277,18 +277,19 @@ fn test_slice_locs() {
 
     // slice
     let sliced = b.locs(&vec!["B", "C"]);
-    let exp_index: Indexer<&str> = Indexer::new(vec!["B", "C"]);
-    let exp_columns: Indexer<i64> = Indexer::new(vec![1, 3]);
-    assert_eq!(sliced.index, exp_index);
-    assert_eq!(sliced.columns, exp_columns);
+
+    let exp = Block::<f64, &str, i64>::from_col_vec(vec![2., 3., 5., 6.],
+                                                    vec!["B", "C"],
+                                                    vec![1, 3]);
+    assert_eq!(sliced, exp);
 
     // compare columns
     let c = sliced.get(&1);
-    let exp_values: Vec<f64> = vec![2., 3.];
-    assert_eq!(c.values, exp_values);
+    let exp: Series<f64, &str> = Series::new(vec![2., 3.], vec!["B", "C"]);
+    assert_eq!(c, exp);
     let c = sliced.get(&3);
-    let exp_values: Vec<f64> = vec![5., 6.];
-    assert_eq!(c.values, exp_values);
+    let exp: Series<f64, &str> = Series::new(vec![5., 6.], vec!["B", "C"]);
+    assert_eq!(c, exp);
 }
 
 #[test]

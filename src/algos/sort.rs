@@ -12,7 +12,7 @@ impl Sorter {
         let values: &Vec<T> = values.as_ref();
 
         // Clone all elements
-        let mut result = values.to_owned();
+        let mut result = values.clone();
         result.sort();
         result
     }

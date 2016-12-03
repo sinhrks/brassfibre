@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 extern crate brassfibre;
 use brassfibre::*;
 
@@ -10,7 +12,7 @@ fn test_series_creation_from_vec() {
     let exp_values: Vec<f64> = vec![1., 2., 3.];
     let exp_index: Indexer<usize> = Indexer::new(vec![0, 1, 2]);
     assert_eq!(s.values, exp_values);
-    assert_eq!(s.index, exp_index);
+    assert_eq!(s.index, Cow::Owned(exp_index));
 
     assert_eq!(s.len(), 3);
     assert_eq!(s.index.len(), 3);
@@ -26,7 +28,7 @@ fn test_series_creation_from_index() {
     let exp_values: Vec<f64> = vec![1., 2., 3.];
     let exp_index: Indexer<i64> = Indexer::new(vec![5, 6, 7]);
     assert_eq!(s.values, exp_values);
-    assert_eq!(s.index, exp_index);
+    assert_eq!(s.index, Cow::Owned(exp_index));
 
     assert_eq!(s.len(), 3);
     assert_eq!(s.index.len(), 3);
@@ -42,7 +44,7 @@ fn test_series_creation_from_into_index() {
     let exp_values: Vec<f64> = vec![1., 2., 3.];
     let exp_index: Indexer<i64> = Indexer::new(vec![5, 6, 7]);
     assert_eq!(s.values, exp_values);
-    assert_eq!(s.index, exp_index);
+    assert_eq!(s.index, Cow::Owned(exp_index));
 
     assert_eq!(s.len(), 3);
     assert_eq!(s.index.len(), 3);
@@ -59,7 +61,7 @@ fn test_series_copy() {
     let exp_values: Vec<f64> = vec![1., 2., 3.];
     let exp_index: Indexer<i64> = Indexer::new(vec![5, 6, 7]);
     assert_eq!(copied.values, exp_values);
-    assert_eq!(copied.index, exp_index);
+    assert_eq!(copied.index, Cow::Owned(exp_index));
 
     assert_eq!(copied, s);
 }
@@ -87,7 +89,7 @@ fn test_series_slice_locs() {
     let exp_values: Vec<f64> = vec![1., 2., 3., 4., 5.];
     let exp_index: Indexer<i64> = Indexer::new(vec![10, 20, 30, 40, 50]);
     assert_eq!(s.values, exp_values);
-    assert_eq!(s.index, exp_index);
+    assert_eq!(s.index, Cow::Owned(exp_index));
 
     // test label slice
     let res = s.locs(&vec![20, 30, 50]);
@@ -106,7 +108,7 @@ fn test_series_slice_ilocs() {
     let exp_values: Vec<f64> = vec![1., 2., 3., 4., 5.];
     let exp_index: Indexer<i64> = Indexer::new(vec![10, 20, 30, 40, 50]);
     assert_eq!(s.values, exp_values);
-    assert_eq!(s.index, exp_index);
+    assert_eq!(s.index, Cow::Owned(exp_index));
 
     // test index slice
     let res = s.ilocs(&vec![0, 2, 4]);
@@ -126,7 +128,7 @@ fn test_series_slice_blocs() {
     let exp_values: Vec<f64> = vec![1., 2., 3., 4., 5.];
     let exp_index: Indexer<i64> = Indexer::new(vec![10, 20, 30, 40, 50]);
     assert_eq!(s.values, exp_values);
-    assert_eq!(s.index, exp_index);
+    assert_eq!(s.index, Cow::Owned(exp_index));
 
     // test bool slice
     let res = s.blocs(&vec![true, false, false, true, true]);

@@ -12,17 +12,19 @@ use super::super::traits::{Applicable, Aggregator};
 // Apply
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'a, T, U, V, G, W> Applicable<Block<T, U, V>, Vec<W>, Block<W, G, V>>
-    for GroupBy<'a, Block<T, U, V>, G>
+impl<'i, 'c, V, I, C, G, W> Applicable<'c, Block<'i, 'c, V, I, C>, Vec<W>, Block<'c, 'c, W, G, C>>
+    for GroupBy<'i, Block<'i, 'c, V, I, C>, G>
 
-    where T: Copy,
-          U: Copy + Eq + Hash,
-          V: Copy + Eq + Hash,
+    where V: Copy,
+          I: Copy + Eq + Hash,
+          C: Copy + Eq + Hash,
           G: Copy + Eq + Hash + Ord,
           W: Copy {
 
     /// Apply passed function to each group
-    fn apply(&self, func: &Fn(&Block<T, U, V>) -> Vec<W>) -> Block<W, G, V> {
+    fn apply<'f>(&'c self, func: &'f Fn(&Block<'i, 'c, V, I, C>) -> Vec<W>)
+        -> Block<'c, 'c, W, G, C> {
+
         let mut new_values: Vec<W> = Vec::with_capacity(self.grouper.len());
 
         let groups = self.groups();
@@ -30,8 +32,9 @@ impl<'a, T, U, V, G, W> Applicable<Block<T, U, V>, Vec<W>, Block<W, G, V>>
             let s = self.get_group(&g);
             new_values.append(&mut func(&s));
         }
+        let new_columns = self.data.columns.clone();
         Block::from_row_vec(new_values, groups,
-                            self.data.columns.clone())
+                            new_columns.into_owned())
     }
 }
 
@@ -39,42 +42,42 @@ impl<'a, T, U, V, G, W> Applicable<Block<T, U, V>, Vec<W>, Block<W, G, V>>
 // Aggregation
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'a, T, U, V, G> Aggregator for GroupBy<'a, Block<T, U, V>, G>
-    where T: Copy + Eq + Hash + Num + Zero + ToPrimitive,
-          U: Copy + Eq + Hash,
-          V: Copy + Eq + Hash,
-          G: Copy + Eq + Hash + Ord {
+impl<'i, 'c, V, I, C, G> Aggregator<'c, 'c> for GroupBy<'i, Block<'i, 'c, V, I, C>, G>
+    where V: Copy + Eq + Hash + Num + Zero + ToPrimitive,
+          I: Copy + Eq + Hash,
+          C: Copy + Eq + Hash,
+          G: 'c + Copy + Eq + Hash + Ord {
 
-    type Kept = Block<T, G, V>;
-    type Counted = Block<usize, G, V>;
-    type Coerced = Block<f64, G, V>;
+    type Kept = Block<'c, 'c, V, G, C>;
+    type Counted = Block<'c, 'c, usize, G, C>;
+    type Coerced = Block<'c, 'c, f64, G, C>;
 
-    fn sum(&self) -> Self::Kept {
-        self.apply(&|x: &Block<T, U, V>| x.sum().values)
+    fn sum(&'c self) -> Self::Kept {
+        self.apply(&|x: &Block<V, I, C>| x.sum().values)
     }
 
-    fn count(&self) -> Self::Counted {
-        self.apply(&|x: &Block<T, U, V>| x.count().values)
+    fn count(&'c self) -> Self::Counted {
+        self.apply(&|x: &Block<V, I, C>| x.count().values)
     }
 
-    fn mean(&self) -> Self::Coerced {
-        self.apply(&|x: &Block<T, U, V>| x.mean().values)
+    fn mean(&'c self) -> Self::Coerced {
+        self.apply(&|x: &Block<V, I, C>| x.mean().values)
     }
 
-    fn var(&self) -> Self::Coerced {
-        self.apply(&|x: &Block<T, U, V>| x.var().values)
+    fn var(&'c self) -> Self::Coerced {
+        self.apply(&|x: &Block<V, I, C>| x.var().values)
     }
 
-    fn unbiased_var(&self) -> Self::Coerced {
-        self.apply(&|x: &Block<T, U, V>| x.unbiased_var().values)
+    fn unbiased_var(&'c self) -> Self::Coerced {
+        self.apply(&|x: &Block<V, I, C>| x.unbiased_var().values)
     }
 
-    fn std(&self) -> Self::Coerced {
-        self.apply(&|x: &Block<T, U, V>| x.std().values)
+    fn std(&'c self) -> Self::Coerced {
+        self.apply(&|x: &Block<V, I, C>| x.std().values)
     }
 
-    fn unbiased_std(&self) -> Block<f64, G, V> {
-        self.apply(&|x: &Block<T, U, V>| x.unbiased_std().values)
+    fn unbiased_std(&'c self) -> Self::Coerced {
+        self.apply(&|x: &Block<V, I, C>| x.unbiased_std().values)
     }
 
 }

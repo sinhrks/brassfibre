@@ -1,3 +1,4 @@
+use std::borrow::{Borrow, Cow};
 use std::hash::Hash;
 
 use super::indexer::Indexer;
@@ -9,46 +10,49 @@ mod groupby;
 mod reshape;
 
 #[derive(Clone)]
-pub struct DataFrame<U: Hash, V: Hash> {
+pub struct DataFrame<'i, 'c, I: Hash, C: Hash>
+    where I: 'i + Clone + Hash,
+          C: 'c + Clone + Hash {
     /// 2-dimentional block contains multiple type.
-    /// U: type of indexer
-    /// V: type of columns
+    /// I: type of indexer
+    /// C: type of columns
 
     // Do not use #[derice(PartialEq)] as internals may not be comparable
     pub values: Vec<Array>,
-    pub index: Indexer<U>,
-    pub columns: Indexer<V>,
+    pub index: Cow<'i, Indexer<I>>,
+    pub columns: Cow<'c, Indexer<C>>,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Indexing
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<U, V> RowIndexer for DataFrame<U, V>
-    where U: Copy + Eq + Hash,
-          V: Copy + Eq + Hash {
+impl<'i, 'c, I, C> RowIndexer<'c> for DataFrame<'i, 'c, I, C>
+    where I: Copy + Eq + Hash,
+          C: Copy + Eq + Hash {
 
-    type Key = U;
+    type Key = I;
     type Row = Array;
 
-    fn len(&self) -> usize {
+    fn len(&'c self) -> usize {
         self.index.len()
     }
 
-    fn loc(&self, label: &Self::Key) -> Self::Row {
+    fn loc(&'c self, label: &Self::Key) -> Self::Row {
         unimplemented!()
     }
 
-    fn iloc(&self, locaiton: &usize) -> Self::Row {
+    fn iloc(&'c self, locaiton: &usize) -> Self::Row {
         unimplemented!()
     }
 
-    fn reindex(&self, labels: &Vec<Self::Key>) -> Self {
+    fn reindex<'l>(&'c self, labels: &'l Vec<Self::Key>) -> Self {
         let locations = self.index.get_locs(labels);
         self.reindex_by_index(&locations)
     }
 
-    fn reindex_by_index(&self, locations: &Vec<usize>) -> Self {
+    fn reindex_by_index<'l>(&'c self, locations: &'l Vec<usize>) -> Self {
+
         let new_index = self.index.reindex(locations);
 
         let mut new_values: Vec<Array> = Vec::with_capacity(self.columns.len());
@@ -56,9 +60,9 @@ impl<U, V> RowIndexer for DataFrame<U, V>
             let new_value = current.ilocs(locations);
             new_values.push(new_value);
         }
-        DataFrame::from_vec(new_values,
-                            new_index,
-                            self.columns.clone())
+        DataFrame::from_cow(new_values,
+                            Cow::Owned(new_index),
+                            Cow::Borrowed(self.columns.borrow()))
     }
 
     fn blocs(&self, labels: &Vec<bool>) -> Self {
@@ -67,34 +71,36 @@ impl<U, V> RowIndexer for DataFrame<U, V>
     }
 }
 
-impl<U, V> ColIndexer for DataFrame<U, V>
-    where U: Copy + Eq + Hash,
-          V: Copy + Eq + Hash {
+impl<'i, 'c, I, C> ColIndexer<'i> for DataFrame<'i, 'c, I, C>
+    where I: Copy + Eq + Hash,
+          C: Copy + Eq + Hash {
 
-    type Key = V;
+    type Key = C;
     type Column = Array;
 
-    fn get(&self, label: &Self::Key) -> Self::Column {
+    fn get(&'i self, label: &Self::Key) -> Self::Column {
         unimplemented!();
     }
 
-    fn iget(&self, loc: &usize) -> Self::Column {
+    fn iget(&'i self, loc: &usize) -> Self::Column {
         unimplemented!();
     }
 
-    fn gets(&self, labels: &Vec<Self::Key>) -> Self {
+    fn gets<'l>(&'i self, labels: &'l Vec<Self::Key>) -> Self {
         let locs = self.columns.get_locs(labels);
         self.igets(&locs)
     }
 
-    fn igets(&self, locations: &Vec<usize>) -> Self {
+    fn igets<'l>(&'i self, locations: &'l Vec<usize>) -> Self {
         let new_columns = self.columns.reindex(locations);
 
         let mut new_values: Vec<Array> = Vec::with_capacity(new_columns.len());
         for loc in locations {
             new_values.push(self.values[*loc].clone());
         }
-        DataFrame::from_vec(new_values, self.index.clone(), new_columns)
+        DataFrame::from_cow(new_values,
+                            Cow::Borrowed(self.index.borrow()),
+                            Cow::Owned(new_columns))
     }
 }
 
@@ -102,17 +108,17 @@ impl<U, V> ColIndexer for DataFrame<U, V>
 // Misc
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<U, V> DataFrame<U, V>
-    where U: Copy + Eq + Hash,
-          V: Copy + Eq + Hash {
+impl<'i, 'c, I, C> DataFrame<'i, 'c, I, C>
+    where I: Copy + Eq + Hash,
+          C: Copy + Eq + Hash {
 
-    pub fn from_vec<I, C>(values: Vec<Array>,
-                          index: I, columns: C) -> Self
-        where I: Into<Indexer<U>>,
-              C: Into<Indexer<V>> {
+    pub fn from_vec<X, Y>(values: Vec<Array>,
+                          index: X, columns: Y) -> Self
+        where X: Into<Indexer<I>>,
+              Y: Into<Indexer<C>> {
 
-        let index: Indexer<U> = index.into();
-        let columns: Indexer<V> = columns.into();
+        let index: Indexer<I> = index.into();
+        let columns: Indexer<C> = columns.into();
 
         assert!(values.len() == columns.len(), "Length mismatch!");
 
@@ -122,36 +128,49 @@ impl<U, V> DataFrame<U, V>
         }
         DataFrame {
             values: values,
+            index: Cow::Owned(index),
+            columns: Cow::Owned(columns),
+        }
+    }
+
+    fn from_cow(values: Vec<Array>,
+                index: Cow<'i, Indexer<I>>,
+                columns: Cow<'c, Indexer<C>>) -> Self {
+        // temp internal, use IntoCow
+        DataFrame {
+            values: values,
             index: index,
             columns: columns,
         }
     }
 
-    fn assert_binop(&self, other: &DataFrame<U, V>) {
+    fn assert_binop(&self, other: &Self) {
         assert!(self.index == other.index, "index must be the same!");
         assert!(self.columns == other.columns, "columns must be the same!");
     }
 
-    pub fn insert(&mut self, values: Array, name: V) {
+    pub fn insert(&mut self, values: Array, name: C) {
         assert!(self.len() == values.len(), "Length mismatch!");
 
         self.values.push(values);
-        self.columns.push(name);
+        self.columns.to_mut().push(name);
     }
 
-    pub fn groupby<G>(&self, other: Vec<G>) -> groupby::DataFrameGroupBy<DataFrame<U, V>, G>
+    pub fn groupby<G>(&self, other: Vec<G>) -> groupby::DataFrameGroupBy<Self, G>
         where G: Copy + Eq + Hash + Ord {
         groupby::DataFrameGroupBy::new(&self, other)
     }
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Eq
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<U: Hash + Eq, V: Hash + Eq> PartialEq for DataFrame<U, V> {
-    fn eq(&self, other: &DataFrame<U, V>) -> bool {
+impl<'i, 'c, I, C> PartialEq for DataFrame<'i, 'c, I, C>
+    where I: Clone + Hash + Eq,
+          C: Clone + Hash + Eq {
+
+    fn eq(&self, other: &Self) -> bool {
         (self.index.eq(&other.index)) &&
         (self.columns.eq(&other.columns)) &&
         (self.values.eq(&other.values))

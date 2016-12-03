@@ -1,3 +1,4 @@
+use std::borrow::{Borrow, Cow};
 use std::hash::Hash;
 
 use super::DataFrame;
@@ -7,11 +8,11 @@ use super::super::traits::{IndexerIndexer, RowIndexer,
                            Appender, Concatenator, Joiner};
 
 
-impl<U, V> Appender for DataFrame<U, V>
-    where U: Copy + Eq + Hash,
-          V: Copy + Eq + Hash {
+impl<'i, 'c, I, C> Appender<'c> for DataFrame<'i, 'c, I, C>
+    where I: Copy + Eq + Hash,
+          C: Copy + Eq + Hash {
 
-    fn append(&self, other: &Self) -> Self {
+    fn append<'o>(&'c self, other: &'o Self) -> Self {
         assert!(self.columns == other.columns, "columns must be identical");
 
         let new_index = self.index.append(&other.index);
@@ -21,16 +22,17 @@ impl<U, V> Appender for DataFrame<U, V>
             let new_value = svalues.append(&ovalues);
             new_values.push(new_value);
         }
-
-        DataFrame::from_vec(new_values, new_index, self.columns.clone())
+        DataFrame::from_cow(new_values,
+                            Cow::Owned(new_index),
+                            Cow::Borrowed(self.columns.borrow()))
     }
 }
 
-impl<U, V> Concatenator for DataFrame<U, V>
-    where U: Copy + Eq + Hash,
-          V: Copy + Eq + Hash {
+impl<'i, 'c, I, C> Concatenator<'i> for DataFrame<'i, 'c, I, C>
+    where I: Copy + Eq + Hash,
+          C: Copy + Eq + Hash {
 
-    fn concat(&self, other: &Self) -> Self {
+    fn concat<'o>(&'i self, other: &'o Self) -> Self {
         assert!(self.index == other.index, "index must be identical");
 
         let new_columns = self.columns.append(&other.columns);
@@ -39,14 +41,15 @@ impl<U, V> Concatenator for DataFrame<U, V>
         for values in self.values.iter().chain(&other.values) {
             new_values.push(values.clone());
         }
-
-        DataFrame::from_vec(new_values, self.index.clone(), new_columns)
+        DataFrame::from_cow(new_values,
+                            Cow::Borrowed(self.index.borrow()),
+                            Cow::Owned(new_columns))
     }
 }
 
-impl<U, V> Joiner for DataFrame<U, V>
-    where U: Copy + Eq + Hash,
-          V: Copy + Eq + Hash {
+impl<'i, 'c, I, C> Joiner for DataFrame<'i, 'c, I, C>
+    where I: Copy + Eq + Hash,
+          C: Copy + Eq + Hash {
 
     fn join_inner(&self, other: &Self) -> Self {
 

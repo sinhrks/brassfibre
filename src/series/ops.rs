@@ -4,10 +4,9 @@ use std::ops::{Add, Mul, Sub, Div, Rem};
 
 use super::Series;
 
-
-fn elemwise<T>(left: &Vec<T>, right: &Vec<T>,
-               func: &Fn((&T, &T)) -> T) -> Vec<T>
-    where T: Copy + Num {
+fn elemwise<V>(left: &Vec<V>, right: &Vec<V>,
+               func: &Fn((&V, &V)) -> V) -> Vec<V>
+    where V: Copy + Num {
     left.iter()
         .zip(right.iter())
         .map(func).collect()
@@ -17,100 +16,108 @@ macro_rules! define_numric_op {
     ($t:ident, $m:ident) => {
 
         // Broadcast
-        impl<T, U> $t<T> for Series<T, U>
-            where T: Copy + Num,
-                  U: Copy + Eq + Hash {
+        impl<'i, V, I> $t<V> for Series<'i, V, I>
+            where V: Copy + Num,
+                  I: 'i + Copy + Eq + Hash {
 
             type Output = Self;
-            fn $m(self, _rhs: T) -> Self {
-                let new_values = self.values.iter().map(|x: &T| (*x).$m(_rhs)).collect();
-                Series::new(new_values, self.index.clone())
+            fn $m(self, _rhs: V) -> Self {
+                let new_values: Vec<V> = self.values.iter().map(|x: &V| (*x).$m(_rhs)).collect();
+                // self is moved, pass index to new instance
+                Series::from_cow(new_values, self.index)
             }
         }
 
-        impl<'a, T, U> $t<&'a T> for Series<T, U>
-            where T: Copy + Num,
-                  U: Copy + Eq + Hash {
+        impl<'i, 'r, V, I> $t<&'r V> for Series<'i, V, I>
+            where V: Copy + Num,
+                  I: Copy + Eq + Hash {
 
             type Output = Self;
-            fn $m(self, _rhs: &T) -> Self {
-                let new_values = self.values.iter().map(|x: &T| (*x).$m(*_rhs)).collect();
-                Series::new(new_values, self.index.clone())
+            fn $m(self, _rhs: &'r V) -> Self {
+                let new_values = self.values.iter().map(|x: &V| (*x).$m(*_rhs)).collect();
+                Series::from_cow(new_values, self.index)
             }
         }
 
-        impl<'b, T, U> $t<T> for &'b Series<T, U>
-            where T: Copy + Num,
-                  U: Copy + Eq + Hash {
+        impl<'i, 'l, V, I> $t<V> for &'l Series<'i, V, I>
+            where V: Copy + Num,
+                  I: Copy + Eq + Hash {
 
-            type Output = Series<T, U>;
-            fn $m(self, _rhs: T) -> Series<T, U> {
-                let new_values = self.values.iter().map(|x: &T| (*x).$m(_rhs)).collect();
-                Series::new(new_values, self.index.clone())
+            type Output = Series<'i, V, I>;
+            fn $m(self, _rhs: V) -> Series<'i, V, I> {
+                let new_values = self.values.iter().map(|x: &V| (*x).$m(_rhs)).collect();
+                // error[E0495]: cannot infer an appropriate lifetime for autoref due to conflicting requirements
+                Series::from_cow(new_values, self.index.to_owned())
             }
         }
 
-        impl<'a, 'b, T, U> $t<&'a T> for &'b Series<T, U>
-            where T: Copy + Num,
-                  U: Copy + Eq + Hash {
+        impl<'i, 'l, 'r, V, I> $t<&'r V> for &'l Series<'i, V, I>
+            where V: Copy + Num,
+                  I: Copy + Eq + Hash {
 
-            type Output = Series<T, U>;
-            fn $m(self, _rhs: &T) -> Series<T, U> {
-                let new_values = self.values.iter().map(|x: &T| (*x).$m(*_rhs)).collect();
-                Series::new(new_values, self.index.clone())
+            type Output = Series<'i, V, I>;
+            fn $m(self, _rhs: &'r V) -> Series<'i, V, I> {
+                let new_values = self.values.iter().map(|x: &V| (*x).$m(*_rhs)).collect();
+                // error[E0495]: cannot infer an appropriate lifetime for autoref due to conflicting requirements
+                Series::from_cow(new_values, self.index.to_owned())
             }
         }
 
         // Element-wise
-        impl<T, U> $t<Series<T, U>> for Series<T, U>
-            where T: Copy + Num,
-                  U: Copy + Eq + Hash {
+        impl<'li, 'ri, V, I> $t<Series<'ri, V, I>> for Series<'li, V, I>
+            where V: Copy + Num,
+                  I: Copy + Eq + Hash {
 
             type Output = Self;
-            fn $m(self, _rhs: Self) -> Self {
+            fn $m(self, _rhs: Series<'ri, V, I>) -> Self {
                 self.assert_binop(&_rhs);
                 let new_values = elemwise(&self.values, &_rhs.values,
                                           &|(x, y)| (*x).$m(*y));
-                Series::new(new_values, self.index.clone())
+                Series::from_cow(new_values, self.index)
             }
         }
 
-        impl<'a, T, U> $t<&'a Series<T, U>> for Series<T, U>
-            where T: Copy + Num,
-                  U: Copy + Eq + Hash {
+        impl<'li, 'ri, 'r, V, I> $t<&'r Series<'ri, V, I>> for Series<'li, V, I>
+            where V: Copy + Num,
+                  I: Copy + Eq + Hash {
 
             type Output = Self;
-            fn $m(self, _rhs: &Series<T, U>) -> Self {
+            fn $m(self, _rhs: &'r Series<'ri, V, I>) -> Self {
                 self.assert_binop(&_rhs);
                 let new_values = elemwise(&self.values, &_rhs.values,
                                           &|(x, y)| (*x).$m(*y));
-                Series::new(new_values, self.index.clone())
+                Series::from_cow(new_values, self.index)
             }
         }
 
-        impl<'b, T, U> $t<Series<T, U>> for &'b Series<T, U>
-            where T: Copy + Num,
-                  U: Copy + Eq + Hash {
+        impl<'li, 'ri, 'l, V, I> $t<Series<'ri, V, I>> for &'l Series<'li, V, I>
+            where V: Copy + Num,
+                  I: Copy + Eq + Hash {
 
-            type Output = Series<T, U>;
-            fn $m(self, _rhs: Series<T, U>) -> Series<T, U> {
+            type Output = Series<'li, V, I>;
+            fn $m(self, _rhs: Series<'ri, V, I>) -> Series<'li, V, I> {
                 self.assert_binop(&_rhs);
                 let new_values = elemwise(&self.values, &_rhs.values,
                                           &|(x, y)| (*x).$m(*y));
-                Series::new(new_values, self.index.clone())
+                // error[E0495]: cannot infer an appropriate lifetime for autoref due to conflicting requirements
+                // Series::from_cow(new_values, Cow::Borrowed(self.index.borrow()))
+                Series::from_cow(new_values, self.index.to_owned())
             }
         }
 
-        impl<'a, 'b, T, U> $t<&'a Series<T, U>> for &'b Series<T, U>
-            where T: Copy + Num,
-                  U: Copy + Eq + Hash {
+        impl<'li, 'ri, 'l, 'r, V, I> $t<&'r Series<'ri, V, I>> for &'l Series<'li, V, I>
+            where V: Copy + Num,
+                  I: Copy + Eq + Hash {
 
-            type Output = Series<T, U>;
-            fn $m(self, _rhs: &Series<T, U>) -> Series<T, U> {
+            type Output = Series<'li, V, I>;
+            fn $m(self, _rhs: &'r Series<'ri, V, I>) -> Series<'li, V, I> {
                 self.assert_binop(&_rhs);
                 let new_values = elemwise(&self.values, &_rhs.values,
                                           &|(x, y)| (*x).$m(*y));
-                Series::new(new_values, self.index.clone())
+
+                // error[E0495]: cannot infer an appropriate lifetime for autoref due to conflicting requirements
+                // Series::from_cow(new_values, Cow::Borrowed(self.index.borrow()))
+                Series::from_cow(new_values, self.index.to_owned())
             }
         }
     }

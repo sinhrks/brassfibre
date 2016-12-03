@@ -8,54 +8,54 @@ use super::super::computations;
 use super::super::series::Series;
 use super::super::traits::{Applicable, Aggregator};
 
-impl<T, U, V> Aggregator for Block<T, U, V>
-    where T: Copy + Num + Zero + ToPrimitive,
-          U: Copy + Eq + Hash,
-          V: Copy + Eq + Hash {
+impl<'i, 'c, V, I, C> Aggregator<'c, 'c> for Block<'i, 'c, V, I, C>
+    where V: Copy + Num + Zero + ToPrimitive,
+          I: Copy + Eq + Hash,
+          C: 'c + Copy + Eq + Hash {
 
-    type Kept = Series<T, V>;
-    type Counted = Series<usize, V>;
-    type Coerced = Series<f64, V>;
+    type Kept = Series<'c, V, C>;
+    type Counted = Series<'c, usize, C>;
+    type Coerced = Series<'c, f64, C>;
 
-    fn sum(&self) -> Series<T, V> {
+    fn sum(&'c self) -> Self::Kept {
         self.apply(&computations::vec_sum)
     }
 
-    fn count(&self) -> Series<usize, V> {
+    fn count(&'c self) -> Self::Counted {
         self.apply(&computations::vec_count)
     }
 
-    fn mean(&self) -> Series<f64, V> {
+    fn mean(&'c self) -> Self::Coerced {
         self.apply(&computations::vec_mean)
     }
 
-    fn var(&self) -> Series<f64, V> {
+    fn var(&'c self) -> Self::Coerced {
         self.apply(&computations::vec_var)
     }
 
-    fn unbiased_var(&self) -> Series<f64, V> {
+    fn unbiased_var(&'c self) -> Self::Coerced {
         self.apply(&computations::vec_unbiased_var)
     }
 
-    fn std(&self) -> Series<f64, V> {
+    fn std(&'c self) -> Self::Coerced {
         self.apply(&computations::vec_std)
     }
 
-    fn unbiased_std(&self) -> Series<f64, V> {
+    fn unbiased_std(&'c self) -> Self::Coerced {
         self.apply(&computations::vec_unbiased_std)
     }
 }
 
-impl<T, U, V> Block<T, U, V>
-    where T: Copy + Num + Zero + computations::NanMinMax<T>,
-          U: Copy + Eq + Hash,
-          V: Copy + Eq + Hash {
+impl<'i, 'c, V, I, C> Block<'i, 'c, V, I, C>
+    where V: Copy + Num + Zero + computations::NanMinMax<V>,
+          I: Copy + Eq + Hash,
+          C: Copy + Eq + Hash {
 
-    pub fn min(&self) -> Series<T, V> {
+    pub fn min(&'c self) -> Series<'c, V, C> {
         self.apply(&computations::vec_min)
     }
 
-    pub fn max(&self) -> Series<T, V> {
+    pub fn max(&'c self) -> Series<'c, V, C> {
         self.apply(&computations::vec_max)
     }
 }

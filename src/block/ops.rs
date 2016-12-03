@@ -6,8 +6,8 @@ use std::ops::{Add, Mul, Sub, Div, Rem};
 
 use super::Block;
 
-fn broadcast<T>(left: &Vec<Vec<T>>, func: &Fn(&T) -> T) -> Vec<Vec<T>> {
-    let mut new_values: Vec<Vec<T>> = Vec::with_capacity(left.len());
+fn broadcast<V>(left: &Vec<Vec<V>>, func: &Fn(&V) -> V) -> Vec<Vec<V>> {
+    let mut new_values: Vec<Vec<V>> = Vec::with_capacity(left.len());
     for value in left.iter() {
         let new_value = value.iter().map(func).collect();
         new_values.push(new_value);
@@ -15,11 +15,11 @@ fn broadcast<T>(left: &Vec<Vec<T>>, func: &Fn(&T) -> T) -> Vec<Vec<T>> {
     new_values
 }
 
-fn elemwise<T>(left: &Vec<Vec<T>>, right: &Vec<Vec<T>>,
-            func: &Fn((&T, &T)) -> T) -> Vec<Vec<T>>
-    where T: Copy + Num {
+fn elemwise<V>(left: &Vec<Vec<V>>, right: &Vec<Vec<V>>,
+            func: &Fn((&V, &V)) -> V) -> Vec<Vec<V>>
+    where V: Copy + Num {
 
-    let mut new_values: Vec<Vec<T>> = Vec::with_capacity(left.len());
+    let mut new_values: Vec<Vec<V>> = Vec::with_capacity(left.len());
     for (value, rvalue) in left.iter().zip(right.iter()) {
         let new_value = value.iter()
                              .zip(rvalue.iter())
@@ -33,124 +33,132 @@ macro_rules! define_numeric_op {
     ($t:ident, $m:ident) => {
 
         // Broadcast
-        impl<T, U, V> $t<T> for Block<T, U, V>
-            where T: Copy + Num,
-                  U: Copy + Eq + Hash,
-                  V: Copy + Eq + Hash {
+        impl<'i, 'c, V, I, C> $t<V> for Block<'i, 'c, V, I, C>
+            where V: Copy + Num,
+                  I: Copy + Eq + Hash,
+                  C: Copy + Eq + Hash {
 
-            type Output = Block<T, U, V>;
-            fn $m(self, _rhs: T) -> Block<T, U, V> {
+            type Output = Self;
+            fn $m(self, _rhs: V) -> Self {
                 let new_values = broadcast(&self.values, &|x| (*x).$m(_rhs));
-                Block::from_nested_vec(new_values,
-                                       self.index.clone(),
-                                       self.columns.clone())
+                Block::from_cow(new_values,
+                                self.index,
+                                self.columns)
             }
         }
 
-        impl<'a, T, U, V> $t<&'a T> for Block<T, U, V>
-            where T: Copy + Num,
-                  U: Copy + Eq + Hash,
-                  V: Copy + Eq + Hash {
+        impl<'i, 'c, 'l, V, I, C> $t<&'l V> for Block<'i, 'c, V, I, C>
+            where V: Copy + Num,
+                  I: Copy + Eq + Hash,
+                  C: Copy + Eq + Hash {
 
-            type Output = Block<T, U, V>;
-            fn $m(self, _rhs: &T) -> Block<T, U, V> {
-                let new_values = broadcast(&self.values, &|x: &T| (*x).$m(*_rhs));
-                Block::from_nested_vec(new_values,
-                                       self.index.clone(),
-                                       self.columns.clone())
+            type Output = Self;
+            fn $m(self, _rhs: &V) -> Self {
+                let new_values = broadcast(&self.values, &|x: &V| (*x).$m(*_rhs));
+                Block::from_cow(new_values,
+                                self.index,
+                                self.columns)
             }
         }
 
-        impl<'b, T, U, V> $t<T> for &'b Block<T, U, V>
-            where T: Copy + Num,
-                  U: Copy + Eq + Hash,
-                  V: Copy + Eq + Hash {
+        impl<'i, 'c, 'r, V, I, C> $t<V> for &'r Block<'i, 'c, V, I, C>
+            where V: Copy + Num,
+                  I: Copy + Eq + Hash,
+                  C: Copy + Eq + Hash {
 
-            type Output = Block<T, U, V>;
-            fn $m(self, _rhs: T) -> Block<T, U, V> {
-                let new_values = broadcast(&self.values, &|x: &T| (*x).$m(_rhs));
-                Block::from_nested_vec(new_values,
-                                       self.index.clone(),
-                                       self.columns.clone())
+            type Output = Block<'i, 'c, V, I, C>;
+            fn $m(self, _rhs: V) -> Block<'i, 'c, V, I, C> {
+                let new_values = broadcast(&self.values, &|x: &V| (*x).$m(_rhs));
+                Block::from_cow(new_values,
+                                self.index.to_owned(),
+                                self.columns.to_owned())
             }
         }
 
-        impl<'a, 'b, T, U, V> $t<&'a T> for &'b Block<T, U, V>
-            where T: Copy + Num,
-                  U: Copy + Eq + Hash,
-                  V: Copy + Eq + Hash {
+        impl<'i, 'c, 'l, 'r, V, I, C> $t<&'l V> for &'r Block<'i, 'c, V, I, C>
+            where V: Copy + Num,
+                  I: Copy + Eq + Hash,
+                  C: Copy + Eq + Hash {
 
-            type Output = Block<T, U, V>;
-            fn $m(self, _rhs: &T) -> Block<T, U, V> {
-                let new_values = broadcast(&self.values, &|x: &T| (*x).$m(*_rhs));
-                Block::from_nested_vec(new_values,
-                                       self.index.clone(),
-                                       self.columns.clone())
+            type Output = Block<'i, 'c, V, I, C>;
+            fn $m(self, _rhs: &V) -> Block<'i, 'c, V, I, C> {
+                let new_values = broadcast(&self.values, &|x: &V| (*x).$m(*_rhs));
+                Block::from_cow(new_values,
+                                self.index.to_owned(),
+                                self.columns.to_owned())
             }
         }
 
         // Element-wise
-        impl<T, U, V> $t<Block<T, U, V>> for Block<T, U, V>
-            where T: Copy + Num,
-                  U: Copy + Eq + Hash,
-                  V: Copy + Eq + Hash {
+        impl<'li, 'lc, 'ri, 'rc, V, I, C> $t<Block<'ri, 'rc, V, I, C>>
+            for Block<'li, 'lc, V, I, C>
 
-            type Output = Block<T, U, V>;
-            fn $m(self, _rhs: Block<T, U, V>) -> Block<T, U, V> {
+            where V: Copy + Num,
+                  I: Copy + Eq + Hash,
+                  C: Copy + Eq + Hash {
+
+            type Output = Self;
+            fn $m(self, _rhs: Block<'ri, 'rc, V, I, C>) -> Self {
                 self.assert_binop(&_rhs);
                 let new_values = elemwise(&self.values, &_rhs.values,
                                           &|(x, y)| (*x).$m(*y));
-                Block::from_nested_vec(new_values,
-                                       self.index.clone(),
-                                       self.columns.clone())
+                Block::from_cow(new_values,
+                                self.index,
+                                self.columns)
             }
         }
 
-        impl<'a, T, U, V> $t<&'a Block<T, U, V>> for Block<T, U, V>
-            where T: Copy + Num,
-                  U: Copy + Eq + Hash,
-                  V: Copy + Eq + Hash {
+        impl<'li, 'lc, 'ri, 'rc, 'r, V, I, C> $t<&'r Block<'ri, 'rc, V, I, C>>
+            for Block<'li, 'lc, V, I, C>
 
-            type Output = Block<T, U, V>;
-            fn $m(self, _rhs: &Block<T, U, V>) -> Block<T, U, V> {
+            where V: Copy + Num,
+                  I: Copy + Eq + Hash,
+                  C: Copy + Eq + Hash {
+
+            type Output = Self;
+            fn $m(self, _rhs: &'r Block<'ri, 'rc, V, I, C>) -> Self {
                 self.assert_binop(&_rhs);
                 let new_values = elemwise(&self.values, &_rhs.values,
                                           &|(x, y)| (*x).$m(*y));
-                Block::from_nested_vec(new_values,
-                                       self.index.clone(),
-                                       self.columns.clone())
+                Block::from_cow(new_values,
+                                self.index,
+                                self.columns)
             }
         }
 
-        impl<'b, T, U, V> $t<Block<T, U, V>> for &'b Block<T, U, V>
-            where T: Copy + Num,
-                  U: Copy + Eq + Hash,
-                  V: Copy + Eq + Hash {
+        impl<'li, 'lc, 'ri, 'rc, 'l, V, I, C> $t<Block<'ri, 'rc, V, I, C>>
+            for &'l Block<'li, 'lc, V, I, C>
 
-            type Output = Block<T, U, V>;
-            fn $m(self, _rhs: Block<T, U, V>) -> Block<T, U, V> {
+            where V: Copy + Num,
+                  I: Copy + Eq + Hash,
+                  C: Copy + Eq + Hash {
+
+            type Output = Block<'li, 'lc, V, I, C>;
+            fn $m(self, _rhs: Block<'ri, 'rc, V, I, C>) -> Block<'li, 'lc, V, I, C> {
                 self.assert_binop(&_rhs);
                 let new_values = elemwise(&self.values, &_rhs.values,
                                           &|(x, y)| (*x).$m(*y));
-                Block::from_nested_vec(new_values,
-                                       self.index.clone(),
-                                       self.columns.clone())
+                Block::from_cow(new_values,
+                                self.index.to_owned(),
+                                self.columns.to_owned())
             }
         }
 
-        impl<'a, 'b, T, U, V> $t<&'a Block<T, U, V>> for &'b Block<T, U, V>
-            where T: Copy + Num,
-                  U: Copy + Eq + Hash,
-                  V: Copy + Eq + Hash {
+        impl<'li, 'lc, 'ri , 'rc, 'l, 'r, V, I, C> $t<&'r Block<'ri, 'rc, V, I, C>>
+            for &'l Block<'li, 'lc, V, I, C>
 
-            type Output = Block<T, U, V>;
-            fn $m(self, _rhs: &Block<T, U, V>) -> Block<T, U, V> {
+            where V: Copy + Num,
+                  I: Copy + Eq + Hash,
+                  C: Copy + Eq + Hash {
+
+            type Output = Block<'li, 'lc, V, I, C>;
+            fn $m(self, _rhs: &'r Block<'ri, 'rc, V, I, C>) -> Block<'li, 'lc, V, I, C> {
                 self.assert_binop(&_rhs);
                 let new_values = elemwise(&self.values, &_rhs.values,
                                           &|(x, y)| (*x).$m(*y));
-                Block::from_nested_vec(new_values,
-                                       self.index.clone(),
-                                       self.columns.clone())
+                Block::from_cow(new_values,
+                                self.index.to_owned(),
+                                self.columns.to_owned())
             }
         }
     }

@@ -94,7 +94,7 @@ impl Array {
 }
 
 
-impl Appender for Array {
+impl<'a> Appender<'a> for Array {
     fn append(&self, other: &Self) -> Self {
         match (self, other) {
             (&Array::Int64Array(ref svals), &Array::Int64Array(ref ovals)) => {

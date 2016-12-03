@@ -11,10 +11,8 @@ fn test_block_sum() {
 
     let sum = b.sum();
 
-    let exp_values: Vec<i64> = vec![15, 40];
-    let exp_index: Indexer<&str> = Indexer::new(vec!["X", "Y"]);
-    assert_eq!(sum.values, exp_values);
-    assert_eq!(sum.index, exp_index);
+    let exp: Series<i64, &str> = Series::new(vec![15, 40], vec!["X", "Y"]);
+    assert_eq!(sum, exp);
 }
 
 #[test]
@@ -27,10 +25,8 @@ fn test_block_mean() {
 
     let mean = b.mean();
 
-    let exp_values: Vec<f64> = vec![3., 8.];
-    let exp_index: Indexer<&str> = Indexer::new(vec!["X", "Y"]);
-    assert_eq!(mean.values, exp_values);
-    assert_eq!(mean.index, exp_index);
+    let exp: Series<f64, &str> = Series::new(vec![3., 8.], vec!["X", "Y"]);
+    assert_eq!(mean, exp);
 }
 
 #[test]
@@ -44,16 +40,12 @@ fn test_minmax_int() {
     assert_eq!(b.len(), 5);
 
     let min = b.min();
-    let exp_values: Vec<i64> = vec![1, 6, 11];
-    let exp_index: Indexer<&str> = Indexer::new(vec!["X", "YYY", "ZZ"]);
-    assert_eq!(min.values, exp_values);
-    assert_eq!(min.index, exp_index);
+    let exp: Series<i64, &str> = Series::new(vec![1, 6, 11], vec!["X", "YYY", "ZZ"]);
+    assert_eq!(min, exp);
 
     let min = b.max();
-    let exp_values: Vec<i64> = vec![5, 10, 15];
-    let exp_index: Indexer<&str> = Indexer::new(vec!["X", "YYY", "ZZ"]);
-    assert_eq!(min.values, exp_values);
-    assert_eq!(min.index, exp_index);
+    let exp: Series<i64, &str> = Series::new(vec![5, 10, 15], vec!["X", "YYY", "ZZ"]);
+    assert_eq!(min, exp);
 }
 
 #[test]
@@ -67,14 +59,10 @@ fn test_minmax_float() {
     assert_eq!(b.len(), 5);
 
     let min = b.min();
-    let exp_values: Vec<f64> = vec![1., 6., 11.];
-    let exp_index: Indexer<&str> = Indexer::new(vec!["X", "YYY", "ZZ"]);
-    assert_eq!(min.values, exp_values);
-    assert_eq!(min.index, exp_index);
+    let exp: Series<f64, &str> = Series::new(vec![1., 6., 11.], vec!["X", "YYY", "ZZ"]);
+    assert_eq!(min, exp);
 
     let min = b.max();
-    let exp_values: Vec<f64> = vec![5., 10., 15.];
-    let exp_index: Indexer<&str> = Indexer::new(vec!["X", "YYY", "ZZ"]);
-    assert_eq!(min.values, exp_values);
-    assert_eq!(min.index, exp_index);
+    let exp: Series<f64, &str> = Series::new(vec![5., 10., 15.], vec!["X", "YYY", "ZZ"]);
+    assert_eq!(min, exp);
 }

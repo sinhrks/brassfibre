@@ -9,7 +9,9 @@ use super::super::traits::IndexerIndexer;
 // Soat
 //**********************************************
 
-impl<T, U> Series<T, U> where T: Copy, U: Copy + Eq + Hash + Ord {
+impl<'i, V, I> Series<'i, V, I>
+    where V: Copy,
+          I: Copy + Eq + Hash + Ord {
 
     pub fn sort_index(&self) -> Self {
         let (indexer, sorted) = self.index.argsort();
@@ -18,11 +20,13 @@ impl<T, U> Series<T, U> where T: Copy, U: Copy + Eq + Hash + Ord {
     }
 }
 
-impl<T, U> Series<T, U> where T: Copy + Ord, U: Copy + Eq + Hash {
+impl<'i, V, I> Series<'i, V, I>
+    where V: Copy + Ord,
+          I: Copy + Eq + Hash {
 
     pub fn sort_values(&self) -> Self {
         let (indexer, sorted) = Sorter::argsort(&self.values);
-        let index: Indexer<U> = self.index.reindex(&indexer);
+        let index: Indexer<I> = self.index.reindex(&indexer);
         Series::new(sorted, index)
     }
 }

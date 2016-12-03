@@ -108,7 +108,7 @@ impl<U> IndexerIndexer for Indexer<U>  where U: Copy + Eq + Hash {
 // Append
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<T> Appender for Indexer<T>
+impl<'a, T> Appender<'a> for Indexer<T>
     where T: Copy + Eq + Hash {
 
     fn append(&self, other: &Self) -> Self {
