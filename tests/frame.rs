@@ -84,22 +84,49 @@ fn test_block_columns_slice() {
     let values = vec![Array::Int64Array(vec![1, 2, 3, 4, 5]),
                       Array::Float64Array(vec![6., 7., 8., 9., 10.]),
                       Array::Int64Array(vec![11, 12, 13, 14, 15])];
-    let b = DataFrame::from_vec(values,
-                                vec!["A", "BB", "CC", "D", "EEE"],
-                                vec!["X", "YYY", "ZZ"]);
+    let df = DataFrame::from_vec(values,
+                                 vec!["A", "BB", "CC", "D", "EEE"],
+                                 vec!["X", "YYY", "ZZ"]);
 
     let exp_values = vec![Array::Float64Array(vec![6., 7., 8., 9., 10.]),
                           Array::Int64Array(vec![1, 2, 3, 4, 5])];
     let exp = DataFrame::from_vec(exp_values,
                                   vec!["A", "BB", "CC", "D", "EEE"],
                                   vec!["YYY", "X"]);
-    let res = b.gets(&vec!["YYY", "X"]);
+    let res = df.gets(&vec!["YYY", "X"]);
     assert_eq!(res.values, exp.values);
     assert_eq!(res.index, exp.index);
     assert_eq!(res.columns, exp.columns);
 
-    let res = b.igets(&vec![1, 0]);
+    let res = df.igets(&vec![1, 0]);
     assert_eq!(res.values, exp.values);
     assert_eq!(res.index, exp.index);
     assert_eq!(res.columns, exp.columns);
+}
+
+
+#[test]
+fn test_block_into_iter() {
+    let values = vec![Array::Int64Array(vec![1, 2, 3]),
+                      Array::Float64Array(vec![6., 7., 8.])];
+    let df = DataFrame::from_vec(values,
+                                 vec!["A", "BB", "CC"],
+                                 vec!["X", "YYY"]);
+    let mut it = df.into_iter();
+    assert_eq!(it.next(), Some(Array::Int64Array(vec![1, 2, 3])));
+    assert_eq!(it.next(), Some(Array::Float64Array(vec![6., 7., 8.])));
+    assert_eq!(it.next(), None);
+}
+
+#[test]
+fn test_block_iter() {
+    let values = vec![Array::Int64Array(vec![1, 2, 3]),
+                      Array::Float64Array(vec![6., 7., 8.])];
+    let df = DataFrame::from_vec(values,
+                                 vec!["A", "BB", "CC"],
+                                 vec!["X", "YYY"]);
+    let mut it = df.iter();
+    assert_eq!(it.next(), Some(&Array::Int64Array(vec![1, 2, 3])));
+    assert_eq!(it.next(), Some(&Array::Float64Array(vec![6., 7., 8.])));
+    assert_eq!(it.next(), None);
 }

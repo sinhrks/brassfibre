@@ -1,5 +1,7 @@
 use std::borrow::{Borrow, Cow};
 use std::hash::Hash;
+use std::slice;
+use std::vec;
 
 use super::groupby::GroupBy;
 use super::indexer::Indexer;
@@ -175,6 +177,31 @@ impl<'i, 'c, I, C> PartialEq for DataFrame<'i, 'c, I, C>
         (self.index.eq(&other.index)) &&
         (self.columns.eq(&other.columns)) &&
         (self.values.eq(&other.values))
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Iterator
+////////////////////////////////////////////////////////////////////////////////
+
+impl<'a, 'b, I, C> IntoIterator for DataFrame<'a, 'b, I, C>
+    where I: Clone + Hash + Eq,
+          C: Clone + Hash + Eq  {
+
+    type Item = Array;
+    type IntoIter = vec::IntoIter<Array>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.values.into_iter()
+    }
+}
+
+impl<'a, 'b, I, C> DataFrame<'a, 'b, I, C>
+    where I: Clone + Hash + Eq,
+          C: Clone + Hash + Eq  {
+
+    pub fn iter(&self) -> slice::Iter<Array> {
+        self.values.iter()
     }
 }
 

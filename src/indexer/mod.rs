@@ -1,6 +1,8 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::hash::Hash;
+use std::slice;
+use std::vec;
 
 use super::algos::sort::Sorter;
 use super::traits::{IndexerIndexer, Appender};
@@ -126,5 +128,28 @@ impl<U> PartialEq for Indexer<U>
     where U: Clone + Eq + Hash {
     fn eq(&self, other: &Indexer<U>) -> bool {
         self.values == other.values
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Iterator
+////////////////////////////////////////////////////////////////////////////////
+
+impl<U> IntoIterator for Indexer<U>
+    where U: Clone + Eq + Hash {
+
+    type Item = U;
+    type IntoIter = vec::IntoIter<U>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.values.into_iter()
+    }
+}
+
+impl<U> Indexer<U>
+    where U: Clone + Eq + Hash {
+
+    pub fn iter(&self) -> slice::Iter<U> {
+        self.values.iter()
     }
 }

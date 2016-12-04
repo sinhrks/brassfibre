@@ -139,3 +139,23 @@ fn test_index_append() {
     let exp: Indexer<i64> = Indexer::new(vec![1, 2, 3, 4, 5, 6]);
     assert_eq!(res, exp)
 }
+
+#[test]
+fn test_index_into_iter() {
+    let index: Indexer<i64> = Indexer::new(vec![1, 2, 3]);
+    let mut it = index.into_iter();
+    assert_eq!(it.next(), Some(1));
+    assert_eq!(it.next(), Some(2));
+    assert_eq!(it.next(), Some(3));
+    assert_eq!(it.next(), None);
+}
+
+#[test]
+fn test_index_iter() {
+    let index: Indexer<i64> = Indexer::new(vec![1, 2, 3]);
+    let mut it = index.iter();
+    assert_eq!(it.next(), Some(&1));
+    assert_eq!(it.next(), Some(&2));
+    assert_eq!(it.next(), Some(&3));
+    assert_eq!(it.next(), None);
+}

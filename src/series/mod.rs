@@ -2,6 +2,8 @@ extern crate num;
 
 use std::borrow::Cow;
 use std::hash::Hash;
+use std::slice;
+use std::vec;
 
 use super::algos::sort::Sorter;
 use super::indexer::Indexer;
@@ -170,3 +172,25 @@ impl<'i, V, I> PartialEq for Series<'i, V, I>
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Iterator
+////////////////////////////////////////////////////////////////////////////////
+
+impl<'i, V, I> IntoIterator for Series<'i, V, I>
+    where I: Clone + Eq + Hash {
+
+    type Item = V;
+    type IntoIter = vec::IntoIter<V>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.values.into_iter()
+    }
+}
+
+impl<'i, V, I> Series<'i, V, I>
+    where I: Clone + Eq + Hash {
+
+    pub fn iter(&self) -> slice::Iter<V> {
+        self.values.iter()
+    }
+}

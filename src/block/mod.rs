@@ -1,5 +1,7 @@
 use std::borrow::{Borrow, Cow};
 use std::hash::Hash;
+use std::slice;
+use std::vec;
 
 use super::algos::sort::Sorter;
 use super::indexer::Indexer;
@@ -297,5 +299,30 @@ impl<'a, 'b, V, I, C> PartialEq for Block<'a, 'b, V, I, C>
         (self.index.eq(&other.index)) &&
         (self.columns.eq(&other.columns)) &&
         (self.values.eq(&other.values))
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Iterator
+////////////////////////////////////////////////////////////////////////////////
+
+impl<'a, 'b, V, I, C> IntoIterator for Block<'a, 'b, V, I, C>
+    where I: Clone + Hash + Eq,
+          C: Clone + Hash + Eq  {
+
+    type Item = Vec<V>;
+    type IntoIter = vec::IntoIter<Vec<V>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.values.into_iter()
+    }
+}
+
+impl<'a, 'b, V, I, C> Block<'a, 'b, V, I, C>
+    where I: Clone + Hash + Eq,
+          C: Clone + Hash + Eq  {
+
+    pub fn iter(&self) -> slice::Iter<Vec<V>> {
+        self.values.iter()
     }
 }

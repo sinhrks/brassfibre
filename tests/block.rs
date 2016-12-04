@@ -342,3 +342,25 @@ fn test_block_transpose() {
                                   vec!["A", "B", "C"]);
     assert_eq!(res, exp);
 }
+
+#[test]
+fn test_block_into_iter() {
+    let b = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
+                                vec!["A", "B", "C"],
+                                vec!["X", "Y"]);
+    let mut it = b.into_iter();
+    assert_eq!(it.next(), Some(vec![1., 2., 3.]));
+    assert_eq!(it.next(), Some(vec![4., 5., 6.]));
+    assert_eq!(it.next(), None);
+}
+
+#[test]
+fn test_block_iter() {
+    let b = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
+                                vec!["A", "B", "C"],
+                                vec!["X", "Y"]);
+    let mut it = b.iter();
+    assert_eq!(it.next(), Some(&vec![1., 2., 3.]));
+    assert_eq!(it.next(), Some(&vec![4., 5., 6.]));
+    assert_eq!(it.next(), None);
+}

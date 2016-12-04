@@ -1,10 +1,10 @@
 use std::borrow::{Borrow, Cow};
 use std::hash::Hash;
-use std::ops::{Add, Mul, Sub, Div, Rem};
+use std::ops::{Add, Mul, Sub, Div, Rem, BitAnd, BitOr, BitXor};
 
 use super::Series;
 
-macro_rules! define_numric_op {
+macro_rules! define_numeric_op {
     ($t:ident, $m:ident) => {
 
         // Broadcast
@@ -132,11 +132,14 @@ macro_rules! define_numric_op {
     }
 }
 
-define_numric_op!(Add, add);
-define_numric_op!(Mul, mul);
-define_numric_op!(Sub, sub);
-define_numric_op!(Div, div);
-define_numric_op!(Rem, rem);
+define_numeric_op!(Add, add);
+define_numeric_op!(Mul, mul);
+define_numeric_op!(Sub, sub);
+define_numeric_op!(Div, div);
+define_numeric_op!(Rem, rem);
+define_numeric_op!(BitAnd, bitand);
+define_numeric_op!(BitOr, bitor);
+define_numeric_op!(BitXor, bitxor);
 
 #[cfg(test)]
 mod tests {
@@ -148,28 +151,28 @@ mod tests {
         let s = Series::<i64, i64>::new(vec![1, 2, 3], vec![10, 20, 30]);
         // s moves by ops
         let result = s + 3;
-        assert_eq!(result.values, vec![4, 5, 6]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<i64, i64>::new(vec![4, 5, 6], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let s = Series::<i64, i64>::new(vec![1, 2, 3], vec![10, 20, 30]);
         let result = s * 2;
-        assert_eq!(result.values, vec![2, 4, 6]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<i64, i64>::new(vec![2, 4, 6], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let s = Series::<i64, i64>::new(vec![1, 2, 3], vec![10, 20, 30]);
         let result = s - 3;
-        assert_eq!(result.values, vec![-2, -1, 0]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<i64, i64>::new(vec![-2, -1, 0], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let s = Series::<i64, i64>::new(vec![1, 2, 3], vec![10, 20, 30]);
         let result = s / 2;
-        assert_eq!(result.values, vec![0, 1, 1]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<i64, i64>::new(vec![0, 1, 1], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let s = Series::<i64, i64>::new(vec![1, 2, 3], vec![10, 20, 30]);
         let result = s % 2;
-        assert_eq!(result.values, vec![1, 0, 1]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<i64, i64>::new(vec![1, 0, 1], vec![10, 20, 30]);
+        assert_eq!(result, exp);
     }
 
     #[test]
@@ -178,13 +181,13 @@ mod tests {
 
         // borrow
         let result = &s + 3;
-        assert_eq!(result.values, vec![4, 5, 6]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<i64, i64>::new(vec![4, 5, 6], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         // borrow
         let result = &s + &3;
-        assert_eq!(result.values, vec![4, 5, 6]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<i64, i64>::new(vec![4, 5, 6], vec![10, 20, 30]);
+        assert_eq!(result, exp);
     }
 
     #[test]
@@ -193,8 +196,8 @@ mod tests {
 
         // move
         let result = s + &3;
-        assert_eq!(result.values, vec![4, 5, 6]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<i64, i64>::new(vec![4, 5, 6], vec![10, 20, 30]);
+        assert_eq!(result, exp);
     }
 
     #[test]
@@ -202,28 +205,28 @@ mod tests {
         let s = Series::<f64, i64>::new(vec![1., 2., 3.], vec![10, 20, 30]);
         // s moves by ops
         let result = s + 3.;
-        assert_eq!(result.values, vec![4., 5., 6.]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<f64, i64>::new(vec![4., 5., 6.], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let s = Series::<f64, i64>::new(vec![1., 2., 3.], vec![10, 20, 30]);
         let result = s * 2.;
-        assert_eq!(result.values, vec![2., 4., 6.]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<f64, i64>::new(vec![2., 4., 6.], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let s = Series::<f64, i64>::new(vec![1., 2., 3.], vec![10, 20, 30]);
         let result = s - 3.;
-        assert_eq!(result.values, vec![-2., -1., 0.]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<f64, i64>::new(vec![-2., -1., 0.], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let s = Series::<f64, i64>::new(vec![1., 2., 3.], vec![10, 20, 30]);
         let result = s / 2.;
-        assert_eq!(result.values, vec![0.5, 1., 1.5]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<f64, i64>::new(vec![0.5, 1., 1.5], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let s = Series::<f64, i64>::new(vec![1., 2., 3.], vec![10, 20, 30]);
         let result = s % 2.;
-        assert_eq!(result.values, vec![1., 0., 1.]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<f64, i64>::new(vec![1., 0., 1.], vec![10, 20, 30]);
+        assert_eq!(result, exp);
     }
 
     #[test]
@@ -231,12 +234,12 @@ mod tests {
         let s = Series::<f64, i64>::new(vec![1., 2., 3.], vec![10, 20, 30]);
 
         let result = &s + 3.;
-        assert_eq!(result.values, vec![4., 5., 6.]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<f64, i64>::new(vec![4., 5., 6.], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let result = &s + &3.;
-        assert_eq!(result.values, vec![4., 5., 6.]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<f64, i64>::new(vec![4., 5., 6.], vec![10, 20, 30]);
+        assert_eq!(result, exp);
     }
 
     #[test]
@@ -244,8 +247,29 @@ mod tests {
         let s = Series::<f64, i64>::new(vec![1., 2., 3.], vec![10, 20, 30]);
 
         let result = s + &3.;
-        assert_eq!(result.values, vec![4., 5., 6.]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<f64, i64>::new(vec![4., 5., 6.], vec![10, 20, 30]);
+        assert_eq!(result, exp);
+    }
+
+    #[test]
+    fn test_series_ops_bool_broadcast_logical() {
+        let s = Series::<bool, i64>::new(vec![true, false, true], vec![10, 20, 30]);
+        // s moves by ops
+        let result = s & true;
+        let exp = Series::<bool, i64>::new(vec![true, false, true], vec![10, 20, 30]);
+        assert_eq!(result, exp);
+
+        let s = Series::<bool, i64>::new(vec![true, false, true], vec![10, 20, 30]);
+        // s moves by ops
+        let result = s | true;
+        let exp = Series::<bool, i64>::new(vec![true, true, true], vec![10, 20, 30]);
+        assert_eq!(result, exp);
+
+        let s = Series::<bool, i64>::new(vec![true, false, true], vec![10, 20, 30]);
+        // s moves by ops
+        let result = s ^ true;
+        let exp = Series::<bool, i64>::new(vec![false, true, false], vec![10, 20, 30]);
+        assert_eq!(result, exp);
     }
 
     #[test]
@@ -254,32 +278,32 @@ mod tests {
         let r = Series::<i64, i64>::new(vec![1, 3, 2], vec![10, 20, 30]);
         // s moves by ops
         let result = s + r;
-        assert_eq!(result.values, vec![2, 5, 5]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<i64, i64>::new(vec![2, 5, 5], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let s = Series::<i64, i64>::new(vec![1, 2, 3], vec![10, 20, 30]);
         let r = Series::<i64, i64>::new(vec![1, 3, 2], vec![10, 20, 30]);
         let result = s * r;
-        assert_eq!(result.values, vec![1, 6, 6]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<i64, i64>::new(vec![1, 6, 6], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let s = Series::<i64, i64>::new(vec![1, 2, 3], vec![10, 20, 30]);
         let r = Series::<i64, i64>::new(vec![1, 3, 2], vec![10, 20, 30]);
         let result = s - r;
-        assert_eq!(result.values, vec![0, -1, 1]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<i64, i64>::new(vec![0, -1, 1], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let s = Series::<i64, i64>::new(vec![1, 2, 3], vec![10, 20, 30]);
         let r = Series::<i64, i64>::new(vec![1, 3, 2], vec![10, 20, 30]);
         let result = s / r;
-        assert_eq!(result.values, vec![1, 0, 1]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<i64, i64>::new(vec![1, 0, 1], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let s = Series::<i64, i64>::new(vec![1, 2, 3], vec![10, 20, 30]);
         let r = Series::<i64, i64>::new(vec![1, 3, 2], vec![10, 20, 30]);
         let result = s % r;
-        assert_eq!(result.values, vec![0, 2, 1]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<i64, i64>::new(vec![0, 2, 1], vec![10, 20, 30]);
+        assert_eq!(result, exp);
     }
 
     #[test]
@@ -288,13 +312,13 @@ mod tests {
         let r = Series::<i64, i64>::new(vec![1, 3, 2], vec![10, 20, 30]);
 
         let result = &s + r;
-        assert_eq!(result.values, vec![2, 5, 5]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<i64, i64>::new(vec![2, 5, 5], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let r = Series::<i64, i64>::new(vec![1, 3, 2], vec![10, 20, 30]);
         let result = &s + &r;
-        assert_eq!(result.values, vec![2, 5, 5]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<i64, i64>::new(vec![2, 5, 5], vec![10, 20, 30]);
+        assert_eq!(result, exp);
     }
 
     #[test]
@@ -303,8 +327,8 @@ mod tests {
         let r = Series::<i64, i64>::new(vec![1, 3, 2], vec![10, 20, 30]);
 
         let result = s + &r;
-        assert_eq!(result.values, vec![2, 5, 5]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<i64, i64>::new(vec![2, 5, 5], vec![10, 20, 30]);
+        assert_eq!(result, exp);
     }
 
     #[test]
@@ -313,32 +337,32 @@ mod tests {
         let r = Series::<f64, i64>::new(vec![1., 3., 2.], vec![10, 20, 30]);
         // s moves by ops
         let result = s + r;
-        assert_eq!(result.values, vec![2., 5., 5.]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<f64, i64>::new(vec![2., 5., 5.], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let s = Series::<f64, i64>::new(vec![1., 2., 3.], vec![10, 20, 30]);
         let r = Series::<f64, i64>::new(vec![1., 3., 2.], vec![10, 20, 30]);
         let result = s * r;
-        assert_eq!(result.values, vec![1., 6., 6.]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<f64, i64>::new(vec![1., 6., 6.], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let s = Series::<f64, i64>::new(vec![1., 2., 3.], vec![10, 20, 30]);
         let r = Series::<f64, i64>::new(vec![1., 3., 2.], vec![10, 20, 30]);
         let result = s - r;
-        assert_eq!(result.values, vec![0., -1., 1.]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<f64, i64>::new(vec![0., -1., 1.], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let s = Series::<f64, i64>::new(vec![1., 2., 3.], vec![10, 20, 30]);
         let r = Series::<f64, i64>::new(vec![1., 3., 2.], vec![10, 20, 30]);
         let result = s / r;
-        assert_eq!(result.values, vec![1., 0.6666666666666666, 1.5]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<f64, i64>::new(vec![1., 0.6666666666666666, 1.5], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let s = Series::<f64, i64>::new(vec![1., 2., 3.], vec![10, 20, 30]);
         let r = Series::<f64, i64>::new(vec![1., 3., 2.], vec![10, 20, 30]);
         let result = s % r;
-        assert_eq!(result.values, vec![0., 2., 1.]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<f64, i64>::new(vec![0., 2., 1.], vec![10, 20, 30]);
+        assert_eq!(result, exp);
     }
 
     #[test]
@@ -347,13 +371,13 @@ mod tests {
         let r = Series::<f64, i64>::new(vec![1., 3., 2.], vec![10, 20, 30]);
 
         let result = &s + r;
-        assert_eq!(result.values, vec![2., 5., 5.]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<f64, i64>::new(vec![2., 5., 5.], vec![10, 20, 30]);
+        assert_eq!(result, exp);
 
         let r = Series::<f64, i64>::new(vec![1., 3., 2.], vec![10, 20, 30]);
         let result = &s + &r;
-        assert_eq!(result.values, vec![2., 5., 5.]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<f64, i64>::new(vec![2., 5., 5.], vec![10, 20, 30]);
+        assert_eq!(result, exp);
     }
 
     #[test]
@@ -362,8 +386,32 @@ mod tests {
         let r = Series::<f64, i64>::new(vec![1., 3., 2.], vec![10, 20, 30]);
 
         let result = s + &r;
-        assert_eq!(result.values, vec![2., 5., 5.]);
-        assert_eq!(result.index.values, vec![10, 20, 30]);
+        let exp = Series::<f64, i64>::new(vec![2., 5., 5.], vec![10, 20, 30]);
+        assert_eq!(result, exp);
+    }
+
+    #[test]
+    fn test_series_ops_bool_elemwise_logical() {
+        let s = Series::<bool, i64>::new(vec![true, false, true], vec![10, 20, 30]);
+        let r = Series::<bool, i64>::new(vec![false, true, true], vec![10, 20, 30]);
+        // s moves by ops
+        let result = s & r;
+        let exp = Series::<bool, i64>::new(vec![false, false, true], vec![10, 20, 30]);
+        assert_eq!(result, exp);
+
+        let s = Series::<bool, i64>::new(vec![true, false, true], vec![10, 20, 30]);
+        let r = Series::<bool, i64>::new(vec![false, true, true], vec![10, 20, 30]);
+        // s moves by ops
+        let result = s | r;
+        let exp = Series::<bool, i64>::new(vec![true, true, true], vec![10, 20, 30]);
+        assert_eq!(result, exp);
+
+        let s = Series::<bool, i64>::new(vec![true, false, true], vec![10, 20, 30]);
+        let r = Series::<bool, i64>::new(vec![false, true, true], vec![10, 20, 30]);
+        // s moves by ops
+        let result = s ^ r;
+        let exp = Series::<bool, i64>::new(vec![true, true, false], vec![10, 20, 30]);
+        assert_eq!(result, exp);
     }
 }
 

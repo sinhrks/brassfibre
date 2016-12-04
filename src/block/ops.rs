@@ -1,6 +1,6 @@
 use std::borrow::{Borrow, Cow};
 use std::hash::Hash;
-use std::ops::{Add, Mul, Sub, Div, Rem};
+use std::ops::{Add, Mul, Sub, Div, Rem, BitAnd, BitOr, BitXor};
 
 use super::Block;
 
@@ -205,7 +205,9 @@ define_numeric_op!(Mul, mul);
 define_numeric_op!(Sub, sub);
 define_numeric_op!(Div, div);
 define_numeric_op!(Rem, rem);
-
+define_numeric_op!(BitAnd, bitand);
+define_numeric_op!(BitOr, bitor);
+define_numeric_op!(BitXor, bitxor);
 
 #[cfg(test)]
 mod tests {
@@ -500,6 +502,36 @@ mod tests {
                                     vec![10, 20, 30], vec!["X", "Y"]);
 
         let res = b + &r;
+    }
+
+    #[test]
+    fn test_block_ops_bool_elemwise_logical() {
+        let b = Block::from_col_vec(vec![true, false, true, false, true, false],
+                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let r = Block::from_col_vec(vec![true, true, true, false, false, false],
+                                    vec![10, 20, 30], vec!["X", "Y"]);
+        // b moves by ops
+        let res = b & r;
+        let exp = Block::from_col_vec(vec![true, false, true, false, false, false],
+                                      vec![10, 20, 30], vec!["X", "Y"]);
+        assert_eq!(res, exp);
+
+        let b = Block::from_col_vec(vec![true, false, true, false, true, false],
+                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let r = Block::from_col_vec(vec![true, true, true, false, false, false],
+                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let res = b | r;
+        let exp = Block::from_col_vec(vec![true, true, true, false, true, false],
+                                      vec![10, 20, 30], vec!["X", "Y"]);
+        assert_eq!(res, exp);
+
+        let b = Block::from_col_vec(vec![true, false, true, false, true, false],
+                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let r = Block::from_col_vec(vec![true, true, true, false, false, false],
+                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let res = b ^ r;
+        let exp = Block::from_col_vec(vec![false, true, false, false, true, false],
+                                      vec![10, 20, 30], vec!["X", "Y"]);
         assert_eq!(res, exp);
     }
 }

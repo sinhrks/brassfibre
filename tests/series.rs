@@ -176,3 +176,23 @@ fn test_series_append() {
                                             vec![10, 20, 30, 40, 50, 110, 120, 130, 140, 150]);
     assert_eq!(res, exp);
 }
+
+#[test]
+fn test_series_into_iter() {
+    let s: Series<i64, i64> = Series::new(vec![1, 2, 3], vec![10, 20, 30]);
+    let mut it = s.into_iter();
+    assert_eq!(it.next(), Some(1));
+    assert_eq!(it.next(), Some(2));
+    assert_eq!(it.next(), Some(3));
+    assert_eq!(it.next(), None);
+}
+
+#[test]
+fn test_series_iter() {
+    let s: Series<i64, i64> = Series::new(vec![1, 2, 3], vec![10, 20, 30]);
+    let mut it = s.iter();
+    assert_eq!(it.next(), Some(&1));
+    assert_eq!(it.next(), Some(&2));
+    assert_eq!(it.next(), Some(&3));
+    assert_eq!(it.next(), None);
+}

@@ -1,10 +1,10 @@
 use std::hash::Hash;
-use std::ops::{Add, Mul, Sub, Div, Rem};
+use std::ops::{Add, Mul, Sub, Div, Rem, BitAnd, BitOr, BitXor};
 
 use super::Indexer;
 
-macro_rules! define_numric_op {
-    ($t:ident $m:ident) => {
+macro_rules! define_numeric_op {
+    ($t:ident, $m:ident) => {
 
         // Broadcast
         impl<U, O> $t<U> for Indexer<U>
@@ -119,11 +119,14 @@ macro_rules! define_numric_op {
     }
 }
 
-define_numric_op!(Add add);
-define_numric_op!(Mul mul);
-define_numric_op!(Sub sub);
-define_numric_op!(Div div);
-define_numric_op!(Rem rem);
+define_numeric_op!(Add, add);
+define_numeric_op!(Mul, mul);
+define_numeric_op!(Sub, sub);
+define_numeric_op!(Div, div);
+define_numeric_op!(Rem, rem);
+define_numeric_op!(BitAnd, bitand);
+define_numeric_op!(BitOr, bitor);
+define_numeric_op!(BitXor, bitxor);
 
 
 #[cfg(test)]
@@ -157,6 +160,17 @@ mod tests {
         assert_eq!(&(&idx + &3).values, &vec![4, 5, 6]);
         assert_eq!(&(idx + &3).values, &vec![4, 5, 6]);
     }
+
+    /*
+    ToDo
+    #[test]
+    fn test_index_ops_str_broadcast() {
+        let idx = Indexer::<String>::new(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
+        // idx moves by ops
+        let exp = Indexer::<String>::new(vec!["ax".to_string(), "bx".to_string(), "cx".to_string()]);
+        assert_eq!(idx + "x".to_string(), exp);
+    }
+    */
 
     #[test]
     fn test_index_ops_i64_elemwise() {
