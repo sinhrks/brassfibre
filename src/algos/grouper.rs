@@ -15,14 +15,14 @@ pub trait Grouper<T> {
 }
 
 impl<T> Grouper<T> for HashGrouper<T>
-    where T: Hash + Eq + Copy {
+    where T: Clone + Hash + Eq {
 
     fn groupby(key: &Vec<T>) -> HashGrouper<T> {
 
         let mut map: HashMap<T, Vec<usize>> = HashMap::new();
 
         for (i, k) in key.iter().enumerate() {
-            let e = map.entry(*k).or_insert(Vec::<usize>::new());
+            let e = map.entry(k.clone()).or_insert(Vec::<usize>::new());
             e.push(i);
         }
         HashGrouper { groups: map }

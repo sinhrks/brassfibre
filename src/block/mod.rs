@@ -35,8 +35,8 @@ pub struct Block<'i, 'c, V, I, C>
 
 impl<'i, 'c, V, I, C> RowIndexer<'c> for Block<'i, 'c, V, I, C>
     where V: Copy,
-          I: Copy + Eq + Hash,
-          C: Copy + Eq + Hash {
+          I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash {
 
     type Key = I;
     type Row = V;
@@ -79,8 +79,8 @@ impl<'i, 'c, V, I, C> RowIndexer<'c> for Block<'i, 'c, V, I, C>
 
 impl<'i, 'c, V, I, C> ColIndexer<'i> for Block<'i, 'c, V, I, C>
     where V: Copy,
-          I: 'i + Copy + Eq + Hash,
-          C: Copy + Eq + Hash {
+          I: 'i + Clone + Eq + Hash,
+          C: Clone + Eq + Hash {
 
     type Key = C;
     type Column = Series<'i, V, I>;
@@ -119,8 +119,8 @@ impl<'i, 'c, V, I, C> ColIndexer<'i> for Block<'i, 'c, V, I, C>
 
 impl<'i, 'c, V, I, C> Block<'i, 'c, V, I, C>
     where V: Copy,
-          I: Copy + Eq + Hash,
-          C: Copy + Eq + Hash {
+          I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash {
 
     /// Instanciate from column-wise Vec
     pub fn from_col_vec<X, Y>(values: Vec<V>, index: X, columns: Y) -> Self
@@ -265,13 +265,17 @@ impl<'i, 'c, V, I, C> Block<'i, 'c, V, I, C>
 // Apply
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'a, 'b, T, U, V, R> Applicable<'b, Vec<T>, R, Series<'b, R, V>> for Block<'a, 'b, T, U, V>
-    where T: Copy,
-          U: Copy + Eq + Hash,
-          V: Copy + Eq + Hash,
+impl<'a, 'b, V, I, C, R> Applicable<'b, R> for Block<'a, 'b, V, I, C>
+    where V: Copy,
+          I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash,
           R: Copy {
 
-    fn apply<'f>(&'b self, func: &'f Fn(&Vec<T>) -> R) -> Series<'b, R, V> {
+    type In = Vec<V>;
+    type FOut = R;
+    type Out = Series<'b, R, C>;
+
+    fn apply<'f>(&'b self, func: &'f Fn(&Vec<V>) -> R) -> Series<'b, R, C> {
         let mut new_values = vec![];
         for current in self.values.iter() {
             new_values.push(func(&current));
@@ -284,12 +288,12 @@ impl<'a, 'b, T, U, V, R> Applicable<'b, Vec<T>, R, Series<'b, R, V>> for Block<'
 // Eq
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'a, 'b, T, U, V> PartialEq for Block<'a, 'b, T, U, V>
-    where T: PartialEq,
-          U: Clone + Hash + Eq,
-          V: Clone + Hash + Eq {
+impl<'a, 'b, V, I, C> PartialEq for Block<'a, 'b, V, I, C>
+    where V: PartialEq,
+          I: Clone + Hash + Eq,
+          C: Clone + Hash + Eq {
 
-    fn eq(&self, other: &Block<T, U, V>) -> bool {
+    fn eq(&self, other: &Self) -> bool {
         (self.index.eq(&other.index)) &&
         (self.columns.eq(&other.columns)) &&
         (self.values.eq(&other.values))

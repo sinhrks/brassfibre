@@ -48,6 +48,16 @@ fn test_index_creation_str() {
 }
 
 #[test]
+fn test_index_creation_string() {
+    let values: Vec<String> = vec!["A".to_string(), "B".to_string(), "C".to_string()];
+    let idx = Indexer::<String>::new(values);
+
+    let exp_index: Vec<String> = vec!["A".to_string(), "B".to_string(), "C".to_string()];
+    assert_eq!(idx.values, exp_index);
+    assert_eq!(idx.len(), 3);
+}
+
+#[test]
 fn test_index_loc_str() {
     let values: Vec<&str> = vec!["A", "B", "C"];
     let idx = Indexer::<&str>::new(values);

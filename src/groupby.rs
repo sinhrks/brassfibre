@@ -14,7 +14,7 @@ pub struct GroupBy<'a, D: 'a, G: Hash> {
 
 impl<'a, D, G> GroupBy<'a, D, G>
     where D: RowIndexer<'a>,
-          G: Copy + Eq + Hash + Ord {
+          G: Clone + Eq + Hash + Ord {
 
     pub fn new(data: &'a D, indexer: Vec<G>) -> Self {
 

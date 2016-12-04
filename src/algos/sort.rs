@@ -6,7 +6,7 @@ pub struct Sorter;
 impl Sorter {
 
     pub fn sort<T, R>(values: R) -> Vec<T>
-        where T: Copy + Ord,
+        where T: Clone + Ord,
               R: AsRef<Vec<T>> {
 
         let values: &Vec<T> = values.as_ref();
@@ -19,23 +19,23 @@ impl Sorter {
 
     /// Sort by values returning indexer and sorted values
     pub fn argsort<T, R>(values: R) -> (Vec<usize>, Vec<T>)
-        where T: Copy + Ord,
+        where T: Clone + Ord,
               R: AsRef<Vec<T>> {
 
         let values: &Vec<T> = values.as_ref();
         let mut map: BTreeMap<T, Vec<usize>> = BTreeMap::new();
 
         for (i, v) in values.iter().enumerate() {
-            let e = map.entry(*v).or_insert(Vec::<usize>::new());
+            let e = map.entry(v.clone()).or_insert(Vec::<usize>::new());
             e.push(i);
         }
 
         let mut sorted: Vec<T> = Vec::with_capacity(values.len());
         let mut indexer: Vec<usize> = Vec::with_capacity(values.len());
 
-        for (k, locs) in map {
+        for (k, locs) in map.into_iter() {
             for loc in locs {
-                sorted.push(k);
+                sorted.push(k.clone());
                 indexer.push(loc);
             }
         }
@@ -44,21 +44,22 @@ impl Sorter {
 
     /// Sort values by key returning sorted key and values
     pub fn sort_by<T, U>(keys: &Vec<T>, values: &Vec<U>) -> (Vec<T>, Vec<U>)
-        where T: Copy + Ord, U: Copy {
+        where T: Clone + Ord,
+              U: Clone {
 
         let mut map: BTreeMap<T, Vec<U>> = BTreeMap::new();
 
         for (k, v) in keys.iter().zip(values) {
-            let e = map.entry(*k).or_insert(Vec::<U>::new());
-            e.push(*v);
+            let e = map.entry(k.clone()).or_insert(Vec::<U>::new());
+            e.push(v.clone());
         }
 
         let mut sorted_keys: Vec<T> = Vec::with_capacity(values.len());
         let mut sorted_values: Vec<U> = Vec::with_capacity(values.len());
 
-        for (k, vals) in map {
+        for (k, vals) in map.into_iter() {
             for v in vals {
-                sorted_keys.push(k);
+                sorted_keys.push(k.clone());
                 sorted_values.push(v);
             }
         }

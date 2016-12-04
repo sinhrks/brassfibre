@@ -98,13 +98,14 @@ pub trait Joiner: Sized {
 // Apply
 ////////////////////////////////////////////////////////////////////////////////
 
-pub trait Applicable<'s, T, U, V> {
+pub trait Applicable<'s, R> {
+    // R: Type function returns, dummy to avoid unconstrained lifetime parameter
 
-    // T: Type for myself
-    // R: Type function returns
-    // C: Type of container which can hold W as values
+    type In;
+    type FOut;
+    type Out;
 
-    fn apply<'f>(&'s self, func: &'f Fn(&T) -> U) -> V;
+    fn apply<'f>(&'s self, func: &'f Fn(&Self::In) -> Self::FOut) -> Self::Out;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

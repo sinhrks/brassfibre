@@ -11,7 +11,7 @@ use super::super::traits::IndexerIndexer;
 
 impl<'i, V, I> Series<'i, V, I>
     where V: Copy,
-          I: Copy + Eq + Hash + Ord {
+          I: Clone + Eq + Hash + Ord {
 
     pub fn sort_index(&self) -> Self {
         let (indexer, sorted) = self.index.argsort();
@@ -22,7 +22,7 @@ impl<'i, V, I> Series<'i, V, I>
 
 impl<'i, V, I> Series<'i, V, I>
     where V: Copy + Ord,
-          I: Copy + Eq + Hash {
+          I: Clone + Eq + Hash {
 
     pub fn sort_values(&self) -> Self {
         let (indexer, sorted) = Sorter::argsort(&self.values);

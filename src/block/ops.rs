@@ -1,164 +1,200 @@
-extern crate num;
-
-use num::{Num};
+use std::borrow::{Borrow, Cow};
 use std::hash::Hash;
 use std::ops::{Add, Mul, Sub, Div, Rem};
 
 use super::Block;
 
-fn broadcast<V>(left: &Vec<Vec<V>>, func: &Fn(&V) -> V) -> Vec<Vec<V>> {
-    let mut new_values: Vec<Vec<V>> = Vec::with_capacity(left.len());
-    for value in left.iter() {
-        let new_value = value.iter().map(func).collect();
-        new_values.push(new_value);
-    }
-    new_values
-}
-
-fn elemwise<V>(left: &Vec<Vec<V>>, right: &Vec<Vec<V>>,
-            func: &Fn((&V, &V)) -> V) -> Vec<Vec<V>>
-    where V: Copy + Num {
-
-    let mut new_values: Vec<Vec<V>> = Vec::with_capacity(left.len());
-    for (value, rvalue) in left.iter().zip(right.iter()) {
-        let new_value = value.iter()
-                             .zip(rvalue.iter())
-                             .map(func).collect();
-        new_values.push(new_value);
-    }
-    new_values
-}
-
 macro_rules! define_numeric_op {
     ($t:ident, $m:ident) => {
 
         // Broadcast
-        impl<'i, 'c, V, I, C> $t<V> for Block<'i, 'c, V, I, C>
-            where V: Copy + Num,
-                  I: Copy + Eq + Hash,
-                  C: Copy + Eq + Hash {
+        impl<'i, 'c, V, I, C, O> $t<V> for Block<'i, 'c, V, I, C>
+            where V: Copy + $t<Output=O>,
+                  I: Clone + Eq + Hash,
+                  C: Clone + Eq + Hash,
+                  O: Copy {
 
-            type Output = Self;
-            fn $m(self, _rhs: V) -> Self {
-                let new_values = broadcast(&self.values, &|x| (*x).$m(_rhs));
+            type Output = Block<'i, 'c, O, I, C>;
+            fn $m(self, _rhs: V) -> Self::Output {
+
+                let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
+                for value in self.values.into_iter() {
+                    let new_value = value.into_iter()
+                                         .map(|x| x.$m(_rhs.clone()))
+                                         .collect();
+                    new_values.push(new_value);
+                }
                 Block::from_cow(new_values,
                                 self.index,
                                 self.columns)
             }
         }
 
-        impl<'i, 'c, 'l, V, I, C> $t<&'l V> for Block<'i, 'c, V, I, C>
-            where V: Copy + Num,
-                  I: Copy + Eq + Hash,
-                  C: Copy + Eq + Hash {
+        impl<'i, 'c, 'r, V, I, C, O> $t<&'r V> for Block<'i, 'c, V, I, C>
+            where V: Copy + $t<Output=O>,
+                  I: Clone + Eq + Hash,
+                  C: Clone + Eq + Hash,
+                  O: Copy {
 
-            type Output = Self;
-            fn $m(self, _rhs: &V) -> Self {
-                let new_values = broadcast(&self.values, &|x: &V| (*x).$m(*_rhs));
+            type Output = Block<'i, 'c, O, I, C>;
+            fn $m(self, _rhs: &V) -> Self::Output {
+                let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
+                for value in self.values.into_iter() {
+                    let new_value = value.into_iter()
+                                         .map(|x| x.$m((*_rhs).clone()))
+                                         .collect();
+                    new_values.push(new_value);
+                }
                 Block::from_cow(new_values,
                                 self.index,
                                 self.columns)
             }
         }
 
-        impl<'i, 'c, 'r, V, I, C> $t<V> for &'r Block<'i, 'c, V, I, C>
-            where V: Copy + Num,
-                  I: Copy + Eq + Hash,
-                  C: Copy + Eq + Hash {
+        impl<'i, 'c, 'l, V, I, C, O> $t<V> for &'l Block<'i, 'c, V, I, C>
+            where V: Copy + $t<Output=O>,
+                  I: Clone + Eq + Hash,
+                  C: Clone + Eq + Hash,
+                  O: Copy {
 
-            type Output = Block<'i, 'c, V, I, C>;
-            fn $m(self, _rhs: V) -> Block<'i, 'c, V, I, C> {
-                let new_values = broadcast(&self.values, &|x: &V| (*x).$m(_rhs));
+            type Output = Block<'l, 'l, O, I, C>;
+            fn $m(self, _rhs: V) -> Self::Output {
+                let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
+                for value in self.values.iter() {
+                    let new_value = value.iter()
+                                         .map(|&x| x.clone().$m(_rhs.clone()))
+                                         .collect();
+                    new_values.push(new_value);
+                }
                 Block::from_cow(new_values,
-                                self.index.to_owned(),
-                                self.columns.to_owned())
+                                Cow::Borrowed(self.index.borrow()),
+                                Cow::Borrowed(self.columns.borrow()))
             }
         }
 
-        impl<'i, 'c, 'l, 'r, V, I, C> $t<&'l V> for &'r Block<'i, 'c, V, I, C>
-            where V: Copy + Num,
-                  I: Copy + Eq + Hash,
-                  C: Copy + Eq + Hash {
+        impl<'i, 'c, 'l, 'r, V, I, C, O> $t<&'r V> for &'l Block<'i, 'c, V, I, C>
+            where V: Copy + $t<Output=O>,
+                  I: Clone + Eq + Hash,
+                  C: Clone + Eq + Hash,
+                  O: Copy {
 
-            type Output = Block<'i, 'c, V, I, C>;
-            fn $m(self, _rhs: &V) -> Block<'i, 'c, V, I, C> {
-                let new_values = broadcast(&self.values, &|x: &V| (*x).$m(*_rhs));
+            type Output = Block<'l, 'l, O, I, C>;
+            fn $m(self, _rhs: &V) -> Self::Output {
+                let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
+                for value in self.values.iter() {
+                    let new_value = value.iter()
+                                         .map(|&x| x.clone().$m(_rhs.clone()))
+                                         .collect();
+                    new_values.push(new_value);
+                }
                 Block::from_cow(new_values,
-                                self.index.to_owned(),
-                                self.columns.to_owned())
+                                Cow::Borrowed(self.index.borrow()),
+                                Cow::Borrowed(self.columns.borrow()))
             }
         }
 
         // Element-wise
-        impl<'li, 'lc, 'ri, 'rc, V, I, C> $t<Block<'ri, 'rc, V, I, C>>
+        impl<'li, 'lc, 'ri, 'rc, V, I, C, O> $t<Block<'ri, 'rc, V, I, C>>
             for Block<'li, 'lc, V, I, C>
 
-            where V: Copy + Num,
-                  I: Copy + Eq + Hash,
-                  C: Copy + Eq + Hash {
+            where V: Copy + $t<Output=O>,
+                  I: Clone + Eq + Hash,
+                  C: Clone + Eq + Hash,
+                  O: Copy {
 
-            type Output = Self;
-            fn $m(self, _rhs: Block<'ri, 'rc, V, I, C>) -> Self {
+            type Output = Block<'li, 'lc, O, I, C>;
+            fn $m(self, _rhs: Block<V, I, C>) -> Self::Output {
                 self.assert_binop(&_rhs);
-                let new_values = elemwise(&self.values, &_rhs.values,
-                                          &|(x, y)| (*x).$m(*y));
+                let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
+                for (value, rvalue) in self.values.into_iter()
+                                           .zip(_rhs.values.into_iter()) {
+                    let new_value = value.into_iter()
+                                         .zip(rvalue.into_iter())
+                                         .map(|(x, y)| x.$m(y))
+                                         .collect();
+                    new_values.push(new_value);
+                }
                 Block::from_cow(new_values,
                                 self.index,
                                 self.columns)
             }
         }
 
-        impl<'li, 'lc, 'ri, 'rc, 'r, V, I, C> $t<&'r Block<'ri, 'rc, V, I, C>>
+        impl<'li, 'lc, 'ri, 'rc, 'r, V, I, C, O> $t<&'r Block<'ri, 'rc, V, I, C>>
             for Block<'li, 'lc, V, I, C>
 
-            where V: Copy + Num,
-                  I: Copy + Eq + Hash,
-                  C: Copy + Eq + Hash {
+            where V: Copy + $t<Output=O>,
+                  I: Clone + Eq + Hash,
+                  C: Clone + Eq + Hash,
+                  O: Copy {
 
-            type Output = Self;
-            fn $m(self, _rhs: &'r Block<'ri, 'rc, V, I, C>) -> Self {
+            type Output = Block<'li, 'lc, O, I, C>;
+            fn $m(self, _rhs: &'r Block<V, I, C>) -> Self::Output {
                 self.assert_binop(&_rhs);
-                let new_values = elemwise(&self.values, &_rhs.values,
-                                          &|(x, y)| (*x).$m(*y));
+                let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
+                for (value, rvalue) in self.values.into_iter()
+                                           .zip(_rhs.values.iter()) {
+                    let new_value = value.into_iter()
+                                         .zip(rvalue.iter())
+                                         .map(|(x, &y)| x.$m(y.clone()))
+                                         .collect();
+                    new_values.push(new_value);
+                }
                 Block::from_cow(new_values,
                                 self.index,
                                 self.columns)
             }
         }
 
-        impl<'li, 'lc, 'ri, 'rc, 'l, V, I, C> $t<Block<'ri, 'rc, V, I, C>>
+        impl<'li, 'lc, 'ri, 'rc, 'l, V, I, C, O> $t<Block<'ri, 'rc, V, I, C>>
             for &'l Block<'li, 'lc, V, I, C>
 
-            where V: Copy + Num,
-                  I: Copy + Eq + Hash,
-                  C: Copy + Eq + Hash {
+            where V: Copy + $t<Output=O>,
+                  I: Clone + Eq + Hash,
+                  C: Clone + Eq + Hash,
+                  O: Copy {
 
-            type Output = Block<'li, 'lc, V, I, C>;
-            fn $m(self, _rhs: Block<'ri, 'rc, V, I, C>) -> Block<'li, 'lc, V, I, C> {
+            type Output = Block<'l, 'l, O, I, C>;
+            fn $m(self, _rhs: Block<V, I, C>) -> Self::Output {
                 self.assert_binop(&_rhs);
-                let new_values = elemwise(&self.values, &_rhs.values,
-                                          &|(x, y)| (*x).$m(*y));
+                let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
+                for (value, rvalue) in self.values.iter()
+                                           .zip(_rhs.values.into_iter()) {
+                    let new_value = value.iter()
+                                         .zip(rvalue.into_iter())
+                                         .map(|(&x, y)| x.clone().$m(y))
+                                         .collect();
+                    new_values.push(new_value);
+                }
                 Block::from_cow(new_values,
-                                self.index.to_owned(),
-                                self.columns.to_owned())
+                                Cow::Borrowed(self.index.borrow()),
+                                Cow::Borrowed(self.columns.borrow()))
             }
         }
 
-        impl<'li, 'lc, 'ri , 'rc, 'l, 'r, V, I, C> $t<&'r Block<'ri, 'rc, V, I, C>>
+        impl<'li, 'lc, 'ri , 'rc, 'l, 'r, V, I, C, O> $t<&'r Block<'ri, 'rc, V, I, C>>
             for &'l Block<'li, 'lc, V, I, C>
 
-            where V: Copy + Num,
-                  I: Copy + Eq + Hash,
-                  C: Copy + Eq + Hash {
+            where V: Copy + $t<Output=O>,
+                  I: Clone + Eq + Hash,
+                  C: Clone + Eq + Hash,
+                  O: Copy {
 
-            type Output = Block<'li, 'lc, V, I, C>;
-            fn $m(self, _rhs: &'r Block<'ri, 'rc, V, I, C>) -> Block<'li, 'lc, V, I, C> {
+            type Output = Block<'l, 'l, O, I, C>;
+            fn $m(self, _rhs: &'r Block<V, I, C>) -> Self::Output {
                 self.assert_binop(&_rhs);
-                let new_values = elemwise(&self.values, &_rhs.values,
-                                          &|(x, y)| (*x).$m(*y));
+                let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
+                for (value, rvalue) in self.values.iter()
+                                           .zip(_rhs.values.iter()) {
+                    let new_value = value.iter()
+                                         .zip(rvalue.iter())
+                                         .map(|(&x, &y)| x.clone().$m(y.clone()))
+                                         .collect();
+                    new_values.push(new_value);
+                }
                 Block::from_cow(new_values,
-                                self.index.to_owned(),
-                                self.columns.to_owned())
+                                Cow::Borrowed(self.index.borrow()),
+                                Cow::Borrowed(self.columns.borrow()))
             }
         }
     }
@@ -227,7 +263,15 @@ mod tests {
 
         let res = &b + &3;
         assert_eq!(res, exp);
+    }
 
+    #[test]
+    fn test_block_ops_i64_broadcast_move() {
+        let exp = Block::from_col_vec(vec![4, 5, 6, 7, 8, 9],
+                                      vec![10, 20, 30], vec!["X", "Y"]);
+
+        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6],
+                                    vec![10, 20, 30], vec!["X", "Y"]);
         let res = b + &3;
         assert_eq!(res, exp);
     }
@@ -283,7 +327,15 @@ mod tests {
 
         let res = &b + &3.;
         assert_eq!(res, exp);
+    }
 
+    #[test]
+    fn test_block_ops_f64_broadcast_move() {
+        let exp = Block::from_col_vec(vec![4., 5., 6., 7., 8., 9.],
+                                      vec![10, 20, 30], vec!["X", "Y"]);
+
+        let b = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
+                                    vec![10, 20, 30], vec!["X", "Y"]);
         let res = b + &3.;
         assert_eq!(res, exp);
     }
@@ -353,7 +405,17 @@ mod tests {
                                     vec![10, 20, 30], vec!["X", "Y"]);
         let res = &b + &r;
         assert_eq!(res, exp);
+    }
 
+    #[test]
+    fn test_block_ops_i64_elemwise_move() {
+        let exp = Block::from_col_vec(vec![3, 5, 4, 6, 8, 7],
+                                      vec![10, 20, 30], vec!["X", "Y"]);
+
+        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6],
+                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let r = Block::from_col_vec(vec![2, 3, 1, 2, 3, 1],
+                                    vec![10, 20, 30], vec!["X", "Y"]);
         let res = b + &r;
         assert_eq!(res, exp);
     }
@@ -425,6 +487,17 @@ mod tests {
                                     vec![10, 20, 30], vec!["X", "Y"]);
         let res = &b + &r;
         assert_eq!(res, exp);
+    }
+
+    #[test]
+    fn test_block_ops_f64_elemwise_move() {
+        let exp = Block::from_col_vec(vec![3., 5., 4., 6., 8., 7.],
+                                      vec![10, 20, 30], vec!["X", "Y"]);
+
+        let b = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
+                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let r = Block::from_col_vec(vec![2., 3., 1., 2., 3., 1.],
+                                    vec![10, 20, 30], vec!["X", "Y"]);
 
         let res = b + &r;
         assert_eq!(res, exp);

@@ -12,16 +12,20 @@ use super::super::traits::{Applicable, Aggregator};
 // Apply
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, 'a, V, I, G, W> Applicable<'i, Series<'i, V, I>, W, Series<'a, W, G>>
+impl<'i, V, I, G, W> Applicable<'i, W>
     for GroupBy<'i, Series<'i, V, I>, G>
 
     where V: Copy,
-          I: Copy + Eq + Hash,
-          G: Copy + Eq + Hash + Ord,
-          W: Copy {
+          I: Clone + Eq + Hash,
+          G: 'i + Clone + Eq + Hash + Ord,
+          W: 'i + Copy {
+
+    type In = Series<'i, V, I>;
+    type FOut = W;
+    type Out = Series<'i, W, G>;
 
     /// Apply passed function to each group
-    fn apply<'f>(&'i self, func: &'f Fn(&Series<'i, V, I>) -> W) -> Series<'a, W, G> {
+    fn apply<'f>(&'i self, func: &'f Fn(&Series<'i, V, I>) -> W) -> Series<'i, W, G> {
 
         let mut new_values: Vec<W> = Vec::with_capacity(self.grouper.len());
 
@@ -40,7 +44,7 @@ impl<'i, 'a, V, I, G, W> Applicable<'i, Series<'i, V, I>, W, Series<'a, W, G>>
 
 impl<'i, V, I, G> Aggregator<'i, 'i> for GroupBy<'i, Series<'i, V, I>, G>
     where V: Copy + Eq + Hash + Num + Zero + ToPrimitive,
-          I: Copy + Eq + Hash,
+          I: Clone + Eq + Hash,
           G: 'i + Copy + Eq + Hash + Ord {
 
     // result can have different lifetime

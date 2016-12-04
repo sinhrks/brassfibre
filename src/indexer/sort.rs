@@ -7,7 +7,8 @@ use super::super::algos::sort::Sorter;
 // Soat
 //**********************************************
 
-impl<U> Indexer<U> where U: Copy + Eq + Hash + Ord {
+impl<U> Indexer<U>
+    where U: Clone + Eq + Hash + Ord {
 
     pub fn argsort(&self) -> (Vec<usize>, Self) {
         let (indexer, sorted) = Sorter::argsort(&self.values);

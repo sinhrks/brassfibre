@@ -1,12 +1,12 @@
 use std::borrow::{Borrow, Cow};
 use std::hash::Hash;
 
+use super::groupby::GroupBy;
 use super::indexer::Indexer;
 use super::internals::Array;
 use super::traits::{IndexerIndexer, RowIndexer, ColIndexer};
 
 mod formatting;
-mod groupby;
 mod reshape;
 
 #[derive(Clone)]
@@ -156,9 +156,10 @@ impl<'i, 'c, I, C> DataFrame<'i, 'c, I, C>
         self.columns.to_mut().push(name);
     }
 
-    pub fn groupby<G>(&self, other: Vec<G>) -> groupby::DataFrameGroupBy<Self, G>
+    pub fn groupby<G>(&'i self, other: Vec<G>) -> GroupBy<DataFrame<I, C>, G>
         where G: Copy + Eq + Hash + Ord {
-        groupby::DataFrameGroupBy::new(&self, other)
+
+        GroupBy::new(&self, other)
     }
 }
 

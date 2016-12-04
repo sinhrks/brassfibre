@@ -2,13 +2,13 @@ use std::hash::Hash;
 
 use super::Indexer;
 
-impl<T: Copy + Hash + Eq> From<Vec<T>> for Indexer<T> {
+impl<T: Clone + Eq + Hash> From<Vec<T>> for Indexer<T> {
     fn from(values: Vec<T>) -> Self {
         Indexer::new(values)
     }
 }
 
-impl<T: Hash> Into<Vec<T>> for Indexer<T> {
+impl<T: Clone + Hash> Into<Vec<T>> for Indexer<T> {
     fn into(self) -> Vec<T> {
         self.values
     }

@@ -12,7 +12,7 @@ use super::super::traits::{Applicable, Aggregator};
 
 impl<'i, V, I> Aggregator<'i, 'i> for Series<'i, V, I>
     where V: Copy + Num + Zero + ToPrimitive,
-          I: Copy + Eq + Hash {
+          I: Clone + Eq + Hash {
 
     type Kept = V;
     type Counted = usize;
@@ -49,7 +49,7 @@ impl<'i, V, I> Aggregator<'i, 'i> for Series<'i, V, I>
 
 impl<'i, V, I> Series<'i, V, I>
     where V: Copy + Num + Zero + ToPrimitive + computations::NanMinMax<V>,
-          I: Copy + Eq + Hash {
+          I: Clone + Eq + Hash {
 
     pub fn min(&'i self) -> V {
         self.apply(&computations::vec_min)
@@ -79,7 +79,7 @@ impl<'i, V, I> Series<'i, V, I>
 
 impl<'i, V, I> Series<'i, V, I>
     where V: Copy + Eq + Hash + Ord,
-          I: Copy + Eq + Hash {
+          I: Clone + Eq + Hash {
 
     pub fn value_counts<'a>(&self) -> Series<'a, usize, V> {
         let c = Counter::new(&self.values);

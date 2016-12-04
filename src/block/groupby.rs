@@ -12,14 +12,18 @@ use super::super::traits::{Applicable, Aggregator};
 // Apply
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, 'c, V, I, C, G, W> Applicable<'c, Block<'i, 'c, V, I, C>, Vec<W>, Block<'c, 'c, W, G, C>>
+impl<'i, 'c, V, I, C, G, W> Applicable<'c, Vec<W>>
     for GroupBy<'i, Block<'i, 'c, V, I, C>, G>
 
     where V: Copy,
-          I: Copy + Eq + Hash,
-          C: Copy + Eq + Hash,
-          G: Copy + Eq + Hash + Ord,
-          W: Copy {
+          I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash,
+          G: 'c + Clone + Eq + Hash + Ord,
+          W: 'c + Copy {
+
+    type In = Block<'i, 'c, V, I, C>;
+    type FOut = Vec<W>;
+    type Out = Block<'c, 'c, W, G, C>;
 
     /// Apply passed function to each group
     fn apply<'f>(&'c self, func: &'f Fn(&Block<'i, 'c, V, I, C>) -> Vec<W>)

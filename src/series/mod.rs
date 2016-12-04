@@ -1,7 +1,5 @@
-extern crate itertools;
 extern crate num;
 
-use itertools::Zip;
 use std::borrow::Cow;
 use std::hash::Hash;
 
@@ -29,7 +27,7 @@ pub struct Series<'i, V, I: 'i + Clone + Hash> {
 
 impl<'i, V, I> RowIndexer<'i> for Series<'i, V, I>
     where V: Copy,
-          I: Copy + Eq + Hash {
+          I: Clone + Eq + Hash {
 
     type Key = I;
     type Row = V;
@@ -68,12 +66,11 @@ impl<'i, V, I> RowIndexer<'i> for Series<'i, V, I>
         let mut new_values: Vec<Self::Row> = Vec::with_capacity(self.len());
         let mut new_index: Vec<Self::Key> = Vec::with_capacity(self.len());
 
-        // ToDo: remove itertools
-        for (&flag, &v, &i) in Zip::new((flags, &self.values,
-                                         &self.index.values)) {
+        for ((&flag, v), i) in flags.iter().zip(self.values.iter())
+                                           .zip(self.index.values.iter()) {
             if flag {
-                new_values.push(v);
-                new_index.push(i);
+                new_values.push(v.clone());
+                new_index.push(i.clone());
             }
         }
         Series::new(new_values, new_index)
@@ -86,7 +83,7 @@ impl<'i, V, I> RowIndexer<'i> for Series<'i, V, I>
 
 impl<'i, V, I> Series<'i, V, I>
     where V: Copy,
-          I: 'i + Copy + Eq + Hash {
+          I: 'i + Clone + Eq + Hash {
 
     pub fn from_vec(values: Vec<V>) -> Series<'i, V, usize> {
         let index: Indexer<usize> = Indexer::<usize>::from_len(values.len());
@@ -133,7 +130,7 @@ impl<'i, V, I> Series<'i, V, I>
 
 impl<'i, V, I> Appender<'i> for Series<'i, V, I>
     where V: Copy,
-          I: Copy + Eq + Hash {
+          I: Clone + Eq + Hash {
 
     fn append(&self, other: &Self) -> Self {
         let mut new_values: Vec<V> = self.values.clone();
@@ -147,9 +144,13 @@ impl<'i, V, I> Appender<'i> for Series<'i, V, I>
 // Apply
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, V, I, R> Applicable<'i, Vec<V>, R, R> for Series<'i, V, I>
+impl<'i, V, I, R> Applicable<'i, R> for Series<'i, V, I>
     where V: Copy,
-          I: Copy + Eq + Hash {
+          I: Clone + Eq + Hash {
+
+    type In = Vec<V>;
+    type FOut = R;
+    type Out = R;
 
     fn apply<'f>(&'i self, func: &'f Fn(&Vec<V>) -> R) -> R {
         func(&self.values)
@@ -160,7 +161,10 @@ impl<'i, V, I, R> Applicable<'i, Vec<V>, R, R> for Series<'i, V, I>
 // Eq
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, V: PartialEq, I: Clone + Hash + Eq> PartialEq for Series<'i, V, I> {
+impl<'i, V, I> PartialEq for Series<'i, V, I>
+    where V: PartialEq,
+          I: Clone + Hash + Eq {
+
     fn eq(&self, other: &Self) -> bool {
         (self.index.eq(&other.index)) && (self.values.eq(&other.values))
     }

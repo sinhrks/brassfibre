@@ -13,7 +13,7 @@ mod sort;
 
 /// Immutable hash index
 #[derive(Clone)]
-pub struct Indexer<U: Hash> {
+pub struct Indexer<U: Clone + Hash> {
     // index must be hashable, note that float can't be hashed
     pub values: Vec<U>,
 
@@ -25,7 +25,7 @@ pub struct Indexer<U: Hash> {
 // Constructor
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<U> Indexer<U> where U: Copy + Eq + Hash {
+impl<U> Indexer<U> where U: Clone + Eq + Hash {
 
     pub fn from_len(len: usize) -> Indexer<usize> {
         let index: Vec<usize> = (0..len).collect();
@@ -44,7 +44,7 @@ impl<U> Indexer<U> where U: Copy + Eq + Hash {
 // Indexing
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<U> IndexerIndexer for Indexer<U>  where U: Copy + Eq + Hash {
+impl<U> IndexerIndexer for Indexer<U>  where U: Clone + Eq + Hash {
 
     type Key = U;
 
@@ -63,7 +63,7 @@ impl<U> IndexerIndexer for Indexer<U>  where U: Copy + Eq + Hash {
         // ToDo: merge with init_label_mapper
         let mut mapper = self.htable.borrow_mut();
         if !mapper.contains_key(&label) {
-            mapper.insert(label, loc);
+            mapper.insert(label.clone(), loc);
         } else {
             // temp, do not allow duplicates for now
             panic!("Duplicated key!");
@@ -95,7 +95,7 @@ impl<U> IndexerIndexer for Indexer<U>  where U: Copy + Eq + Hash {
         }
         for (loc, label) in self.values.iter().enumerate() {
             if !htable.contains_key(label) {
-                htable.insert(*label, loc);
+                htable.insert(label.clone(), loc);
             } else {
                 // temp, do not allow duplicates for now
                 panic!("Duplicated key!");
@@ -109,7 +109,7 @@ impl<U> IndexerIndexer for Indexer<U>  where U: Copy + Eq + Hash {
 ////////////////////////////////////////////////////////////////////////////////
 
 impl<'a, T> Appender<'a> for Indexer<T>
-    where T: Copy + Eq + Hash {
+    where T: Clone + Eq + Hash {
 
     fn append(&self, other: &Self) -> Self {
         let mut new_values: Vec<T> = self.values.clone();
@@ -122,7 +122,8 @@ impl<'a, T> Appender<'a> for Indexer<T>
 // Eq
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<U: Hash + Eq> PartialEq for Indexer<U> {
+impl<U> PartialEq for Indexer<U>
+    where U: Clone + Eq + Hash {
     fn eq(&self, other: &Indexer<U>) -> bool {
         self.values == other.values
     }

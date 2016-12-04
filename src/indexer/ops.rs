@@ -1,102 +1,118 @@
-extern crate num;
-
-use num::{Num};
 use std::hash::Hash;
 use std::ops::{Add, Mul, Sub, Div, Rem};
 
 use super::Indexer;
 
-// definition is the same as Series. Move to computation?
-fn elemwise<T>(left: &Vec<T>, right: &Vec<T>,
-            func: &Fn((&T, &T)) -> T) -> Vec<T>
-    where T: Copy + Num {
-    left.iter()
-        .zip(right.iter())
-        .map(func).collect()
-}
-
 macro_rules! define_numric_op {
     ($t:ident $m:ident) => {
 
         // Broadcast
-        impl<U> $t<U> for Indexer<U>
-            where U: Copy + Eq + Hash + Num {
+        impl<U, O> $t<U> for Indexer<U>
+            where U: Clone + Eq + Hash + $t<Output=O>,
+                  O: Clone + Eq + Hash {
 
-            type Output = Self;
-            fn $m(self, _rhs: U) -> Self {
-                let new_values = self.values.iter().map(|x: &U| (*x).$m(_rhs)).collect();
+            type Output = Indexer<O>;
+            fn $m(self, _rhs: U) -> Self::Output {
+                let new_values: Vec<O> = self.values.into_iter()
+                                                    .map(|x: U| x.$m(_rhs.clone()))
+                                                    .collect();
                 Indexer::new(new_values)
             }
         }
 
-        impl<'a, U> $t<&'a U> for Indexer<U>
-            where U: Copy + Eq + Hash + Num {
+        impl<'a, U, O> $t<&'a U> for Indexer<U>
+            where U: Clone + Eq + Hash + $t<Output=O>,
+                  O: Clone + Eq + Hash {
 
-            type Output = Self;
-            fn $m(self, _rhs: &U) -> Self {
-                let new_values = self.values.iter().map(|x: &U| (*x).$m(*_rhs)).collect();
+            type Output = Indexer<O>;
+            fn $m(self, _rhs: &U) -> Self::Output {
+                let new_values: Vec<O> = self.values.into_iter()
+                                                    .map(|x: U| x.$m((*_rhs).clone()))
+                                                    .collect();
                 Indexer::new(new_values)
             }
         }
 
-        impl<'b, U> $t<U> for &'b Indexer<U>
-            where U: Copy + Eq + Hash + Num {
+        impl<'b, U, O> $t<U> for &'b Indexer<U>
+            where U: Clone + Eq + Hash + $t<Output=O>,
+                  O: Clone + Eq + Hash {
 
             // can't use self as impl is for reference?
-            type Output = Indexer<U>;
-            fn $m(self, _rhs: U) -> Indexer<U> {
-                let new_values = self.values.iter().map(|x: &U| (*x).$m(_rhs)).collect();
+            type Output = Indexer<O>;
+            fn $m(self, _rhs: U) -> Self::Output {
+                let new_values: Vec<O> = self.values.iter()
+                                                    .map(|x: &U| (*x).clone().$m(_rhs.clone()))
+                                                    .collect();
                 Indexer::new(new_values)
             }
         }
 
-        impl<'a, 'b, U> $t<&'a U> for &'b Indexer<U>
-            where U: Copy + Eq + Hash + Num {
+        impl<'a, 'b, U, O> $t<&'a U> for &'b Indexer<U>
+            where U: Clone + Eq + Hash + $t<Output=O>,
+                  O: Clone + Eq + Hash {
 
-            type Output = Indexer<U>;
-            fn $m(self, _rhs: &U) -> Indexer<U> {
-                let new_values = self.values.iter().map(|x: &U| (*x).$m(*_rhs)).collect();
+            type Output = Indexer<O>;
+            fn $m(self, _rhs: &U) -> Self::Output {
+                let new_values: Vec<O> = self.values.iter()
+                                                    .map(|x: &U| (*x).clone().$m((*_rhs).clone()))
+                                                    .collect();
                 Indexer::new(new_values)
             }
         }
 
         // Element-wise
-        impl<U> $t<Indexer<U>> for Indexer<U>
-            where U: Copy + Eq + Hash + Num {
+        impl<U, O> $t<Indexer<U>> for Indexer<U>
+            where U: Clone + Eq + Hash + $t<Output=O>,
+                  O: Clone + Eq + Hash {
 
-            type Output = Self;
-            fn $m(self, _rhs: Self) -> Self {
-                let new_values = elemwise(&self.values, &_rhs.values, &|(x, y)| (*x).$m(*y));
+            type Output = Indexer<O>;
+            fn $m(self, _rhs: Self) -> Self::Output {
+                let new_values: Vec<O> = self.values.into_iter()
+                                                    .zip(_rhs.values.into_iter())
+                                                    .map(|(x, y)| x.$m(y))
+                                                    .collect();
                 Indexer::new(new_values)
             }
         }
 
-        impl<'a, U> $t<&'a Indexer<U>> for Indexer<U>
-            where U: Copy + Eq + Hash + Num {
+        impl<'a, U, O> $t<&'a Indexer<U>> for Indexer<U>
+            where U: Clone + Eq + Hash + $t<Output=O>,
+                  O: Clone + Eq + Hash {
 
-            type Output = Self;
-            fn $m(self, _rhs: &Self) -> Self {
-                let new_values = elemwise(&self.values, &_rhs.values, &|(x, y)| (*x).$m(*y));
+            type Output = Indexer<O>;
+            fn $m(self, _rhs: &Self) -> Self::Output {
+                let new_values: Vec<O> = self.values.into_iter()
+                                                    .zip(_rhs.values.iter())
+                                                    .map(|(x, y)| x.$m(y.clone()))
+                                                    .collect();
                 Indexer::new(new_values)
             }
         }
 
-        impl<'b, U> $t<Indexer<U>> for &'b Indexer<U>
-            where U: Copy + Eq + Hash + Num {
+        impl<'b, U, O> $t<Indexer<U>> for &'b Indexer<U>
+            where U: Clone + Eq + Hash + $t<Output=O>,
+                  O: Clone + Eq + Hash {
 
-            type Output = Indexer<U>;
-            fn $m(self, _rhs: Indexer<U>) -> Indexer<U> {
-                let new_values = elemwise(&self.values, &_rhs.values, &|(x, y)| (*x).$m(*y));
+            type Output = Indexer<O>;
+            fn $m(self, _rhs: Indexer<U>) -> Self::Output {
+                let new_values: Vec<O> = self.values.iter()
+                                                    .zip(_rhs.values.into_iter())
+                                                    .map(|(x, y)| x.clone().$m(y))
+                                                    .collect();
                 Indexer::new(new_values)
             }
         }
 
-        impl<'a, 'b, U> $t<&'a Indexer<U>> for &'b Indexer<U>
-            where U: Copy + Eq + Hash + Num {
+        impl<'a, 'b, U, O> $t<&'a Indexer<U>> for &'b Indexer<U>
+            where U: Clone + Eq + Hash + $t<Output=O>,
+                  O: Clone + Eq + Hash {
 
-            type Output = Indexer<U>;
-            fn $m(self, _rhs: &Indexer<U>) -> Indexer<U> {
-                let new_values = elemwise(&self.values, &_rhs.values, &|(x, y)| (*x).$m(*y));
+            type Output = Indexer<O>;
+            fn $m(self, _rhs: &Indexer<U>) -> Self::Output {
+                let new_values: Vec<O> = self.values.iter()
+                                                    .zip(_rhs.values.iter())
+                                                    .map(|(x, y)| x.clone().$m(y.clone()))
+                                                    .collect();
                 Indexer::new(new_values)
             }
         }
