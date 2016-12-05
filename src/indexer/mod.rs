@@ -89,6 +89,17 @@ impl<U> IndexerIndexer for Indexer<U>  where U: Clone + Eq + Hash {
         Indexer::new(new_values)
     }
 
+    fn blocs(&self, flags: &Vec<bool>) -> Self {
+        assert!(self.len() == flags.len(), "flags must be the same length as Indexer");
+        // should use filter_map?
+        let new_values: Vec<U> = self.iter()
+                                     .zip(flags.iter())
+                                     .filter(|&(_, y)| *y)
+                                     .map(|(ref x, _)| (*x).clone())
+                                     .collect();
+        Indexer::new(new_values)
+    }
+
     fn init_state(&self) {
         // update htable
         let mut htable = self.htable.borrow_mut();

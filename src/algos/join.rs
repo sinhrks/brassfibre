@@ -18,7 +18,8 @@ pub trait Join<T> {
     fn keep_first(keep: &Vec<T>, other: &Vec<T>) -> (Vec<T>, Vec<usize>, Vec<usize>);
 }
 
-impl<T> Join<T> for HashJoin where T: Hash + Eq + Copy {
+impl<T> Join<T> for HashJoin
+    where T: Clone + Hash + Eq {
 
     fn inner(left: &Vec<T>, right: &Vec<T>) -> (Vec<T>, Vec<usize>, Vec<usize>) {
 
@@ -31,11 +32,11 @@ impl<T> Join<T> for HashJoin where T: Hash + Eq + Copy {
         let map = to_enumhashmap(right);
 
         // keep left order
-        for (i, key) in left.iter().enumerate() {
+        for (i, ref key) in left.iter().enumerate() {
             // ToDo: sort?
-            match map.get(&key) {
+            match map.get(key) {
                 Some(val) => {
-                    indexer.push(*key);
+                    indexer.push((*key).clone());
                     lindexer.push(i);
                     rindexer.push(*val);
                 },
@@ -67,16 +68,16 @@ impl<T> Join<T> for HashJoin where T: Hash + Eq + Copy {
 
         let map = to_enumhashmap(other);
 
-        for (i, key) in keep.iter().enumerate() {
+        for (i, ref key) in keep.iter().enumerate() {
             // ToDo: sort?
             match map.get(key) {
                 Some(loc) => {
-                    indexer.push(*key);
+                    indexer.push((*key).clone());
                     kindexer.push(i);
                     oindexer.push(*loc);
                 },
                 None => {
-                    indexer.push(*key);
+                    indexer.push((*key).clone());
                     kindexer.push(i);
                     oindexer.push(USIZE_MISSING);
                 }
@@ -150,14 +151,43 @@ mod tests {
     }
 
     #[test]
+    fn test_vec_inner_join_string() {
+        let v1: Vec<String> = vec!["a".to_string(), "b".to_string(),
+                                   "c".to_string(), "d".to_string()];
+        let v2: Vec<String> = vec!["d".to_string(), "c".to_string(),
+                                   "e".to_string(), "a".to_string()];
+
+        let res = HashJoin::inner(&v1, &v2);
+
+        let exp: Vec<String> = vec!["a".to_string(), "c".to_string(), "d".to_string()];
+        assert_eq!(res.0, exp);
+        assert_eq!(res.1, vec![0, 2, 3]);
+        assert_eq!(res.2, vec![3, 1, 0]);
+    }
+
+    #[test]
     fn test_vec_left_join() {
         let v1 = vec![1, 2, 3];
         let v2 = vec![2, 3, 4];
         let res = HashJoin::left(&v1, &v2);
 
-        assert_eq!(res.0, vec![1, 2, 3]);
+        assert_eq!(res.0, v1);
         assert_eq!(res.1, vec![0, 1, 2]);
         assert_eq!(res.2, vec![USIZE_MISSING, 0, 1]);
+    }
+
+    #[test]
+    fn test_vec_left_join_string() {
+        let v1: Vec<String> = vec!["a".to_string(), "b".to_string(),
+                                   "c".to_string(), "d".to_string()];
+        let v2: Vec<String> = vec!["d".to_string(), "c".to_string(),
+                                   "e".to_string(), "a".to_string()];
+
+        let res = HashJoin::left(&v1, &v2);
+
+        assert_eq!(res.0, v1);
+        assert_eq!(res.1, vec![0, 1, 2, 3]);
+        assert_eq!(res.2, vec![3, USIZE_MISSING, 1, 0]);
     }
 
     #[test]
@@ -166,9 +196,23 @@ mod tests {
         let v2 = vec![2, 3, 4];
         let res = HashJoin::right(&v1, &v2);
 
-        assert_eq!(res.0, vec![2, 3, 4]);
+        assert_eq!(res.0, v2);
         assert_eq!(res.1, vec![1, 2, USIZE_MISSING]);
         assert_eq!(res.2, vec![0, 1, 2]);
+    }
+
+    #[test]
+    fn test_vec_right_join_string() {
+        let v1: Vec<String> = vec!["a".to_string(), "b".to_string(),
+                                   "c".to_string(), "d".to_string()];
+        let v2: Vec<String> = vec!["d".to_string(), "c".to_string(),
+                                   "e".to_string(), "a".to_string()];
+
+        let res = HashJoin::right(&v1, &v2);
+
+        assert_eq!(res.0, v2);
+        assert_eq!(res.1, vec![3, 2, USIZE_MISSING, 0]);
+        assert_eq!(res.2, vec![0, 1, 2, 3]);
     }
 
     #[test]
@@ -182,4 +226,19 @@ mod tests {
         assert_eq!(res.2, vec![USIZE_MISSING, 0, 1, 2]);
     }
 
+    #[test]
+    fn test_vec_outer_join_string() {
+        let v1: Vec<String> = vec!["a".to_string(), "b".to_string(),
+                                   "c".to_string(), "d".to_string()];
+        let v2: Vec<String> = vec!["d".to_string(), "c".to_string(),
+                                   "e".to_string(), "a".to_string()];
+
+        let res = HashJoin::outer(&v1, &v2);
+
+        let exp = vec!["a".to_string(), "b".to_string(), "c".to_string(),
+                       "d".to_string(), "e".to_string()];
+        assert_eq!(res.0, exp);
+        assert_eq!(res.1, vec![0, 1, 2, 3, USIZE_MISSING]);
+        assert_eq!(res.2, vec![3, USIZE_MISSING, 1, 0, 2]);
+    }
 }

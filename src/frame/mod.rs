@@ -8,6 +8,7 @@ use super::indexer::Indexer;
 use super::internals::Array;
 use super::traits::{IndexerIndexer, RowIndexer, ColIndexer};
 
+mod aggregation;
 mod formatting;
 mod reshape;
 
@@ -30,8 +31,8 @@ pub struct DataFrame<'i, 'c, I: Hash, C: Hash>
 ////////////////////////////////////////////////////////////////////////////////
 
 impl<'i, 'c, I, C> RowIndexer<'c> for DataFrame<'i, 'c, I, C>
-    where I: Copy + Eq + Hash,
-          C: Copy + Eq + Hash {
+    where I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash {
 
     type Key = I;
     type Row = Array;
@@ -74,8 +75,8 @@ impl<'i, 'c, I, C> RowIndexer<'c> for DataFrame<'i, 'c, I, C>
 }
 
 impl<'i, 'c, I, C> ColIndexer<'i> for DataFrame<'i, 'c, I, C>
-    where I: Copy + Eq + Hash,
-          C: Copy + Eq + Hash {
+    where I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash {
 
     type Key = C;
     type Column = Array;
@@ -110,9 +111,9 @@ impl<'i, 'c, I, C> ColIndexer<'i> for DataFrame<'i, 'c, I, C>
 // Misc
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, 'c, I, C> DataFrame<'i, 'c, I, C>
-    where I: Copy + Eq + Hash,
-          C: Copy + Eq + Hash {
+impl<'s, 'i, 'c, I, C> DataFrame<'i, 'c, I, C>
+    where I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash {
 
     pub fn from_vec<X, Y>(values: Vec<Array>,
                           index: X, columns: Y) -> Self
@@ -144,6 +145,27 @@ impl<'i, 'c, I, C> DataFrame<'i, 'c, I, C>
             index: index,
             columns: columns,
         }
+    }
+
+    pub fn dtypes(&self) -> Vec<String> {
+        self.iter().map(|ref x| x.dtype()).collect()
+    }
+
+    pub fn is_numeric(&self) -> Vec<bool> {
+        self.iter().map(|ref x| x.is_numeric()).collect()
+    }
+
+    fn get_numeric_data(&'i self) -> Self {
+        let flags = self.is_numeric();
+        let new_columns = self.columns.blocs(&flags);
+        let new_values: Vec<Array> = self.iter()
+                                         .zip(flags.iter())
+                                         .filter(|&(_, y)| *y)
+                                         .map(|(ref x, _)| (*x).clone())
+                                         .collect();
+        DataFrame::from_cow(new_values,
+                            Cow::Borrowed(self.index.borrow()),
+                            Cow::Owned(new_columns))
     }
 
     fn assert_binop(&self, other: &Self) {

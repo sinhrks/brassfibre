@@ -9,8 +9,8 @@ use super::super::traits::{IndexerIndexer, RowIndexer,
 
 impl<'i, 'c, V, I, C> Appender<'c> for Block<'i, 'c, V, I, C>
     where V: Copy,
-          I: Copy + Eq + Hash,
-          C: Copy + Eq + Hash {
+          I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash {
 
     fn append<'o>(&'c self, other: &'o Self) -> Self {
         assert!(self.columns == other.columns, "columns must be identical");
@@ -32,8 +32,8 @@ impl<'i, 'c, V, I, C> Appender<'c> for Block<'i, 'c, V, I, C>
 
 impl<'i, 'c, V, I, C> Concatenator<'i> for Block<'i, 'c, V, I, C>
     where V: Copy,
-          I: Copy + Eq + Hash,
-          C: Copy + Eq + Hash {
+          I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash {
 
     fn concat<'o>(&'i self, other: &'o Self) -> Self {
         assert!(self.index == other.index, "index must be identical");
@@ -53,8 +53,8 @@ impl<'i, 'c, V, I, C> Concatenator<'i> for Block<'i, 'c, V, I, C>
 
 impl<'i, 'c, V, I, C> Joiner for Block<'i, 'c, V, I, C>
     where V: Copy,
-          I: Copy + Eq + Hash,
-          C: Copy + Eq + Hash {
+          I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash {
 
     fn join_inner(&self, other: &Self) -> Self {
 

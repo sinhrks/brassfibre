@@ -1,44 +1,15 @@
 use super::algos::sort::Sorter;
 use super::traits::Appender;
 
+mod aggregation;
+mod convert;
+
 #[derive(Clone, PartialEq, Debug)]
 pub enum Array {
     Int64Array(Vec<i64>),
     Float64Array(Vec<f64>),
+    BoolArray(Vec<bool>),
     StringArray(Vec<String>)
-}
-
-
-// ToDo: define macro
-macro_rules! add_conversion {
-    ($t:ident, $klass:ident) => {
-
-        impl From<Vec<$t>> for Array {
-            fn from(values: Vec<$t>) -> Self {
-                Array::$klass(values)
-            }
-        }
-
-        impl Into<Vec<$t>> for Array {
-            fn into(self) -> Vec<$t> {
-                match self {
-                    Array::$klass(vals) => vals,
-                    _ => panic!("Unable to convert to Vec")
-                }
-            }
-        }
-    }
-}
-add_conversion!(i64, Int64Array);
-add_conversion!(f64, Float64Array);
-add_conversion!(String, StringArray);
-
-// &str handling
-impl<'a> From<Vec<&'a str>> for Array {
-    fn from(values: Vec<&'a str>) -> Self {
-        let new_values: Vec<String> = values.iter().map(|&x| String::from(x)).collect();
-        Array::StringArray(new_values)
-    }
 }
 
 impl Array {
@@ -52,7 +23,15 @@ impl Array {
         match self {
             &Array::Int64Array(_) => "i64".to_string(),
             &Array::Float64Array(_) => "f64".to_string(),
+            &Array::BoolArray(_) => "bool".to_string(),
             &Array::StringArray(_) => "str".to_string(),
+        }
+    }
+
+    pub fn is_numeric(&self) -> bool {
+        match self {
+            &Array::Int64Array(_) | &Array::Float64Array(_) => true,
+            _ => false,
         }
     }
 
@@ -60,6 +39,7 @@ impl Array {
         match self {
             &Array::Int64Array(ref vals) => vals.len(),
             &Array::Float64Array(ref vals) => vals.len(),
+            &Array::BoolArray(ref vals) => vals.len(),
             &Array::StringArray(ref vals) => vals.len(),
         }
     }
@@ -71,6 +51,9 @@ impl Array {
             },
             &Array::Float64Array(ref vals) => {
                 Array::Float64Array(Sorter::reindex(vals, locations))
+            },
+            &Array::BoolArray(ref vals) => {
+                Array::BoolArray(Sorter::reindex(vals, locations))
             },
             &Array::StringArray(ref vals) => {
                 Array::StringArray(Sorter::reindex(vals, locations))
@@ -84,6 +67,9 @@ impl Array {
                 vals.iter().map(|x| x.to_string()).collect()
             },
             &Array::Float64Array(ref vals) => {
+                vals.iter().map(|x| x.to_string()).collect()
+            },
+            &Array::BoolArray(ref vals) => {
                 vals.iter().map(|x| x.to_string()).collect()
             },
             &Array::StringArray(ref vals) => {
@@ -106,6 +92,11 @@ impl<'a> Appender<'a> for Array {
                 let mut new_values = svals.clone();
                 new_values.append(&mut ovals.clone());
                 Array::Float64Array(new_values)
+            },
+            (&Array::BoolArray(ref svals), &Array::BoolArray(ref ovals)) => {
+                let mut new_values = svals.clone();
+                new_values.append(&mut ovals.clone());
+                Array::BoolArray(new_values)
             },
             (&Array::StringArray(ref svals), &Array::StringArray(ref ovals)) => {
                 let mut new_values = svals.clone();

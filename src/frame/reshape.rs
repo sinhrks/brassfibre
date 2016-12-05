@@ -9,8 +9,8 @@ use super::super::traits::{IndexerIndexer, RowIndexer,
 
 
 impl<'i, 'c, I, C> Appender<'c> for DataFrame<'i, 'c, I, C>
-    where I: Copy + Eq + Hash,
-          C: Copy + Eq + Hash {
+    where I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash {
 
     fn append<'o>(&'c self, other: &'o Self) -> Self {
         assert!(self.columns == other.columns, "columns must be identical");
@@ -29,8 +29,8 @@ impl<'i, 'c, I, C> Appender<'c> for DataFrame<'i, 'c, I, C>
 }
 
 impl<'i, 'c, I, C> Concatenator<'i> for DataFrame<'i, 'c, I, C>
-    where I: Copy + Eq + Hash,
-          C: Copy + Eq + Hash {
+    where I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash {
 
     fn concat<'o>(&'i self, other: &'o Self) -> Self {
         assert!(self.index == other.index, "index must be identical");
@@ -48,8 +48,8 @@ impl<'i, 'c, I, C> Concatenator<'i> for DataFrame<'i, 'c, I, C>
 }
 
 impl<'i, 'c, I, C> Joiner for DataFrame<'i, 'c, I, C>
-    where I: Copy + Eq + Hash,
-          C: Copy + Eq + Hash {
+    where I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash {
 
     fn join_inner(&self, other: &Self) -> Self {
 

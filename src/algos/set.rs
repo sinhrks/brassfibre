@@ -3,38 +3,42 @@ use std::hash::Hash;
 use std::iter::FromIterator;
 
 
-fn to_hashset<T>(a: &Vec<T>) -> HashSet<T> where T: Hash + Eq + Clone {
+fn to_hashset<T>(a: &Vec<T>) -> HashSet<T>
+    where T: Clone + Hash + Eq {
+
     HashSet::from_iter(a.iter().cloned())
 }
 
 /// Create HashMap<T, usize> from Vec<T> which value is appearance
 /// location
-pub fn to_enumhashmap<T>(v: &Vec<T>) -> HashMap<T, usize> where T: Hash + Eq + Copy {
+pub fn to_enumhashmap<T>(v: &Vec<T>) -> HashMap<T, usize>
+    where T: Clone + Hash + Eq {
     // ToDo: Handle duplicates
 
     let mut map: HashMap<T, usize> = HashMap::with_capacity(v.len());
-    for (i, key) in v.iter().enumerate() {
+    for (i, ref key) in v.iter().enumerate() {
         // ToDo: Handle duplicates
         if map.contains_key(key) {
             panic!("duplicates are not allowed");
         } else {
-            map.insert(*key, i);
+            map.insert((*key).clone(), i);
         }
     }
     map
 }
 
 
-pub fn union<T>(a: &Vec<T>, b: &Vec<T>) -> Vec<T> where T: Hash + Eq + Copy {
+pub fn union<T>(a: &Vec<T>, b: &Vec<T>) -> Vec<T>
+    where T: Clone + Hash + Eq {
     // Use HashMap to keep the order
 
     // copy
     let mut res: Vec<T> = a.clone();
     let set = to_hashset(a);
 
-    for key in b.iter() {
+    for ref key in b.iter() {
         if !set.contains(key) {
-            res.push(*key);
+            res.push((*key).clone());
         }
     }
     res

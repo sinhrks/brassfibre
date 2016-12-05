@@ -7,8 +7,8 @@ use super::super::formatting;
 
 impl<'i, 'c, V, I, C> fmt::Display for Block<'i, 'c, V, I, C>
     where V: Copy,
-          I: Copy + Eq + Hash,
-          C: Copy + Eq + Hash + fmt::Debug {
+          I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash + fmt::Debug {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Block(columns={:?})", &self.columns.values)
@@ -18,8 +18,8 @@ impl<'i, 'c, V, I, C> fmt::Display for Block<'i, 'c, V, I, C>
 
 impl<'i, 'c, V, I, C> fmt::Debug for Block<'i, 'c, V, I, C>
     where V: Copy + ToString,
-          I: Copy + Eq + Hash + ToString,
-          C: Copy + Eq + Hash + ToString {
+          I: Clone + Eq + Hash + ToString,
+          C: Clone + Eq + Hash + ToString {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 

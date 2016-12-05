@@ -15,6 +15,7 @@ pub trait IndexerIndexer {
     fn get_loc(&self, label: &Self::Key) -> usize;
     fn get_locs(&self, labels: &Vec<Self::Key>) -> Vec<usize>;
     fn reindex(&self, locations: &Vec<usize>) -> Self;
+    fn blocs(&self, flags: &Vec<bool>) -> Self;
 
     // temp
     fn init_state(&self);

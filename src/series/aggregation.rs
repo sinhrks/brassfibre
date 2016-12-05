@@ -42,7 +42,7 @@ impl<'i, V, I> Aggregator<'i, 'i> for Series<'i, V, I>
         self.apply(&computations::vec_std)
     }
 
-    fn unbiased_std(&'i self) -> f64 {
+    fn unbiased_std(&'i self) -> Self::Coerced {
         self.apply(&computations::vec_unbiased_std)
     }
 }

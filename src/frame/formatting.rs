@@ -6,8 +6,8 @@ use super::super::formatting;
 
 
 impl<'i, 'c, I, C> fmt::Display for DataFrame<'i, 'c, I, C>
-    where I: Copy + Eq + Hash,
-          C: Copy + Eq + Hash + fmt::Debug {
+    where I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash + fmt::Debug {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "DataFrame(columns={:?})", &self.columns.values)
@@ -16,8 +16,8 @@ impl<'i, 'c, I, C> fmt::Display for DataFrame<'i, 'c, I, C>
 }
 
 impl<'i, 'c, I, C> fmt::Debug for DataFrame<'i, 'c, I, C>
-    where I: Copy + Eq + Hash + ToString,
-          C: Copy + Eq + Hash + ToString {
+    where I: Clone + Eq + Hash + ToString,
+          C: Clone + Eq + Hash + ToString {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 
