@@ -1,5 +1,3 @@
-extern crate num;
-
 use num::{Num, Zero, ToPrimitive};
 
 use std::hash::Hash;

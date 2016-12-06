@@ -502,6 +502,7 @@ mod tests {
                                     vec![10, 20, 30], vec!["X", "Y"]);
 
         let res = b + &r;
+        assert_eq!(res, exp);
     }
 
     #[test]

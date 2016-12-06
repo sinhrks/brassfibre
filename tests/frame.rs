@@ -2,7 +2,6 @@
 extern crate brassfibre;
 use brassfibre::*;
 
-
 #[test]
 fn test_frame_creation_from_vec() {
     let values = vec![Array::Int64Array(vec![1, 2, 3, 4, 5]),

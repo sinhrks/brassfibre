@@ -4,4 +4,7 @@ version = "0.1.0"
 authors = ["sinhrks <sinhrks@gmail.com>"]
 
 [dependencies]
-num = "0.1.30"
+csv = "0.14.7"
+num = "0.1.36"
+rayon = "0.4.2"
+rustc-serialize = "0.3.21"

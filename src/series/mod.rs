@@ -1,5 +1,3 @@
-extern crate num;
-
 use std::borrow::Cow;
 use std::hash::Hash;
 use std::slice;
