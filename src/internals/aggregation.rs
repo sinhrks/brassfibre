@@ -3,7 +3,7 @@ use super::super::computations;
 use super::super::traits::Aggregator;
 
 
-impl<'s> Aggregator<'s, 's> for Array {
+impl<'s> Aggregator<'s> for Array {
 
     type Kept = f64;
     type Counted = usize;

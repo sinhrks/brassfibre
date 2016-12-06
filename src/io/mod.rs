@@ -19,20 +19,19 @@ pub fn read_csv<'a, R: Read>(mut reader: Reader<R>) -> DataFrame<'a, 'a, usize, 
     }
 
     assert!(records.len() > 0, "input is empty!");
-    let ncols = records[0].len();
 
     // headers read 1st row regardless of has_headers property
     let columns: Vec<String> = if reader.has_headers {
         reader.headers().unwrap()
     } else {
-        default_columns(ncols)
+        default_columns(records[0].len())
     };
 
     let index: Indexer<usize> = Indexer::<usize>::from_len(records.len());
 
     // column-wise vec of scalar
-    let mut colvecs: Vec<Vec<Scalar>> = Vec::with_capacity(ncols);
-    for _ in 0..records[0].len() {
+    let mut colvecs: Vec<Vec<Scalar>> = Vec::with_capacity(columns.len());
+    for _ in 0..columns.len() {
         colvecs.push(Vec::with_capacity(records.len()));
     }
     for record in records {
@@ -41,7 +40,7 @@ pub fn read_csv<'a, R: Read>(mut reader: Reader<R>) -> DataFrame<'a, 'a, usize, 
         }
     }
     // column-wise vec of Array
-    let mut arrays: Vec<Array> = Vec::with_capacity(ncols);
+    let mut arrays: Vec<Array> = Vec::with_capacity(columns.len());
     for column in colvecs {
         let array: Array = column.into();
         arrays.push(array);

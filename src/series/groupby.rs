@@ -42,7 +42,7 @@ impl<'i, V, I, G, W> Applicable<'i, W>
 // Aggregation
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, V, I, G> Aggregator<'i, 'i> for GroupBy<'i, Series<'i, V, I>, G>
+impl<'i, V, I, G> Aggregator<'i> for GroupBy<'i, Series<'i, V, I>, G>
     where V: Copy + Eq + Hash + Num + Zero + ToPrimitive,
           I: Clone + Eq + Hash,
           G: 'i + Copy + Eq + Hash + Ord {

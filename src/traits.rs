@@ -113,7 +113,7 @@ pub trait Applicable<'s, R> {
 // Aggregation
 ////////////////////////////////////////////////////////////////////////////////
 
-pub trait Aggregator<'s, 'r> {
+pub trait Aggregator<'s> {
 
     // 'r: lifetime of result
 

@@ -6,7 +6,7 @@ use super::super::computations;
 use super::super::series::Series;
 use super::super::traits::{Applicable, Aggregator};
 
-impl<'i, 'c, V, I, C> Aggregator<'c, 'c> for Block<'i, 'c, V, I, C>
+impl<'i, 'c, V, I, C> Aggregator<'c> for Block<'i, 'c, V, I, C>
     where V: Copy + Num + Zero + ToPrimitive,
           I: Clone + Eq + Hash,
           C: 'c + Clone + Eq + Hash {

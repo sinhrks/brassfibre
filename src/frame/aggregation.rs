@@ -4,7 +4,7 @@ use super::DataFrame;
 use super::super::series::Series;
 use super::super::traits::Aggregator;
 
-impl<'i, 'c, I, C> Aggregator<'c, 'c> for DataFrame<'i, 'c, I, C>
+impl<'i, 'c, I, C> Aggregator<'c> for DataFrame<'i, 'c, I, C>
     where I: Clone + Eq + Hash,
           C: 'c + Clone + Eq + Hash {
 

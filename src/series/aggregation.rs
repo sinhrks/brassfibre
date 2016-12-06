@@ -8,7 +8,7 @@ use super::super::computations;
 use super::super::traits::{Applicable, Aggregator};
 
 
-impl<'i, V, I> Aggregator<'i, 'i> for Series<'i, V, I>
+impl<'i, V, I> Aggregator<'i> for Series<'i, V, I>
     where V: Copy + Num + Zero + ToPrimitive,
           I: Clone + Eq + Hash {
 

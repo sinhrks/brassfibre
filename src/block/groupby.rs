@@ -46,7 +46,7 @@ impl<'i, 'c, V, I, C, G, W> Applicable<'c, Vec<W>>
 // Aggregation
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, 'c, V, I, C, G> Aggregator<'c, 'c> for GroupBy<'i, Block<'i, 'c, V, I, C>, G>
+impl<'i, 'c, V, I, C, G> Aggregator<'c> for GroupBy<'i, Block<'i, 'c, V, I, C>, G>
     where V: Copy + Eq + Hash + Num + Zero + ToPrimitive,
           I: Copy + Eq + Hash,
           C: Copy + Eq + Hash,

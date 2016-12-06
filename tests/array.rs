@@ -115,24 +115,6 @@ fn test_eq() {
 }
 
 #[test]
-fn test_from() {
-    let iarr: Array = vec![1, 2, 3].into();
-    assert_eq!(iarr.dtype(), "i64");
-
-    let farr: Array = vec![1.1, 2.1, 3.1].into();
-    assert_eq!(farr.dtype(), "f64");
-
-    let barr: Array = vec![true, false, true].into();
-    assert_eq!(barr.dtype(), "bool");
-
-    let str_arr: Array = vec!["A", "B", "C"].into();
-    assert_eq!(str_arr.dtype(), "str");
-
-    let string_arr: Array = vec!["A".to_string(), "B".to_string(), "C".to_string()].into();
-    assert_eq!(string_arr.dtype(), "str");
-}
-
-#[test]
 fn test_ilocs() {
     let iarr = Array::Int64Array(vec![1, 2, 3, 4, 5]);
     assert_eq!(iarr.dtype(), "i64");
