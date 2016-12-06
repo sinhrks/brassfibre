@@ -3,6 +3,7 @@ use std::hash::Hash;
 use std::ops::{Add, Mul, Sub, Div, Rem, BitAnd, BitOr, BitXor};
 
 use super::Block;
+use super::super::algos::elemwise::Elemwise;
 
 macro_rules! define_numeric_op {
     ($t:ident, $m:ident) => {
@@ -16,17 +17,12 @@ macro_rules! define_numeric_op {
 
             type Output = Block<'i, 'c, O, I, C>;
             fn $m(self, _rhs: V) -> Self::Output {
-
                 let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
                 for value in self.values.into_iter() {
-                    let new_value = value.into_iter()
-                                         .map(|x| x.$m(_rhs.clone()))
-                                         .collect();
+                    let new_value = Elemwise::broadcast_oo(value, _rhs, |x, y| x.$m(y));
                     new_values.push(new_value);
                 }
-                Block::from_cow(new_values,
-                                self.index,
-                                self.columns)
+                Block::from_cow(new_values, self.index, self.columns)
             }
         }
 
@@ -40,14 +36,10 @@ macro_rules! define_numeric_op {
             fn $m(self, _rhs: &V) -> Self::Output {
                 let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
                 for value in self.values.into_iter() {
-                    let new_value = value.into_iter()
-                                         .map(|x| x.$m((*_rhs).clone()))
-                                         .collect();
+                    let new_value = Elemwise::broadcast_or(value, _rhs, |x, y| x.$m(y));
                     new_values.push(new_value);
                 }
-                Block::from_cow(new_values,
-                                self.index,
-                                self.columns)
+                Block::from_cow(new_values, self.index, self.columns)
             }
         }
 
@@ -61,9 +53,7 @@ macro_rules! define_numeric_op {
             fn $m(self, _rhs: V) -> Self::Output {
                 let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
                 for value in self.values.iter() {
-                    let new_value = value.iter()
-                                         .map(|&x| x.clone().$m(_rhs.clone()))
-                                         .collect();
+                    let new_value = Elemwise::broadcast_ro(value, _rhs, |x, y| x.$m(y));
                     new_values.push(new_value);
                 }
                 Block::from_cow(new_values,
@@ -82,9 +72,7 @@ macro_rules! define_numeric_op {
             fn $m(self, _rhs: &V) -> Self::Output {
                 let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
                 for value in self.values.iter() {
-                    let new_value = value.iter()
-                                         .map(|&x| x.clone().$m(_rhs.clone()))
-                                         .collect();
+                    let new_value = Elemwise::broadcast_rr(value, _rhs, |x, y| x.$m(y));
                     new_values.push(new_value);
                 }
                 Block::from_cow(new_values,
@@ -108,15 +96,10 @@ macro_rules! define_numeric_op {
                 let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
                 for (value, rvalue) in self.values.into_iter()
                                            .zip(_rhs.values.into_iter()) {
-                    let new_value = value.into_iter()
-                                         .zip(rvalue.into_iter())
-                                         .map(|(x, y)| x.$m(y))
-                                         .collect();
+                    let new_value = Elemwise::elemwise_oo(value, rvalue, |x, y| x.$m(y));
                     new_values.push(new_value);
                 }
-                Block::from_cow(new_values,
-                                self.index,
-                                self.columns)
+                Block::from_cow(new_values, self.index, self.columns)
             }
         }
 
@@ -134,15 +117,10 @@ macro_rules! define_numeric_op {
                 let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
                 for (value, rvalue) in self.values.into_iter()
                                            .zip(_rhs.values.iter()) {
-                    let new_value = value.into_iter()
-                                         .zip(rvalue.iter())
-                                         .map(|(x, &y)| x.$m(y.clone()))
-                                         .collect();
+                    let new_value = Elemwise::elemwise_or(value, rvalue, |x, y| x.$m(y));
                     new_values.push(new_value);
                 }
-                Block::from_cow(new_values,
-                                self.index,
-                                self.columns)
+                Block::from_cow(new_values, self.index, self.columns)
             }
         }
 
@@ -160,10 +138,7 @@ macro_rules! define_numeric_op {
                 let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
                 for (value, rvalue) in self.values.iter()
                                            .zip(_rhs.values.into_iter()) {
-                    let new_value = value.iter()
-                                         .zip(rvalue.into_iter())
-                                         .map(|(&x, y)| x.clone().$m(y))
-                                         .collect();
+                    let new_value = Elemwise::elemwise_ro(value, rvalue, |x, y| x.$m(y));
                     new_values.push(new_value);
                 }
                 Block::from_cow(new_values,
@@ -186,10 +161,7 @@ macro_rules! define_numeric_op {
                 let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
                 for (value, rvalue) in self.values.iter()
                                            .zip(_rhs.values.iter()) {
-                    let new_value = value.iter()
-                                         .zip(rvalue.iter())
-                                         .map(|(&x, &y)| x.clone().$m(y.clone()))
-                                         .collect();
+                    let new_value = Elemwise::elemwise_rr(value, rvalue, |x, y| x.$m(y));
                     new_values.push(new_value);
                 }
                 Block::from_cow(new_values,

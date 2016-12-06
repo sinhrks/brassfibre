@@ -4,6 +4,7 @@ use std::hash::Hash;
 use std::slice;
 use std::vec;
 
+use super::algos::indexing::Indexing;
 use super::algos::sort::Sorter;
 use super::traits::{IndexerIndexer, Appender};
 
@@ -90,13 +91,7 @@ impl<U> IndexerIndexer for Indexer<U>  where U: Clone + Eq + Hash {
     }
 
     fn blocs(&self, flags: &Vec<bool>) -> Self {
-        assert!(self.len() == flags.len(), "flags must be the same length as Indexer");
-        // should use filter_map?
-        let new_values: Vec<U> = self.iter()
-                                     .zip(flags.iter())
-                                     .filter(|&(_, y)| *y)
-                                     .map(|(ref x, _)| (*x).clone())
-                                     .collect();
+        let new_values: Vec<U> = Indexing::blocs(&self.values, flags);
         Indexer::new(new_values)
     }
 

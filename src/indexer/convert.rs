@@ -1,6 +1,11 @@
+use std::borrow::Cow;
 use std::hash::Hash;
 
 use super::Indexer;
+
+////////////////////////////////////////////////////////////////////////////////
+// From / Into
+////////////////////////////////////////////////////////////////////////////////
 
 impl<T: Clone + Eq + Hash> From<Vec<T>> for Indexer<T> {
     fn from(values: Vec<T>) -> Self {
@@ -11,6 +16,16 @@ impl<T: Clone + Eq + Hash> From<Vec<T>> for Indexer<T> {
 impl<T: Clone + Hash> Into<Vec<T>> for Indexer<T> {
     fn into(self) -> Vec<T> {
         self.values
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Clone on Write
+////////////////////////////////////////////////////////////////////////////////
+
+impl<'a, T: Clone + Hash> Into<Cow<'a, Indexer<T>>> for Indexer<T> {
+    fn into(self) -> Cow<'a, Self> {
+        Cow::Owned(self)
     }
 }
 

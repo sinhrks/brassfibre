@@ -3,6 +3,7 @@ use std::hash::Hash;
 use std::ops::{Add, Mul, Sub, Div, Rem, BitAnd, BitOr, BitXor};
 
 use super::Series;
+use super::super::algos::elemwise::Elemwise;
 
 macro_rules! define_numeric_op {
     ($t:ident, $m:ident) => {
@@ -15,9 +16,7 @@ macro_rules! define_numeric_op {
 
             type Output = Series<'i, O, I>;
             fn $m(self, _rhs: V) -> Self::Output {
-                let new_values: Vec<O> = self.values.into_iter()
-                                                    .map(|x: V| x.$m(_rhs))
-                                                    .collect();
+                let new_values: Vec<O> = Elemwise::broadcast_oo(self.values, _rhs, |x, y| x.$m(y));
                 // self is moved, pass index to new instance
                 Series::from_cow(new_values, self.index)
             }
@@ -30,9 +29,7 @@ macro_rules! define_numeric_op {
 
             type Output = Series<'i, O, I>;
             fn $m(self, _rhs: &'r V) -> Self::Output {
-                let new_values: Vec<O> = self.values.into_iter()
-                                                    .map(|x: V| x.$m((*_rhs).clone()))
-                                                    .collect();
+                let new_values: Vec<O> = Elemwise::broadcast_or(self.values, _rhs, |x, y| x.$m(y));
                 Series::from_cow(new_values, self.index)
             }
         }
@@ -44,9 +41,7 @@ macro_rules! define_numeric_op {
 
             type Output = Series<'l, O, I>;
             fn $m(self, _rhs: V) -> Self::Output {
-                let new_values: Vec<O> = self.values.iter()
-                                                    .map(|x: &V| (*x).$m(_rhs))
-                                                    .collect();
+                let new_values: Vec<O> = Elemwise::broadcast_ro(&self.values, _rhs, |x, y| x.$m(y));
                 Series::from_cow(new_values, Cow::Borrowed(self.index.borrow()))
             }
         }
@@ -58,9 +53,7 @@ macro_rules! define_numeric_op {
 
             type Output = Series<'l, O, I>;
             fn $m(self, _rhs: &'r V) -> Self::Output {
-                let new_values: Vec<O> = self.values.iter()
-                                                    .map(|x: &V| (*x).$m(*_rhs))
-                                                    .collect();
+                let new_values: Vec<O> = Elemwise::broadcast_rr(&self.values, _rhs, |x, y| x.$m(y));
                 Series::from_cow(new_values, Cow::Borrowed(self.index.borrow()))
             }
         }
@@ -74,10 +67,7 @@ macro_rules! define_numeric_op {
             type Output = Series<'li, O, I>;
             fn $m(self, _rhs: Series<V, I>) -> Self::Output {
                 self.assert_binop(&_rhs);
-                let new_values: Vec<O> = self.values.into_iter()
-                                                    .zip(_rhs.values.into_iter())
-                                                    .map(|(x, y)| x.$m(y))
-                                                    .collect();
+                let new_values: Vec<O> = Elemwise::elemwise_oo(self.values, _rhs.values, |x, y| x.$m(y));
                 Series::from_cow(new_values, self.index)
             }
         }
@@ -90,10 +80,7 @@ macro_rules! define_numeric_op {
             type Output = Series<'li, O, I>;
             fn $m(self, _rhs: &'r Series<V, I>) -> Self::Output {
                 self.assert_binop(&_rhs);
-                let new_values: Vec<O> = self.values.into_iter()
-                                                    .zip(_rhs.values.iter())
-                                                    .map(|(x, &y)| x.$m(y.clone()))
-                                                    .collect();
+                let new_values: Vec<O> = Elemwise::elemwise_or(self.values, &_rhs.values, |x, y| x.$m(y));
                 Series::from_cow(new_values, self.index)
             }
         }
@@ -106,10 +93,7 @@ macro_rules! define_numeric_op {
             type Output = Series<'l, O, I>;
             fn $m(self, _rhs: Series<V, I>) -> Self::Output {
                 self.assert_binop(&_rhs);
-                let new_values: Vec<O> = self.values.iter()
-                                                    .zip(_rhs.values.into_iter())
-                                                    .map(|(&x, y)| x.clone().$m(y))
-                                                    .collect();
+                let new_values: Vec<O> = Elemwise::elemwise_ro(&self.values, _rhs.values, |x, y| x.$m(y));
                 Series::from_cow(new_values, Cow::Borrowed(self.index.borrow()))
             }
         }
@@ -122,10 +106,7 @@ macro_rules! define_numeric_op {
             type Output = Series<'l, O, I>;
             fn $m(self, _rhs: &'r Series<V, I>) -> Self::Output {
                 self.assert_binop(&_rhs);
-                let new_values: Vec<O> = self.values.iter()
-                                                    .zip(_rhs.values.iter())
-                                                    .map(|(&x, &y)| x.clone().$m(y.clone()))
-                                                    .collect();
+                let new_values: Vec<O> = Elemwise::elemwise_rr(&self.values, &_rhs.values, |x, y| x.$m(y));
                 Series::from_cow(new_values, Cow::Borrowed(self.index.borrow()))
             }
         }

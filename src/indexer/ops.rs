@@ -2,6 +2,7 @@ use std::hash::Hash;
 use std::ops::{Add, Mul, Sub, Div, Rem, BitAnd, BitOr, BitXor};
 
 use super::Indexer;
+use super::super::algos::elemwise::Elemwise;
 
 macro_rules! define_numeric_op {
     ($t:ident, $m:ident) => {
@@ -13,9 +14,7 @@ macro_rules! define_numeric_op {
 
             type Output = Indexer<O>;
             fn $m(self, _rhs: U) -> Self::Output {
-                let new_values: Vec<O> = self.values.into_iter()
-                                                    .map(|x: U| x.$m(_rhs.clone()))
-                                                    .collect();
+                let new_values: Vec<O> = Elemwise::broadcast_oo(self.values, _rhs, |x, y| x.$m(y));
                 Indexer::new(new_values)
             }
         }
@@ -26,9 +25,7 @@ macro_rules! define_numeric_op {
 
             type Output = Indexer<O>;
             fn $m(self, _rhs: &U) -> Self::Output {
-                let new_values: Vec<O> = self.values.into_iter()
-                                                    .map(|x: U| x.$m((*_rhs).clone()))
-                                                    .collect();
+                let new_values: Vec<O> = Elemwise::broadcast_or(self.values, _rhs, |x, y| x.$m(y));
                 Indexer::new(new_values)
             }
         }
@@ -40,9 +37,7 @@ macro_rules! define_numeric_op {
             // can't use self as impl is for reference?
             type Output = Indexer<O>;
             fn $m(self, _rhs: U) -> Self::Output {
-                let new_values: Vec<O> = self.values.iter()
-                                                    .map(|x: &U| (*x).clone().$m(_rhs.clone()))
-                                                    .collect();
+                let new_values: Vec<O> = Elemwise::broadcast_ro(&self.values, _rhs, |x, y| x.$m(y));
                 Indexer::new(new_values)
             }
         }
@@ -53,9 +48,7 @@ macro_rules! define_numeric_op {
 
             type Output = Indexer<O>;
             fn $m(self, _rhs: &U) -> Self::Output {
-                let new_values: Vec<O> = self.values.iter()
-                                                    .map(|x: &U| (*x).clone().$m((*_rhs).clone()))
-                                                    .collect();
+                let new_values: Vec<O> = Elemwise::broadcast_rr(&self.values, _rhs, |x, y| x.$m(y));
                 Indexer::new(new_values)
             }
         }
@@ -67,10 +60,7 @@ macro_rules! define_numeric_op {
 
             type Output = Indexer<O>;
             fn $m(self, _rhs: Self) -> Self::Output {
-                let new_values: Vec<O> = self.values.into_iter()
-                                                    .zip(_rhs.values.into_iter())
-                                                    .map(|(x, y)| x.$m(y))
-                                                    .collect();
+                let new_values: Vec<O> = Elemwise::elemwise_oo(self.values, _rhs.values, |x, y| x.$m(y));
                 Indexer::new(new_values)
             }
         }
@@ -81,10 +71,7 @@ macro_rules! define_numeric_op {
 
             type Output = Indexer<O>;
             fn $m(self, _rhs: &Self) -> Self::Output {
-                let new_values: Vec<O> = self.values.into_iter()
-                                                    .zip(_rhs.values.iter())
-                                                    .map(|(x, y)| x.$m(y.clone()))
-                                                    .collect();
+                let new_values: Vec<O> = Elemwise::elemwise_or(self.values, &_rhs.values, |x, y| x.$m(y));
                 Indexer::new(new_values)
             }
         }
@@ -95,10 +82,7 @@ macro_rules! define_numeric_op {
 
             type Output = Indexer<O>;
             fn $m(self, _rhs: Indexer<U>) -> Self::Output {
-                let new_values: Vec<O> = self.values.iter()
-                                                    .zip(_rhs.values.into_iter())
-                                                    .map(|(x, y)| x.clone().$m(y))
-                                                    .collect();
+                let new_values: Vec<O> = Elemwise::elemwise_ro(&self.values, _rhs.values, |x, y| x.$m(y));
                 Indexer::new(new_values)
             }
         }
@@ -109,10 +93,7 @@ macro_rules! define_numeric_op {
 
             type Output = Indexer<O>;
             fn $m(self, _rhs: &Indexer<U>) -> Self::Output {
-                let new_values: Vec<O> = self.values.iter()
-                                                    .zip(_rhs.values.iter())
-                                                    .map(|(x, y)| x.clone().$m(y.clone()))
-                                                    .collect();
+                let new_values: Vec<O> = Elemwise::elemwise_rr(&self.values, &_rhs.values, |x, y| x.$m(y));
                 Indexer::new(new_values)
             }
         }

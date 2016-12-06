@@ -3,6 +3,7 @@ use std::hash::Hash;
 use std::slice;
 use std::vec;
 
+use super::algos::indexing::Indexing;
 use super::algos::sort::Sorter;
 use super::indexer::Indexer;
 use super::groupby::GroupBy;
@@ -59,20 +60,8 @@ impl<'i, V, I> RowIndexer<'i> for Series<'i, V, I>
 
     /// Slice using given Vec<bool> (slice by Bool LOCationS)
     fn blocs(&self, flags: &Vec<bool>) -> Self {
-
-        assert!(self.len() == flags.len(),
-                "Values and Indexer length are different");
-
-        let mut new_values: Vec<Self::Row> = Vec::with_capacity(self.len());
-        let mut new_index: Vec<Self::Key> = Vec::with_capacity(self.len());
-
-        for ((&flag, v), i) in flags.iter().zip(self.values.iter())
-                                           .zip(self.index.values.iter()) {
-            if flag {
-                new_values.push(v.clone());
-                new_index.push(i.clone());
-            }
-        }
+        let new_values: Vec<Self::Row> = Indexing::blocs(&self.values, flags);
+        let new_index = self.index.blocs(flags);
         Series::new(new_values, new_index)
     }
 }
