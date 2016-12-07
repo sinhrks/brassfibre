@@ -97,6 +97,9 @@ impl<'i, V, I> Series<'i, V, I>
     }
 
     pub fn from_cow(values: Vec<V>, index: Cow<'i, Indexer<I>>) -> Self {
+
+        assert!(values.len() == index.len(), "Length mismatch!");
+
         Series {
             values: values,
             index: index,

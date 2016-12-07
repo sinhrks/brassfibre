@@ -20,7 +20,7 @@ mod traits;
 pub use block::Block;
 pub use frame::DataFrame;
 pub use indexer::Indexer;
-pub use internals::Array;
+pub use internals::{Array, Scalar};
 pub use io::read_csv;
 pub use series::Series;
 pub use traits::{IndexerIndexer, RowIndexer, ColIndexer,

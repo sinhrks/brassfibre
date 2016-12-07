@@ -108,7 +108,7 @@ mod tests {
     #[should_panic]
     fn test_empty_scalar_to_array() {
         let vals: Vec<Scalar> = vec![];
-        let arr: Array = vals.into();
+        let _: Array = vals.into();
     }
 
     #[test]

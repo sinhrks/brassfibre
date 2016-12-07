@@ -115,6 +115,12 @@ fn test_eq() {
 }
 
 #[test]
+fn test_clone() {
+    let iarr1 = Array::Int64Array(vec![1, 2, 3]);
+    assert_eq!(iarr1, iarr1.clone());
+}
+
+#[test]
 fn test_ilocs() {
     let iarr = Array::Int64Array(vec![1, 2, 3, 4, 5]);
     assert_eq!(iarr.dtype(), "i64");

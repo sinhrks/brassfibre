@@ -54,3 +54,21 @@ z,true,1,4.5";
 
     assert_eq!(res, exp);
 }
+
+
+#[test]
+fn test_empty() {
+    let data = "";
+
+    let rdr = csv::Reader::from_string(data).has_headers(false);
+    let res = read_csv(rdr);
+
+    let exp_dtypes: Vec<String> = vec![];
+    assert_eq!(res.dtypes(), exp_dtypes);
+
+    let exp_values: Vec<Array> = vec![];
+    let exp = DataFrame::from_vec(exp_values,
+                                  vec![],
+                                  vec![]);
+    assert_eq!(res, exp);
+}

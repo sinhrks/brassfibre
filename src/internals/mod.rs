@@ -3,6 +3,7 @@ use super::traits::Appender;
 
 mod aggregation;
 mod convert;
+mod ops;
 mod scalar;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -10,7 +11,7 @@ mod scalar;
 ////////////////////////////////////////////////////////////////////////////////
 
 #[allow(non_camel_case_types)]
-#[derive(RustcDecodable, PartialEq, Debug)]
+#[derive(RustcDecodable, Clone, PartialEq, Debug)]
 pub enum Scalar {
     i64(i64),
     f64(f64),
