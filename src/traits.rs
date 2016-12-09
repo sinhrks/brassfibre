@@ -4,6 +4,7 @@
 // Indexing
 ////////////////////////////////////////////////////////////////////////////////
 
+/// Indexing methods for non-labeled Array / Indexer
 pub trait Slicer: Sized {
     fn len(&self) -> usize;
     fn ilocs(&self, locations: &Vec<usize>) -> Self;
@@ -12,8 +13,6 @@ pub trait Slicer: Sized {
     fn reindex(&self, locations: &Vec<usize>) -> Self {
         self.ilocs(locations)
     }
-
-    // ToDo: Add .insert
 }
 
 /// Indexing methods for Indexer
@@ -39,6 +38,18 @@ pub trait RowIndexer<'s>: Sized {
     type Row;
 
     fn len(&'s self) -> usize;
+
+    fn head(&'s self, n: usize) -> Self {
+        let indexer: Vec<usize> = (0..n).collect();
+        self.ilocs(&indexer)
+    }
+
+    fn tail(&'s self, n: usize) -> Self {
+        let len = self.len();
+        let indexer: Vec<usize> = ((len - n)..len).collect();
+        self.ilocs(&indexer)
+    }
+
     fn reindex<'l>(&'s self, labels: &'l Vec<Self::Key>) -> Self;
     fn reindex_by_index<'l>(&'s self, locations: &'l Vec<usize>) -> Self;
 

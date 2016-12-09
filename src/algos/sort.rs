@@ -77,6 +77,21 @@ impl Sorter {
         }
         new_values
     }
+
+    /// reorder values based on given locations
+    pub fn reindex_unchecked<T: Clone>(values: &Vec<T>, locs: &Vec<usize>) -> Vec<T> {
+
+        let mut new_values: Vec<T> = Vec::with_capacity(values.len());
+        for loc in locs {
+
+            unsafe {
+                // avoid boudary check
+                new_values.push(values.get_unchecked(*loc).clone());
+            }
+        }
+        new_values
+    }
+
 }
 
 #[cfg(test)]

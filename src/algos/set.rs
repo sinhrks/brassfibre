@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::collections::hash_map::Entry;
 use std::hash::Hash;
 use std::iter::FromIterator;
 
@@ -18,11 +19,10 @@ pub fn to_enumhashmap<T>(v: &Vec<T>) -> HashMap<T, usize>
     let mut map: HashMap<T, usize> = HashMap::with_capacity(v.len());
     for (i, ref key) in v.iter().enumerate() {
         // ToDo: Handle duplicates
-        if map.contains_key(key) {
-            panic!("duplicates are not allowed");
-        } else {
-            map.insert((*key).clone(), i);
-        }
+        match map.entry((*key).clone()) {
+            Entry::Occupied(_) => panic!("duplicates are not allowed"),
+            Entry::Vacant(e) => e.insert(i),
+        };
     }
     map
 }
@@ -38,6 +38,7 @@ pub fn union<T>(a: &Vec<T>, b: &Vec<T>) -> Vec<T>
 
     for ref key in b.iter() {
         if !set.contains(key) {
+            // do not clone if no need to insert
             res.push((*key).clone());
         }
     }

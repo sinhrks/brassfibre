@@ -79,13 +79,51 @@ fn test_series_equals() {
 }
 
 #[test]
+fn test_series_head_tail() {
+    let values: Vec<f64> = vec![1., 2., 3., 4., 5.];
+    let index: Vec<i64> = vec![10, 20, 30, 40, 50];
+
+    let s = Series::new(values, index);
+
+    let res = s.head(3);
+    let exp: Series<f64, i64> = Series::new(vec![1., 2., 3.], vec![10, 20, 30]);
+    assert_eq!(res, exp);
+
+    let res = s.tail(3);
+    let exp: Series<f64, i64> = Series::new(vec![3., 4., 5.], vec![30, 40, 50]);
+    assert_eq!(res, exp);
+}
+
+#[test]
+#[should_panic]
+fn test_series_head_panic() {
+    let values: Vec<f64> = vec![1., 2., 3., 4., 5.];
+    let index: Vec<i64> = vec![10, 20, 30, 40, 50];
+
+    let s = Series::new(values, index);
+
+    s.head(10);
+}
+
+#[test]
+#[should_panic]
+fn test_series_tail_panic() {
+    let values: Vec<f64> = vec![1., 2., 3., 4., 5.];
+    let index: Vec<i64> = vec![10, 20, 30, 40, 50];
+
+    let s = Series::new(values, index);
+
+    s.tail(10);
+}
+
+#[test]
 fn test_series_slice_locs() {
     let values: Vec<f64> = vec![1., 2., 3., 4., 5.];
     let index: Vec<i64> = vec![10, 20, 30, 40, 50];
 
     let s = Series::new(values, index);
 
-    // test construction
+    // test internal constructions
     let exp_values: Vec<f64> = vec![1., 2., 3., 4., 5.];
     let exp_index: Indexer<i64> = Indexer::new(vec![10, 20, 30, 40, 50]);
     assert_eq!(s.values, exp_values);
@@ -104,7 +142,7 @@ fn test_series_slice_ilocs() {
 
     let s = Series::<f64, i64>::new(values, index);
 
-    // test construction
+    // test internal constructions
     let exp_values: Vec<f64> = vec![1., 2., 3., 4., 5.];
     let exp_index: Indexer<i64> = Indexer::new(vec![10, 20, 30, 40, 50]);
     assert_eq!(s.values, exp_values);
@@ -124,7 +162,7 @@ fn test_series_slice_blocs() {
 
     let s = Series::<f64, i64>::new(values, index);
 
-    // test construction
+    // test internal constructions
     let exp_values: Vec<f64> = vec![1., 2., 3., 4., 5.];
     let exp_index: Indexer<i64> = Indexer::new(vec![10, 20, 30, 40, 50]);
     assert_eq!(s.values, exp_values);

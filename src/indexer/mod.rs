@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::collections::hash_map::Entry;
 use std::hash::Hash;
 use std::slice;
 use std::vec;
@@ -77,14 +78,12 @@ impl<U> IndexerIndexer for Indexer<U> where U: Clone + Eq + Hash {
 
     fn push(&mut self, label: U) {
         let loc = self.len();
-        // ToDo: merge with init_label_mapper
-        let mut mapper = self.htable.borrow_mut();
-        if !mapper.contains_key(&label) {
-            mapper.insert(label.clone(), loc);
-        } else {
-            // temp, do not allow duplicates for now
-            panic!("Duplicated key!");
-        }
+        // ToDo: merge with init_state
+        let mut htable = self.htable.borrow_mut();
+        match htable.entry(label.clone()) {
+            Entry::Occupied(_) => panic!("duplicates are not allowed"),
+            Entry::Vacant(e) => e.insert(loc),
+        };
         self.values.push(label);
     }
 
@@ -106,12 +105,10 @@ impl<U> IndexerIndexer for Indexer<U> where U: Clone + Eq + Hash {
             return;
         }
         for (loc, label) in self.values.iter().enumerate() {
-            if !htable.contains_key(label) {
-                htable.insert(label.clone(), loc);
-            } else {
-                // temp, do not allow duplicates for now
-                panic!("Duplicated key!");
-            }
+            match htable.entry(label.clone()) {
+                Entry::Occupied(_) => panic!("duplicates are not allowed"),
+                Entry::Vacant(e) => e.insert(loc),
+            };
         }
     }
 }

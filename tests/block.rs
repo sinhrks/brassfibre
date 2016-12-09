@@ -173,6 +173,33 @@ fn test_block_creation_into() {
 }
 
 #[test]
+fn test_block_head_tail() {
+    let values = vec![vec![1, 2, 3, 4, 5],
+                      vec![6, 7, 8, 9, 10],
+                      vec![11, 12, 13, 14, 15]];
+    let b = Block::from_nested_vec(values,
+                                   vec!["A", "BB", "CC", "D", "EEE"],
+                                   vec!["X", "YYY", "ZZ"]);
+
+
+    let exp_values = vec![vec![1, 2, 3],
+                          vec![6, 7, 8],
+                          vec![11, 12, 13]];
+    let exp = Block::from_vec(exp_values,
+                              vec!["A", "BB", "CC"],
+                              vec!["X", "YYY", "ZZ"]);
+    assert_eq!(b.head(3), exp);
+
+    let exp_values = vec![vec![3, 4, 5],
+                          vec![8, 9, 10],
+                          vec![13, 14, 15]];
+    let exp = Block::from_vec(exp_values,
+                              vec!["CC", "D", "EEE"],
+                              vec!["X", "YYY", "ZZ"]);
+    assert_eq!(b.tail(3), exp);
+}
+
+#[test]
 fn test_block_columns_get() {
     let values = vec![1, 2, 3, 4, 5,
                       6, 7, 8, 9, 10,
