@@ -6,7 +6,7 @@ use std::vec;
 use super::groupby::GroupBy;
 use super::indexer::Indexer;
 use super::internals::Array;
-use super::traits::{IndexerIndexer, RowIndexer, ColIndexer};
+use super::traits::{Slicer, IndexerIndexer, RowIndexer, ColIndexer};
 
 mod aggregation;
 mod formatting;

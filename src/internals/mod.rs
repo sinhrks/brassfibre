@@ -1,5 +1,6 @@
+use super::algos::indexing::Indexing;
 use super::algos::sort::Sorter;
-use super::traits::Appender;
+use super::traits::{Slicer, Appender};
 
 mod aggregation;
 mod convert;
@@ -54,32 +55,6 @@ impl Array {
         }
     }
 
-    pub fn len(&self) -> usize {
-        match self {
-            &Array::Int64Array(ref vals) => vals.len(),
-            &Array::Float64Array(ref vals) => vals.len(),
-            &Array::BoolArray(ref vals) => vals.len(),
-            &Array::StringArray(ref vals) => vals.len(),
-        }
-    }
-
-    pub fn ilocs(&self, locations: &Vec<usize>) -> Self {
-        match self {
-            &Array::Int64Array(ref vals) => {
-                Array::Int64Array(Sorter::reindex(vals, locations))
-            },
-            &Array::Float64Array(ref vals) => {
-                Array::Float64Array(Sorter::reindex(vals, locations))
-            },
-            &Array::BoolArray(ref vals) => {
-                Array::BoolArray(Sorter::reindex(vals, locations))
-            },
-            &Array::StringArray(ref vals) => {
-                Array::StringArray(Sorter::reindex(vals, locations))
-            }
-        }
-    }
-
     pub fn to_string_vec(&self) -> Vec<String> {
         match self {
             &Array::Int64Array(ref vals) => {
@@ -98,6 +73,51 @@ impl Array {
     }
 }
 
+impl Slicer for Array {
+
+    fn len(&self) -> usize {
+        match self {
+            &Array::Int64Array(ref vals) => vals.len(),
+            &Array::Float64Array(ref vals) => vals.len(),
+            &Array::BoolArray(ref vals) => vals.len(),
+            &Array::StringArray(ref vals) => vals.len(),
+        }
+    }
+
+    fn ilocs(&self, locations: &Vec<usize>) -> Self {
+        match self {
+            &Array::Int64Array(ref vals) => {
+                Array::Int64Array(Sorter::reindex(vals, locations))
+            },
+            &Array::Float64Array(ref vals) => {
+                Array::Float64Array(Sorter::reindex(vals, locations))
+            },
+            &Array::BoolArray(ref vals) => {
+                Array::BoolArray(Sorter::reindex(vals, locations))
+            },
+            &Array::StringArray(ref vals) => {
+                Array::StringArray(Sorter::reindex(vals, locations))
+            }
+        }
+    }
+
+    fn blocs(&self, flags: &Vec<bool>) -> Self {
+        match self {
+            &Array::Int64Array(ref vals) => {
+                Array::Int64Array(Indexing::blocs(vals, flags))
+            },
+            &Array::Float64Array(ref vals) => {
+                Array::Float64Array(Indexing::blocs(vals, flags))
+            },
+            &Array::BoolArray(ref vals) => {
+                Array::BoolArray(Indexing::blocs(vals, flags))
+            },
+            &Array::StringArray(ref vals) => {
+                Array::StringArray(Indexing::blocs(vals, flags))
+            }
+        }
+    }
+}
 
 impl<'a> Appender<'a> for Array {
     fn append(&self, other: &Self) -> Self {

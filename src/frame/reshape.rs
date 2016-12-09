@@ -4,7 +4,7 @@ use std::hash::Hash;
 use super::DataFrame;
 use super::super::algos::join::{Join, HashJoin};
 use super::super::internals::Array;
-use super::super::traits::{IndexerIndexer, RowIndexer,
+use super::super::traits::{Slicer, IndexerIndexer, RowIndexer,
                            Appender, Concatenator, Joiner};
 
 

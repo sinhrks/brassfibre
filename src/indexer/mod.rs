@@ -6,7 +6,7 @@ use std::vec;
 
 use super::algos::indexing::Indexing;
 use super::algos::sort::Sorter;
-use super::traits::{IndexerIndexer, Appender};
+use super::traits::{Slicer, IndexerIndexer, Appender};
 
 mod convert;
 mod formatting;
@@ -31,6 +31,7 @@ pub struct Indexer<U: Clone + Hash> {
 impl<U> Indexer<U> where U: Clone + Eq + Hash {
 
     pub fn from_len(len: usize) -> Indexer<usize> {
+        // ToDo: don't need hash if index is range-like
         let index: Vec<usize> = (0..len).collect();
         Indexer::new(index)
     }
@@ -47,13 +48,26 @@ impl<U> Indexer<U> where U: Clone + Eq + Hash {
 // Indexing
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<U> IndexerIndexer for Indexer<U>  where U: Clone + Eq + Hash {
-
-    type Key = U;
+impl<U> Slicer for Indexer<U> where U: Clone + Eq + Hash {
 
     fn len(&self) -> usize {
         self.values.len()
     }
+
+    fn ilocs(&self, locations: &Vec<usize>) -> Self {
+        let new_values = Sorter::reindex(&self.values, locations);
+        Indexer::new(new_values)
+    }
+
+    fn blocs(&self, flags: &Vec<bool>) -> Self {
+        let new_values: Vec<U> = Indexing::blocs(&self.values, flags);
+        Indexer::new(new_values)
+    }
+}
+
+impl<U> IndexerIndexer for Indexer<U> where U: Clone + Eq + Hash {
+
+    type Key = U;
 
     /// Whether Indexer contains label or not
     fn contains(&self, label: &U) -> bool {
@@ -83,16 +97,6 @@ impl<U> IndexerIndexer for Indexer<U>  where U: Clone + Eq + Hash {
     /// Return label locations (Vector) corresponding to given labels (Vector)
     fn get_locs(&self, labels: &Vec<U>) -> Vec<usize> {
         labels.iter().map(|label| self.get_loc(&label)).collect()
-    }
-
-    fn reindex(&self, locations: &Vec<usize>) -> Self {
-        let new_values = Sorter::reindex(&self.values, locations);
-        Indexer::new(new_values)
-    }
-
-    fn blocs(&self, flags: &Vec<bool>) -> Self {
-        let new_values: Vec<U> = Indexing::blocs(&self.values, flags);
-        Indexer::new(new_values)
     }
 
     fn init_state(&self) {

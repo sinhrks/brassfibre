@@ -5,8 +5,7 @@ pub struct Elemwise;
 impl Elemwise {
 
     pub fn broadcast_oo<T, V, R, F>(values: Vec<T>, _rhs: V, func: F) -> Vec<R>
-        where T: Clone,
-              V: Clone,
+        where V: Clone,
               F: Fn(T, V) -> R {
 
         let new_values: Vec<R> = values.into_iter()
@@ -16,8 +15,7 @@ impl Elemwise {
     }
 
     pub fn broadcast_or<T, V, R, F>(values: Vec<T>, _rhs: &V, func: F) -> Vec<R>
-        where T: Clone,
-              V: Clone,
+        where V: Clone,
               F: Fn(T, V) -> R {
 
         let new_values: Vec<R> = values.into_iter()
@@ -49,9 +47,7 @@ impl Elemwise {
     }
 
     pub fn elemwise_oo<T, V, R, F>(values: Vec<T>, _rhs: Vec<V>, func: F) -> Vec<R>
-        where T: Clone,
-              V: Clone,
-              F: Fn(T, V) -> R {
+        where F: Fn(T, V) -> R {
 
         assert!(values.len() == _rhs.len(), "lhs and rhs must be the same length");
         let new_values: Vec<R> = values.into_iter()
@@ -62,8 +58,7 @@ impl Elemwise {
     }
 
     pub fn elemwise_or<T, V, R, F>(values: Vec<T>, _rhs: &Vec<V>, func: F) -> Vec<R>
-        where T: Clone,
-              V: Clone,
+        where V: Clone,
               F: Fn(T, V) -> R {
 
         assert!(values.len() == _rhs.len(), "lhs and rhs must be the same length");
@@ -76,7 +71,6 @@ impl Elemwise {
 
     pub fn elemwise_ro<T, V, R, F>(values: &Vec<T>, _rhs: Vec<V>, func: F) -> Vec<R>
         where T: Clone,
-              V: Clone,
               F: Fn(T, V) -> R {
 
         assert!(values.len() == _rhs.len(), "lhs and rhs must be the same length");

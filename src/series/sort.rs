@@ -3,7 +3,7 @@ use std::hash::Hash;
 use super::Series;
 use super::super::algos::sort::Sorter;
 use super::super::indexer::Indexer;
-use super::super::traits::IndexerIndexer;
+use super::super::traits::Slicer;
 
 //**********************************************
 // Soat

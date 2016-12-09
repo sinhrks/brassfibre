@@ -3,6 +3,8 @@ use std::convert::AsRef;
 
 pub struct Sorter;
 
+// ToDo: merge with Indexing?
+
 impl Sorter {
 
     pub fn sort<T, R>(values: R) -> Vec<T>

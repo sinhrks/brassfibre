@@ -4,18 +4,27 @@
 // Indexing
 ////////////////////////////////////////////////////////////////////////////////
 
+pub trait Slicer: Sized {
+    fn len(&self) -> usize;
+    fn ilocs(&self, locations: &Vec<usize>) -> Self;
+    fn blocs(&self, flags: &Vec<bool>) -> Self;
+
+    fn reindex(&self, locations: &Vec<usize>) -> Self {
+        self.ilocs(locations)
+    }
+
+    // ToDo: Add .insert
+}
+
 /// Indexing methods for Indexer
-pub trait IndexerIndexer {
+pub trait IndexerIndexer: Slicer {
 
     type Key;
 
-    fn len(&self) -> usize;
     fn contains(&self, label: &Self::Key) -> bool;
     fn push(&mut self, label: Self::Key);
     fn get_loc(&self, label: &Self::Key) -> usize;
     fn get_locs(&self, labels: &Vec<Self::Key>) -> Vec<usize>;
-    fn reindex(&self, locations: &Vec<usize>) -> Self;
-    fn blocs(&self, flags: &Vec<bool>) -> Self;
 
     // temp
     fn init_state(&self);
@@ -74,6 +83,8 @@ pub trait ColIndexer<'s>: Sized {
 
     /// Slice columns given indices
     fn igets<'l>(&'s self, locations: &'l Vec<usize>) -> Self;
+
+    // ToDo: Add .insert
 }
 
 ////////////////////////////////////////////////////////////////////////////////

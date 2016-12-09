@@ -124,21 +124,42 @@ fn test_clone() {
 fn test_ilocs() {
     let iarr = Array::Int64Array(vec![1, 2, 3, 4, 5]);
     assert_eq!(iarr.dtype(), "i64");
-    let ires: Vec<i64> = iarr.ilocs(&vec![1, 4, 0]).into();
-    assert_eq!(ires, vec![2, 5, 1]);
+    let ires = iarr.ilocs(&vec![1, 4, 0]);
+    assert_eq!(ires, Array::Int64Array(vec![2, 5, 1]));
 
     let farr = Array::Float64Array(vec![1.1, 2.1, 3.1, 4.1, 5.1]);
     assert_eq!(farr.dtype(), "f64");
-    let fres: Vec<f64> = farr.ilocs(&vec![1, 4, 0]).into();
-    assert_eq!(fres, vec![2.1, 5.1, 1.1]);
+    let fres = farr.ilocs(&vec![1, 4, 0]);
+    assert_eq!(fres, Array::Float64Array(vec![2.1, 5.1, 1.1]));
 
     let barr = Array::BoolArray(vec![true, false, true, true]);
-    let bres: Vec<bool> = barr.ilocs(&vec![1, 2]).into();
-    assert_eq!(bres, vec![false, true]);
+    let bres = barr.ilocs(&vec![1, 2]);
+    assert_eq!(bres, Array::BoolArray(vec![false, true]));
 
     let sarr = Array::StringArray(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
-    let sres: Vec<String> = sarr.ilocs(&vec![2, 0]).into();
-    assert_eq!(sres, vec!["c".to_string(), "a".to_string()]);
+    let sres = sarr.ilocs(&vec![2, 0]);
+    assert_eq!(sres, Array::StringArray(vec!["c".to_string(), "a".to_string()]));
+}
+
+#[test]
+fn test_blocs() {
+    let iarr = Array::Int64Array(vec![1, 2, 3]);
+    assert_eq!(iarr.dtype(), "i64");
+    let ires = iarr.blocs(&vec![true, false, true]);
+    assert_eq!(ires, Array::Int64Array(vec![1, 3]));
+
+    let farr = Array::Float64Array(vec![1.1, 2.1, 3.1]);
+    assert_eq!(farr.dtype(), "f64");
+    let fres = farr.blocs(&vec![true, false, true]);
+    assert_eq!(fres, Array::Float64Array(vec![1.1, 3.1]));
+
+    let barr = Array::BoolArray(vec![true, false, true]);
+    let bres = barr.blocs(&vec![true, false, true]);
+    assert_eq!(bres, Array::BoolArray(vec![true, true]));
+
+    let sarr = Array::StringArray(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
+    let sres = sarr.blocs(&vec![true, false, true]);
+    assert_eq!(sres, Array::StringArray(vec!["a".to_string(), "c".to_string()]));
 }
 
 #[test]

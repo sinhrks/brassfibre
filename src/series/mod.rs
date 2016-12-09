@@ -7,7 +7,8 @@ use super::algos::indexing::Indexing;
 use super::algos::sort::Sorter;
 use super::indexer::Indexer;
 use super::groupby::GroupBy;
-use super::traits::{IndexerIndexer, RowIndexer, Appender, Applicable};
+use super::traits::{Slicer, IndexerIndexer,
+                    RowIndexer, Appender, Applicable};
 
 mod aggregation;
 mod convert;

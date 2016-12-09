@@ -23,6 +23,6 @@ pub use indexer::Indexer;
 pub use internals::{Array, Scalar};
 pub use io::read_csv;
 pub use series::Series;
-pub use traits::{IndexerIndexer, RowIndexer, ColIndexer,
+pub use traits::{Slicer, IndexerIndexer, RowIndexer, ColIndexer,
                  Appender, Concatenator, Joiner,
                  Applicable, Aggregator};

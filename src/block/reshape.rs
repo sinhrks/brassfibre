@@ -3,7 +3,7 @@ use std::hash::Hash;
 
 use super::Block;
 use super::super::algos::join::{Join, HashJoin};
-use super::super::traits::{IndexerIndexer, RowIndexer,
+use super::super::traits::{Slicer, IndexerIndexer, RowIndexer,
                            Appender, Concatenator, Joiner};
 
 
