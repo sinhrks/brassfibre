@@ -6,7 +6,7 @@ use std::vec;
 use super::groupby::GroupBy;
 use super::indexer::Indexer;
 use super::internals::Array;
-use super::traits::{Slicer, IndexerIndexer, RowIndexer, ColIndexer};
+use super::traits::{Slicer, IndexerIndex, RowIndex, ColIndex};
 
 mod aggregation;
 mod formatting;
@@ -30,7 +30,7 @@ pub struct DataFrame<'i, 'c, I: Hash, C: Hash>
 // Indexing
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, 'c, I, C> RowIndexer<'c> for DataFrame<'i, 'c, I, C>
+impl<'i, 'c, I, C> RowIndex<'c> for DataFrame<'i, 'c, I, C>
     where I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 
@@ -74,7 +74,7 @@ impl<'i, 'c, I, C> RowIndexer<'c> for DataFrame<'i, 'c, I, C>
     }
 }
 
-impl<'i, 'c, I, C> ColIndexer<'i> for DataFrame<'i, 'c, I, C>
+impl<'i, 'c, I, C> ColIndex<'i> for DataFrame<'i, 'c, I, C>
     where I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 
@@ -181,7 +181,7 @@ impl<'s, 'i, 'c, I, C> DataFrame<'i, 'c, I, C>
     }
 
     pub fn groupby<G>(&'i self, other: Vec<G>) -> GroupBy<DataFrame<I, C>, G>
-        where G: Copy + Eq + Hash + Ord {
+        where G: Clone + Eq + Hash + Ord {
 
         GroupBy::new(&self, other)
     }
@@ -232,7 +232,7 @@ mod tests {
 
     use super::DataFrame;
     use super::super::internals::Array;
-    use super::super::traits::{RowIndexer, ColIndexer};
+    use super::super::traits::{RowIndex, ColIndex};
 
     #[test]
     fn test_block_creation_from_vec() {

@@ -10,7 +10,7 @@ use super::super::traits::Slicer;
 //**********************************************
 
 impl<'v, 'i, V, I> Series<'v, 'i, V, I>
-    where V: Copy,
+    where V: Clone,
           I: Clone + Eq + Hash + Ord {
 
     pub fn sort_index(&self) -> Self {
@@ -21,7 +21,7 @@ impl<'v, 'i, V, I> Series<'v, 'i, V, I>
 }
 
 impl<'v, 'i, V, I> Series<'v, 'i, V, I>
-    where V: Copy + Ord,
+    where V: Clone + Ord,
           I: Clone + Eq + Hash {
 
     pub fn sort_values(&self) -> Self {

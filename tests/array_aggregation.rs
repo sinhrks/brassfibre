@@ -12,6 +12,9 @@ fn test_aggregation_int64() {
     assert_eq!(arr.unbiased_var(), 1.);
     assert_eq!(arr.std(), 0.816496580927726);
     assert_eq!(arr.unbiased_std(), 1.);
+
+    assert_eq!(arr.min(), 1.);
+    assert_eq!(arr.max(), 3.);
 }
 
 #[test]
@@ -27,11 +30,28 @@ fn test_aggregation_float64() {
     assert_eq!(arr.unbiased_var(), 1.);
     assert_eq!(arr.std(), 0.816496580927726);
     assert_eq!(arr.unbiased_std(), 1.);
+
+    assert_eq!(arr.min(), 1.);
+    assert_eq!(arr.max(), 3.);
 }
 
 #[test]
 #[should_panic]
-fn test_aggregation_should_panic() {
+fn test_aggregation_sum_should_panic() {
     let arr = Array::StringArray(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
     arr.sum();
+}
+
+#[test]
+#[should_panic]
+fn test_aggregation_mean_should_panic() {
+    let arr = Array::StringArray(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
+    arr.mean();
+}
+
+#[test]
+#[should_panic]
+fn test_aggregation_min_should_panic() {
+    let arr = Array::StringArray(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
+    arr.min();
 }

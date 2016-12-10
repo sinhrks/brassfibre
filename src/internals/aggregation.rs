@@ -1,13 +1,13 @@
 use super::Array;
 use super::super::computations;
-use super::super::traits::Aggregator;
+use super::super::traits::{BasicAggregation, NumericAggregation,
+                           ComparisonAggregation};
 
 
-impl<'s> Aggregator<'s> for Array {
+impl<'s> BasicAggregation<'s> for Array {
 
     type Kept = f64;
     type Counted = usize;
-    type Coerced = f64;
 
     fn sum(&'s self) -> Self::Kept {
         match self {
@@ -24,6 +24,11 @@ impl<'s> Aggregator<'s> for Array {
             _ => panic!("unable to aggregate non-numeric values"),
         }
     }
+}
+
+impl<'s> NumericAggregation<'s> for Array {
+
+    type Coerced = f64;
 
     fn mean(&'s self) -> Self::Coerced {
         match self {
@@ -61,6 +66,27 @@ impl<'s> Aggregator<'s> for Array {
         match self {
             &Array::Int64Array(ref vals) => computations::vec_unbiased_std(&vals) as f64,
             &Array::Float64Array(ref vals) => computations::vec_unbiased_std(&vals),
+            _ => panic!("unable to aggregate non-numeric values"),
+        }
+    }
+}
+
+impl<'s> ComparisonAggregation<'s> for Array {
+
+    type Kept = f64;
+
+    fn min(&'s self) -> Self::Kept {
+        match self {
+            &Array::Int64Array(ref vals) => computations::vec_min(&vals) as f64,
+            &Array::Float64Array(ref vals) => computations::vec_min(&vals),
+            _ => panic!("unable to aggregate non-numeric values"),
+        }
+    }
+
+    fn max(&'s self) -> Self::Kept {
+        match self {
+            &Array::Int64Array(ref vals) => computations::vec_max(&vals) as f64,
+            &Array::Float64Array(ref vals) => computations::vec_max(&vals),
             _ => panic!("unable to aggregate non-numeric values"),
         }
     }

@@ -5,7 +5,7 @@ use super::Series;
 use super::super::formatting;
 
 impl<'v, 'i, V, I> fmt::Display for Series<'v, 'i, V, I>
-    where V: Copy + fmt::Debug,
+    where V: Clone + fmt::Debug,
           I: Clone + Eq + Hash {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -15,7 +15,7 @@ impl<'v, 'i, V, I> fmt::Display for Series<'v, 'i, V, I>
 }
 
 impl<'v, 'i, V, I> fmt::Debug for Series<'v, 'i, V, I>
-    where V: Copy + ToString,
+    where V: Clone + ToString,
           I: Clone + Eq + Hash + ToString {
 
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

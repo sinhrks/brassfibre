@@ -7,8 +7,8 @@ use super::algos::indexing::Indexing;
 use super::algos::sort::Sorter;
 use super::indexer::Indexer;
 use super::groupby::GroupBy;
-use super::traits::{Slicer, IndexerIndexer,
-                    RowIndexer, Appender, Applicable};
+use super::traits::{Slicer, IndexerIndex,
+                    RowIndex, Append, Apply};
 
 mod aggregation;
 mod convert;
@@ -30,7 +30,7 @@ pub struct Series<'v, 'i, V, I>
 // Indexing
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'v, 'i, V, I> RowIndexer<'i> for Series<'v, 'i, V, I>
+impl<'v, 'i, V, I> RowIndex<'i> for Series<'v, 'i, V, I>
     where V: Clone,
           I: Clone + Eq + Hash {
 
@@ -116,7 +116,7 @@ impl<'v, 'i, V, I> Series<'v, 'i, V, I>
     }
 
     pub fn groupby<G>(&self, other: Vec<G>) -> GroupBy<Series<V, I>, G>
-        where G: Copy + Eq + Hash + Ord {
+        where G: Clone + Eq + Hash + Ord {
         GroupBy::new(&self, other)
     }
 }
@@ -125,7 +125,7 @@ impl<'v, 'i, V, I> Series<'v, 'i, V, I>
 // Append
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'v, 'i, V, I> Appender<'i> for Series<'v, 'i, V, I>
+impl<'v, 'i, V, I> Append<'i> for Series<'v, 'i, V, I>
     where V: Clone,
           I: Clone + Eq + Hash {
 
@@ -143,7 +143,7 @@ impl<'v, 'i, V, I> Appender<'i> for Series<'v, 'i, V, I>
 // Apply
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'v, 'i, V, I, R> Applicable<'i, R> for Series<'v, 'i, V, I>
+impl<'v, 'i, V, I, R> Apply<'i, R> for Series<'v, 'i, V, I>
     where V: Clone,
           I: Clone + Eq + Hash {
 

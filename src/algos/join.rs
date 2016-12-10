@@ -10,7 +10,7 @@ const USIZE_MISSING: usize = usize::MAX;
 
 pub struct HashJoin;
 
-pub trait Join<T> {
+pub trait JoinOp<T> {
     fn inner(left: &[T], right: &[T]) -> (Vec<T>, Vec<usize>, Vec<usize>);
     fn left(left: &[T], right: &[T]) -> (Vec<T>, Vec<usize>, Vec<usize>);
     fn right(left: &[T], right: &[T]) -> (Vec<T>, Vec<usize>, Vec<usize>);
@@ -19,7 +19,7 @@ pub trait Join<T> {
     fn keep_first(keep: &[T], other: &[T]) -> (Vec<T>, Vec<usize>, Vec<usize>);
 }
 
-impl<T> Join<T> for HashJoin
+impl<T> JoinOp<T> for HashJoin
     where T: Clone + Hash + Eq {
 
     fn inner(left: &[T], right: &[T]) -> (Vec<T>, Vec<usize>, Vec<usize>) {
@@ -127,7 +127,7 @@ impl<T> Join<T> for HashJoin
 #[cfg(test)]
 mod tests {
 
-    use super::{Join, HashJoin, USIZE_MISSING};
+    use super::{JoinOp, HashJoin, USIZE_MISSING};
 
     #[test]
     fn test_vec_inner_join() {

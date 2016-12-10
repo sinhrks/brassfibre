@@ -16,7 +16,7 @@ pub trait Slicer: Sized {
 }
 
 /// Indexing methods for Indexer
-pub trait IndexerIndexer: Slicer {
+pub trait IndexerIndex: Slicer {
 
     type Key;
 
@@ -30,7 +30,7 @@ pub trait IndexerIndexer: Slicer {
 }
 
 /// Indexing methods for Index(Row)
-pub trait RowIndexer<'s>: Sized {
+pub trait RowIndex<'s>: Sized {
 
     // 's: lifetime of myself
 
@@ -76,7 +76,7 @@ pub trait RowIndexer<'s>: Sized {
 }
 
 /// Indexing methods for Columns
-pub trait ColIndexer<'s>: Sized {
+pub trait ColIndex<'s>: Sized {
 
     // 's: lifetime of myself
 
@@ -103,17 +103,17 @@ pub trait ColIndexer<'s>: Sized {
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Concatenate along row
-pub trait Appender<'s>: Sized {
+pub trait Append<'s>: Sized {
     fn append<'o>(&'s self, other: &'o Self) -> Self;
 }
 
 /// Concatenate along columns
-pub trait Concatenator<'s>: Sized {
+pub trait Concatenation<'s>: Sized {
     fn concat<'o>(&'s self, other: &'o Self) -> Self;
 }
 
 /// Join by index
-pub trait Joiner: Sized {
+pub trait Join: Sized {
     fn join_inner(&self, other: &Self) -> Self;
 }
 
@@ -121,7 +121,7 @@ pub trait Joiner: Sized {
 // Apply
 ////////////////////////////////////////////////////////////////////////////////
 
-pub trait Applicable<'s, R> {
+pub trait Apply<'s, R> {
     // R: Type function returns, dummy to avoid unconstrained lifetime parameter
 
     type In;
@@ -135,22 +135,42 @@ pub trait Applicable<'s, R> {
 // Aggregation
 ////////////////////////////////////////////////////////////////////////////////
 
-pub trait Aggregator<'s> {
-
-    // 'r: lifetime of result
+pub trait BasicAggregation<'s> {
 
     // result which can keep current dtype
     type Kept;
     // result for count (to usize or its container)
     type Counted;
-    // result which is coerced (to f64 or its container)
-    type Coerced;
 
     fn sum(&'s self) -> Self::Kept;
     fn count(&'s self) -> Self::Counted;
+}
+
+pub trait NumericAggregation<'s> {
+
+    // result which is coerced (to f64 or its container)
+    type Coerced;
+
     fn mean(&'s self) -> Self::Coerced;
     fn var(&'s self) -> Self::Coerced;
     fn unbiased_var(&'s self) -> Self::Coerced;
     fn std(&'s self) -> Self::Coerced;
     fn unbiased_std(&'s self) -> Self::Coerced;
+}
+
+pub trait ComparisonAggregation<'s> {
+
+    type Kept;
+
+    fn min(&'s self) -> Self::Kept;
+    fn max(&'s self) -> Self::Kept;
+}
+
+pub trait Description<'s>: BasicAggregation<'s> +
+                           NumericAggregation<'s> +
+                           ComparisonAggregation<'s> {
+
+    type Described;
+
+    fn describe(&'s self) -> Self::Described;
 }

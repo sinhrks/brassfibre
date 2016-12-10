@@ -7,7 +7,7 @@ use std::vec;
 
 use super::algos::indexing::Indexing;
 use super::algos::sort::Sorter;
-use super::traits::{Slicer, IndexerIndexer, Appender};
+use super::traits::{Slicer, IndexerIndex, Append};
 
 mod convert;
 mod formatting;
@@ -67,7 +67,7 @@ impl<U> Slicer for Indexer<U> where U: Clone + Eq + Hash {
     }
 }
 
-impl<U> IndexerIndexer for Indexer<U> where U: Clone + Eq + Hash {
+impl<U> IndexerIndex for Indexer<U> where U: Clone + Eq + Hash {
 
     type Key = U;
 
@@ -118,7 +118,7 @@ impl<U> IndexerIndexer for Indexer<U> where U: Clone + Eq + Hash {
 // Append
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'a, T> Appender<'a> for Indexer<T>
+impl<'a, T> Append<'a> for Indexer<T>
     where T: Clone + Eq + Hash {
 
     fn append(&self, other: &Self) -> Self {

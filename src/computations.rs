@@ -1,11 +1,14 @@
 
 use std::cmp;
+use std::ops::{Add, Sub, Div};
+
 use num::{Num, Zero, Float, ToPrimitive};
+
 
 // Aggregation
 
 pub fn vec_sum<T>(values: &Vec<T>) -> T
-    where T: Clone + Num + Zero {
+    where T: Clone + Zero + Add {
 
     // ToDo: Use AsRef
     values.iter().fold(T::zero(), |a, b| a + b.clone())
@@ -15,19 +18,16 @@ pub fn vec_count<T>(values: &Vec<T>) -> usize {
     values.len()
 }
 
-pub fn vec_count_as_f64<T>(values: &Vec<T>) -> f64 {
-    ToPrimitive::to_f64(&vec_count(values)).unwrap()
-}
-
 pub fn vec_mean<T>(values: &Vec<T>) -> f64
-    where T: Clone + Num + Zero + ToPrimitive {
+    where T: Clone + Zero + Add + ToPrimitive {
 
-    ToPrimitive::to_f64(&vec_sum(values)).unwrap() /
-                        vec_count_as_f64(values)
+    let sum: f64 = ToPrimitive::to_f64(&vec_sum(values)).unwrap();
+    let count: f64 = vec_count(values) as f64;
+    sum / count
 }
 
 fn mean_sq<T>(values: &Vec<T>) -> f64
-    where T: Clone + Num + Zero + ToPrimitive {
+    where T: Clone + Zero + Add + Sub + ToPrimitive {
     // use two pass algorithm, assuming data is not large
     let mean = vec_mean(values);
     values.iter()
@@ -36,25 +36,25 @@ fn mean_sq<T>(values: &Vec<T>) -> f64
 }
 
 pub fn vec_var<T>(values: &Vec<T>) -> f64
-    where T: Clone + Num + Zero + ToPrimitive {
+    where T: Clone + Zero + Add + Sub + Div + ToPrimitive {
 
-    mean_sq(values) / vec_count_as_f64(values)
+    mean_sq(values) / (vec_count(values) as f64)
 }
 
 pub fn vec_unbiased_var<T>(values: &Vec<T>) -> f64
-    where T: Clone + Num + Zero + ToPrimitive {
+    where T: Clone + Zero + Add + Sub + Div + ToPrimitive {
 
-    mean_sq(values) / (vec_count_as_f64(values) - 1.)
+    mean_sq(values) / ((vec_count(values) as f64) - 1.)
 }
 
 pub fn vec_std<T>(values: &Vec<T>) -> f64
-    where T: Clone + Num + Zero + ToPrimitive {
+    where T: Clone + Zero + Add + Sub + Div + ToPrimitive {
 
     vec_var(values).sqrt()
 }
 
 pub fn vec_unbiased_std<T>(values: &Vec<T>) -> f64
-    where T: Clone + Num + Zero + ToPrimitive {
+    where T: Clone + Zero + Add + Sub + Div + ToPrimitive {
 
     vec_unbiased_var(values).sqrt()
 }
@@ -123,14 +123,14 @@ define_float_stats!(f32);
 
 
 pub fn vec_min<T>(values: &Vec<T>) -> T
-    where T: Clone + Num + NanMinMax<T> {
+    where T: Clone + NanMinMax<T> {
 
     // can't use normal min(a, b), because it can't handle NaN
     values.iter().fold(T::nanmax_value(), |a, b| a.nanmin((*b).clone()))
 }
 
 pub fn vec_max<T>(values: &Vec<T>) -> T
-    where T: Clone + Num + NanMinMax<T> {
+    where T: Clone + NanMinMax<T> {
 
     values.iter().fold(T::nanmin_value(), |a, b| a.nanmax((*b).clone()))
 }
@@ -167,14 +167,12 @@ mod tests {
     fn test_vec_count_f64() {
         let values: Vec<f64> = vec![1., 2., 3.];
         assert_eq!(super::vec_count(&values), 3);
-        assert_eq!(super::vec_count_as_f64(&values), 3.);
     }
 
     #[test]
     fn test_vec_count_str() {
         let values: Vec<&str> = vec!["A", "B", "C"];
         assert_eq!(super::vec_count(&values), 3);
-        assert_eq!(super::vec_count_as_f64(&values), 3.);
     }
 
     #[test]

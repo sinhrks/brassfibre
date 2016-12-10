@@ -2,13 +2,13 @@ use std::borrow::{Borrow, Cow};
 use std::hash::Hash;
 
 use super::DataFrame;
-use super::super::algos::join::{Join, HashJoin};
+use super::super::algos::join::{JoinOp, HashJoin};
 use super::super::internals::Array;
-use super::super::traits::{Slicer, IndexerIndexer, RowIndexer,
-                           Appender, Concatenator, Joiner};
+use super::super::traits::{Slicer, IndexerIndex, RowIndex,
+                           Append, Concatenation, Join};
 
 
-impl<'i, 'c, I, C> Appender<'c> for DataFrame<'i, 'c, I, C>
+impl<'i, 'c, I, C> Append<'c> for DataFrame<'i, 'c, I, C>
     where I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 
@@ -28,7 +28,7 @@ impl<'i, 'c, I, C> Appender<'c> for DataFrame<'i, 'c, I, C>
     }
 }
 
-impl<'i, 'c, I, C> Concatenator<'i> for DataFrame<'i, 'c, I, C>
+impl<'i, 'c, I, C> Concatenation<'i> for DataFrame<'i, 'c, I, C>
     where I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 
@@ -47,7 +47,7 @@ impl<'i, 'c, I, C> Concatenator<'i> for DataFrame<'i, 'c, I, C>
     }
 }
 
-impl<'i, 'c, I, C> Joiner for DataFrame<'i, 'c, I, C>
+impl<'i, 'c, I, C> Join for DataFrame<'i, 'c, I, C>
     where I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 

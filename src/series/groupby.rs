@@ -1,18 +1,21 @@
 
-use num::{Num, Zero, ToPrimitive};
+use num::{Zero, ToPrimitive};
 use std::cmp::Ord;
+use std::ops::{Add, Sub, Div};
 use std::hash::Hash;
 
 use super::Series;
 use super::super::algos::grouper::{Grouper};
+use super::super::computations;
 use super::super::groupby::GroupBy;
-use super::super::traits::{Applicable, Aggregator};
+use super::super::traits::{Apply, BasicAggregation, NumericAggregation,
+                           ComparisonAggregation};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Apply
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'v, 'i, V, I, G, W> Applicable<'i, W>
+impl<'v, 'i, V, I, G, W> Apply<'i, W>
     for GroupBy<'i, Series<'v, 'i, V, I>, G>
 
     where V: 'v + Clone,
@@ -43,8 +46,8 @@ impl<'v, 'i, V, I, G, W> Applicable<'i, W>
 // Aggregation
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'v, 'i, V, I, G> Aggregator<'i> for GroupBy<'i, Series<'v, 'i, V, I>, G>
-    where V: Clone + Eq + Hash + Num + Zero + ToPrimitive,
+impl<'v, 'i, V, I, G> BasicAggregation<'i> for GroupBy<'i, Series<'v, 'i, V, I>, G>
+    where V: Clone + Zero + Add,
           I: Clone + Eq + Hash,
           G: 'i + Clone + Eq + Hash + Ord {
 
@@ -52,7 +55,6 @@ impl<'v, 'i, V, I, G> Aggregator<'i> for GroupBy<'i, Series<'v, 'i, V, I>, G>
     // ToDo: use 'n lifetime for value
     type Kept = Series<'i, 'i, V, G>;
     type Counted = Series<'i, 'i, usize, G>;
-    type Coerced = Series<'i, 'i, f64, G>;
 
     fn sum(&'i self) -> Self::Kept {
         self.apply(&|x: &Series<V, I>| x.sum())
@@ -61,6 +63,16 @@ impl<'v, 'i, V, I, G> Aggregator<'i> for GroupBy<'i, Series<'v, 'i, V, I>, G>
     fn count(&'i self) -> Self::Counted {
         self.apply(&|x: &Series<V, I>| x.count())
     }
+}
+
+impl<'v, 'i, V, I, G> NumericAggregation<'i> for GroupBy<'i, Series<'v, 'i, V, I>, G>
+    where V: Clone + Zero + Add + Sub + Div + ToPrimitive,
+          I: Clone + Eq + Hash,
+          G: 'i + Clone + Eq + Hash + Ord {
+
+    // result can have different lifetime
+    // ToDo: use 'n lifetime for value
+    type Coerced = Series<'i, 'i, f64, G>;
 
     fn mean(&'i self) -> Self::Coerced {
         self.apply(&|x: &Series<V, I>| x.mean())
@@ -83,6 +95,24 @@ impl<'v, 'i, V, I, G> Aggregator<'i> for GroupBy<'i, Series<'v, 'i, V, I>, G>
     }
 }
 
+impl<'v, 'i, V, I, G> ComparisonAggregation<'i> for GroupBy<'i, Series<'v, 'i, V, I>, G>
+    where V: Clone + computations::NanMinMax<V>,
+          I: Clone + Eq + Hash,
+          G: 'i + Clone + Eq + Hash + Ord {
+
+    // result can have different lifetime
+    // ToDo: use 'n lifetime for value
+    type Kept = Series<'i, 'i, V, G>;
+
+    fn min(&'i self) -> Self::Kept {
+        self.apply(&|x: &Series<V, I>| x.min())
+    }
+
+    fn max(&'i self) -> Self::Kept {
+        self.apply(&|x: &Series<V, I>| x.max())
+    }
+}
+
 #[cfg(test)]
 mod tests {
 
@@ -90,7 +120,8 @@ mod tests {
     use super::super::Series;
     use super::super::super::indexer::Indexer;
     use super::super::super::groupby::GroupBy;
-    use super::super::super::Aggregator;
+    use super::super::super::{BasicAggregation, NumericAggregation,
+                              ComparisonAggregation};
 
     #[test]
     fn test_series_get_group() {
@@ -121,10 +152,18 @@ mod tests {
         let s = Series::<i64, i64>::new(values, index);
 
         let sg = GroupBy::<Series<i64, i64>, i64>::new(&s, vec![1, 1, 1, 2, 2]);
-        let sum = sg.sum();
 
         let exp: Series<i64, i64> = Series::new(vec![6, 9], vec![1, 2]);
-        assert_eq!(sum, exp);
+        assert_eq!(sg.sum(), exp);
+
+        let exp: Series<f64, i64> = Series::new(vec![2.0, 4.5], vec![1, 2]);
+        assert_eq!(sg.mean(), exp);
+
+        let exp: Series<i64, i64> = Series::new(vec![1, 4], vec![1, 2]);
+        assert_eq!(sg.min(), exp);
+
+        let exp: Series<i64, i64> = Series::new(vec![3, 5], vec![1, 2]);
+        assert_eq!(sg.max(), exp);
     }
 
     #[test]
@@ -133,22 +172,17 @@ mod tests {
         let index: Vec<i64> = vec![10, 20, 30, 40, 50];
         let s = Series::<i64, i64>::new(values, index);
         let sg = GroupBy::<Series<i64, i64>, &str>::new(&s, vec!["A", "A", "A", "B", "B"]);
-        let sum = sg.sum();
 
         let exp: Series<i64, &str> = Series::new(vec![6, 9], vec!["A", "B"]);
-        assert_eq!(sum, exp);
-    }
+        assert_eq!(sg.sum(), exp);
 
-    #[test]
-    fn test_series_agg_mean_integer_grouper() {
-        let values: Vec<i64> = vec![1, 2, 3, 4, 5];
-        let index: Vec<i64> = vec![10, 20, 30, 40, 50];
-        let s = Series::<i64, i64>::new(values, index);
+        let exp: Series<f64, &str> = Series::new(vec![2.0, 4.5], vec!["A", "B"]);
+        assert_eq!(sg.mean(), exp);
 
-        let sg = GroupBy::<Series<i64, i64>, i64>::new(&s, vec![1, 1, 1, 2, 2]);
-        let sum = sg.mean();
+        let exp: Series<i64, &str> = Series::new(vec![1, 4], vec!["A", "B"]);
+        assert_eq!(sg.min(), exp);
 
-        let exp: Series<f64, i64> = Series::new(vec![2.0, 4.5], vec![1, 2]);
-        assert_eq!(sum, exp);
+        let exp: Series<i64, &str> = Series::new(vec![3, 5], vec!["A", "B"]);
+        assert_eq!(sg.max(), exp);
     }
 }

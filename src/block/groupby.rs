@@ -1,18 +1,22 @@
 
 use num::{Num, Zero, ToPrimitive};
+
 use std::cmp::Ord;
 use std::hash::Hash;
+use std::ops::{Add, Sub, Div};
 
 use super::Block;
 use super::super::algos::grouper::{Grouper};
+use super::super::computations;
 use super::super::groupby::GroupBy;
-use super::super::traits::{Applicable, Aggregator};
+use super::super::traits::{Apply, BasicAggregation, NumericAggregation,
+                           ComparisonAggregation};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Apply
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'v, 'i, 'c, V, I, C, G, W> Applicable<'c, Vec<W>>
+impl<'v, 'i, 'c, V, I, C, G, W> Apply<'c, Vec<W>>
     for GroupBy<'i, Block<'v, 'i, 'c, V, I, C>, G>
 
     where V: Clone,
@@ -46,15 +50,14 @@ impl<'v, 'i, 'c, V, I, C, G, W> Applicable<'c, Vec<W>>
 // Aggregation
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'v, 'i, 'c, V, I, C, G> Aggregator<'c> for GroupBy<'i, Block<'v, 'i, 'c, V, I, C>, G>
-    where V: 'c + Clone + Eq + Hash + Num + Zero + ToPrimitive,
+impl<'v, 'i, 'c, V, I, C, G> BasicAggregation<'c> for GroupBy<'i, Block<'v, 'i, 'c, V, I, C>, G>
+    where V: 'c + Clone + Zero + Add,
           I: Clone + Eq + Hash,
           C: Clone + Eq + Hash,
           G: 'c + Clone + Eq + Hash + Ord {
 
     type Kept = Block<'c, 'c, 'c, V, G, C>;
     type Counted = Block<'c, 'c, 'c, usize, G, C>;
-    type Coerced = Block<'c, 'c, 'c, f64, G, C>;
 
     fn sum(&'c self) -> Self::Kept {
         self.apply(&|x: &Block<V, I, C>| x.sum().values.into_owned())
@@ -63,6 +66,15 @@ impl<'v, 'i, 'c, V, I, C, G> Aggregator<'c> for GroupBy<'i, Block<'v, 'i, 'c, V,
     fn count(&'c self) -> Self::Counted {
         self.apply(&|x: &Block<V, I, C>| x.count().values.into_owned())
     }
+}
+
+impl<'v, 'i, 'c, V, I, C, G> NumericAggregation<'c> for GroupBy<'i, Block<'v, 'i, 'c, V, I, C>, G>
+    where V: 'c + Clone + Zero + Add + Sub + Div + ToPrimitive,
+          I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash,
+          G: 'c + Clone + Eq + Hash + Ord {
+
+    type Coerced = Block<'c, 'c, 'c, f64, G, C>;
 
     fn mean(&'c self) -> Self::Coerced {
         self.apply(&|x: &Block<V, I, C>| x.mean().values.into_owned())
@@ -83,5 +95,22 @@ impl<'v, 'i, 'c, V, I, C, G> Aggregator<'c> for GroupBy<'i, Block<'v, 'i, 'c, V,
     fn unbiased_std(&'c self) -> Self::Coerced {
         self.apply(&|x: &Block<V, I, C>| x.unbiased_std().values.into_owned())
     }
+}
 
+
+impl<'v, 'i, 'c, V, I, C, G> ComparisonAggregation<'c> for GroupBy<'i, Block<'v, 'i, 'c, V, I, C>, G>
+    where V: 'c + Clone + computations::NanMinMax<V>,
+          I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash,
+          G: 'c + Clone + Eq + Hash + Ord {
+
+    type Kept = Block<'c, 'c, 'c, V, G, C>;
+
+    fn min(&'c self) -> Self::Kept {
+        self.apply(&|x: &Block<V, I, C>| x.min().values.into_owned())
+    }
+
+    fn max(&'c self) -> Self::Kept {
+        self.apply(&|x: &Block<V, I, C>| x.max().values.into_owned())
+    }
 }

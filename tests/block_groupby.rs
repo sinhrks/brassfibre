@@ -14,11 +14,10 @@ fn test_block_get_group() {
     let bg = b.groupby(vec![1, 2, 1, 1, 2]);
     assert_eq!(&bg.groups().len(), &2);
 
-    let b1 = bg.get_group(&1);
     let exp = Block::from_col_vec(vec![1, 3, 4, 6, 8, 9, 11, 13, 14],
                                   vec!["A", "C", "D"],
                                   vec!["X", "Y", "Z"]);
-    assert_eq!(b1, exp);
+    assert_eq!(bg.get_group(&1), exp);
 }
 
 #[test]
@@ -31,14 +30,27 @@ fn test_block_agg() {
                                 vec!["X", "Y", "Z"]);
     assert_eq!(b.len(), 5);
 
-    let bg = b.groupby(vec![1, 2, 1, 1, 2]);
-    let bsum = bg.sum();
+    let bg = b.groupby(vec![1, 2, 1, 1, 2]);;
 
-    assert_eq!(bsum.len(), 2);
     let exp = Block::from_col_vec(vec![8, 7, 23, 17, 38, 27],
                                   vec![1, 2],
                                   vec!["X", "Y", "Z"]);
-    assert_eq!(bsum, exp);
+    assert_eq!(bg.sum(), exp);
+
+    let exp = Block::from_col_vec(vec![8. / 3., 3.5, 23. / 3., 8.5, 38. / 3., 13.5],
+                                  vec![1, 2],
+                                  vec!["X", "Y", "Z"]);
+    assert_eq!(bg.mean(), exp);
+
+    let exp = Block::from_col_vec(vec![1, 2, 6, 7, 11, 12],
+                                  vec![1, 2],
+                                  vec!["X", "Y", "Z"]);
+    assert_eq!(bg.min(), exp);
+
+    let exp = Block::from_col_vec(vec![4, 5, 9, 10, 14, 15],
+                                  vec![1, 2],
+                                  vec!["X", "Y", "Z"]);
+    assert_eq!(bg.max(), exp);
 }
 
 #[test]

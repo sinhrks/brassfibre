@@ -1,7 +1,7 @@
 use std::hash::Hash;
 
 use super::algos::grouper::{Grouper, HashGrouper};
-use super::traits::RowIndexer;
+use super::traits::RowIndex;
 
 pub struct GroupBy<'a, D: 'a, G: Hash> {
     /// Grouped Series
@@ -13,7 +13,7 @@ pub struct GroupBy<'a, D: 'a, G: Hash> {
 }
 
 impl<'a, D, G> GroupBy<'a, D, G>
-    where D: RowIndexer<'a>,
+    where D: RowIndex<'a>,
           G: Clone + Eq + Hash + Ord {
 
     pub fn new(data: &'a D, indexer: Vec<G>) -> Self {

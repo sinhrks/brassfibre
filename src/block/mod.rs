@@ -7,8 +7,8 @@ use super::algos::sort::Sorter;
 use super::indexer::Indexer;
 use super::groupby::GroupBy;
 use super::series::Series;
-use super::traits::{Slicer, IndexerIndexer, RowIndexer, ColIndexer,
-                    Applicable};
+use super::traits::{Slicer, IndexerIndex, RowIndex, ColIndex,
+                    Apply};
 
 mod aggregation;
 mod formatting;
@@ -36,7 +36,7 @@ pub struct Block<'v, 'i, 'c, V, I, C>
 // Indexing
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'v, 'i, 'c, V, I, C> RowIndexer<'c> for Block<'v, 'i, 'c, V, I, C>
+impl<'v, 'i, 'c, V, I, C> RowIndex<'c> for Block<'v, 'i, 'c, V, I, C>
     where V: Clone,
           I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
@@ -80,7 +80,7 @@ impl<'v, 'i, 'c, V, I, C> RowIndexer<'c> for Block<'v, 'i, 'c, V, I, C>
     }
 }
 
-impl<'v, 'i, 'c, V, I, C> ColIndexer<'i> for Block<'v, 'i, 'c, V, I, C>
+impl<'v, 'i, 'c, V, I, C> ColIndex<'i> for Block<'v, 'i, 'c, V, I, C>
     where V: 'i + Clone,
           I: 'i + Clone + Eq + Hash,
           C: Clone + Eq + Hash {
@@ -251,7 +251,7 @@ impl<'v, 'i, 'c, V, I, C> Block<'v, 'i, 'c, V, I, C>
     }
 
     pub fn groupby<G>(&self, other: Vec<G>) -> GroupBy<Block<V, I, C>, G>
-        where G: Copy + Eq + Hash + Ord {
+        where G: Clone + Eq + Hash + Ord {
         GroupBy::new(&self, other)
     }
 
@@ -275,7 +275,7 @@ impl<'v, 'i, 'c, V, I, C> Block<'v, 'i, 'c, V, I, C>
 // Apply
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'v, 'i, 'c, V, I, C, R> Applicable<'i, R> for Block<'v, 'i, 'c, V, I, C>
+impl<'v, 'i, 'c, V, I, C, R> Apply<'i, R> for Block<'v, 'i, 'c, V, I, C>
     where V: Clone,
           I: Clone + Eq + Hash,
           C: 'i + Clone + Eq + Hash,

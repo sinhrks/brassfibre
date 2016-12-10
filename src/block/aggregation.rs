@@ -1,19 +1,20 @@
 use num::{Num, Zero, ToPrimitive};
 use std::hash::Hash;
+use std::ops::{Add, Sub, Div};
 
 use super::Block;
 use super::super::computations;
 use super::super::series::Series;
-use super::super::traits::{Applicable, Aggregator};
+use super::super::traits::{Apply, BasicAggregation, NumericAggregation,
+                           ComparisonAggregation};
 
-impl<'v, 'i, 'c, V, I, C> Aggregator<'c> for Block<'v, 'i, 'c, V, I, C>
-    where V: 'c + Clone + Num + Zero + ToPrimitive,
+impl<'v, 'i, 'c, V, I, C> BasicAggregation<'c> for Block<'v, 'i, 'c, V, I, C>
+    where V: 'c + Clone + Zero + Add,
           I: Clone + Eq + Hash,
           C: 'c + Clone + Eq + Hash {
 
     type Kept = Series<'c, 'c, V, C>;
     type Counted = Series<'c, 'c, usize, C>;
-    type Coerced = Series<'c, 'c, f64, C>;
 
     fn sum(&'c self) -> Self::Kept {
         self.apply(&computations::vec_sum)
@@ -22,6 +23,14 @@ impl<'v, 'i, 'c, V, I, C> Aggregator<'c> for Block<'v, 'i, 'c, V, I, C>
     fn count(&'c self) -> Self::Counted {
         self.apply(&computations::vec_count)
     }
+}
+
+impl<'v, 'i, 'c, V, I, C> NumericAggregation<'c> for Block<'v, 'i, 'c, V, I, C>
+    where V: 'c + Clone + Zero + Add + Sub + Div + ToPrimitive,
+          I: Clone + Eq + Hash,
+          C: 'c + Clone + Eq + Hash {
+
+    type Coerced = Series<'c, 'c, f64, C>;
 
     fn mean(&'c self) -> Self::Coerced {
         self.apply(&computations::vec_mean)
@@ -45,7 +54,7 @@ impl<'v, 'i, 'c, V, I, C> Aggregator<'c> for Block<'v, 'i, 'c, V, I, C>
 }
 
 impl<'v, 'i, 'c, V, I, C> Block<'v, 'i, 'c, V, I, C>
-    where V: Clone + Num + Zero + computations::NanMinMax<V>,
+    where V: Clone + computations::NanMinMax<V>,
           I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 

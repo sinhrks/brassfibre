@@ -10,33 +10,32 @@ fn test_frame_agg() {
     let columns: Vec<&str> = vec!["X", "Y"];
     let df = DataFrame::from_vec(values, index, columns);
 
-    let sum = df.sum();
     let exp: Series<f64, &str> = Series::new(vec![15., 40.], vec!["X", "Y"]);
-    assert_eq!(sum, exp);
+    assert_eq!(df.sum(), exp);
 
-    let mean = df.count();
     let exp: Series<usize, &str> = Series::new(vec![5, 5], vec!["X", "Y"]);
-    assert_eq!(mean, exp);
+    assert_eq!(df.count(), exp);
 
-    let mean = df.mean();
     let exp: Series<f64, &str> = Series::new(vec![3., 8.], vec!["X", "Y"]);
-    assert_eq!(mean, exp);
+    assert_eq!(df.mean(), exp);
 
-    let mean = df.var();
     let exp: Series<f64, &str> = Series::new(vec![2., 2.], vec!["X", "Y"]);
-    assert_eq!(mean, exp);
+    assert_eq!(df.var(), exp);
 
-    let mean = df.unbiased_var();
     let exp: Series<f64, &str> = Series::new(vec![2.5, 2.5], vec!["X", "Y"]);
-    assert_eq!(mean, exp);
+    assert_eq!(df.unbiased_var(), exp);
 
-    let mean = df.std();
     let exp: Series<f64, &str> = Series::new(vec![1.4142135623730951, 1.4142135623730951], vec!["X", "Y"]);
-    assert_eq!(mean, exp);
+    assert_eq!(df.std(), exp);
 
-    let mean = df.unbiased_std();
     let exp: Series<f64, &str> = Series::new(vec![1.5811388300841898, 1.5811388300841898], vec!["X", "Y"]);
-    assert_eq!(mean, exp);
+    assert_eq!(df.unbiased_std(), exp);
+
+    let exp: Series<f64, &str> = Series::new(vec![1., 6.], vec!["X", "Y"]);
+    assert_eq!(df.min(), exp);
+
+    let exp: Series<f64, &str> = Series::new(vec![5., 10.], vec!["X", "Y"]);
+    assert_eq!(df.max(), exp);
 }
 
 #[test]
@@ -49,31 +48,49 @@ fn test_frame_agg_non_numerics() {
     let columns: Vec<&str> = vec!["A", "B", "C", "D"];
     let df = DataFrame::from_vec(values, index, columns);
 
-    let sum = df.sum();
     let exp: Series<f64, &str> = Series::new(vec![14., 37.600000000000001], vec!["B", "D"]);
-    assert_eq!(sum, exp);
+    assert_eq!(df.sum(), exp);
 
-    let mean = df.count();
     let exp: Series<usize, &str> = Series::new(vec![5, 5], vec!["B", "D"]);
-    assert_eq!(mean, exp);
+    assert_eq!(df.count(), exp);
 
-    let mean = df.mean();
     let exp: Series<f64, &str> = Series::new(vec![2.7999999999999998, 7.5200000000000005], vec!["B", "D"]);
-    assert_eq!(mean, exp);
+    assert_eq!(df.mean(), exp);
 
-    let mean = df.var();
     let exp: Series<f64, &str> = Series::new(vec![9.7599999999999998, 5.621599999999999], vec!["B", "D"]);
-    assert_eq!(mean, exp);
+    assert_eq!(df.var(), exp);
 
-    let mean = df.unbiased_var();
     let exp: Series<f64, &str> = Series::new(vec![12.199999999999999, 7.0269999999999992], vec!["B", "D"]);
-    assert_eq!(mean, exp);
+    assert_eq!(df.unbiased_var(), exp);
 
-    let mean = df.std();
     let exp: Series<f64, &str> = Series::new(vec![3.1240998703626617, 2.3709913538433662], vec!["B", "D"]);
-    assert_eq!(mean, exp);
+    assert_eq!(df.std(), exp);
 
-    let mean = df.unbiased_std();
     let exp: Series<f64, &str> = Series::new(vec![3.4928498393145961, 2.6508489206290125], vec!["B", "D"]);
-    assert_eq!(mean, exp);
+    assert_eq!(df.unbiased_std(), exp);
+
+    let exp: Series<f64, &str> = Series::new(vec![-2., 3.1], vec!["B", "D"]);
+    assert_eq!(df.min(), exp);
+
+    let exp: Series<f64, &str> = Series::new(vec![7., 10.], vec!["B", "D"]);
+    assert_eq!(df.max(), exp);
 }
+
+#[test]
+fn test_frame_describe() {
+    let values: Vec<Array> = vec![array!["a", "b", "c", "d", "e"],
+                                  array![1, 3, 2, 5, 8],
+                                  array![true, false, true, false ,true],
+                                  array![1.1, 2.5, 3.2, 1.6, 0.8]];
+    let index: Vec<i64> = vec![10, 20, 30, 40, 50];
+    let columns: Vec<&str> = vec!["A", "B", "C", "D"];
+    let df = DataFrame::from_vec(values, index, columns);
+
+    let exp_values: Vec<Array> = vec![array![5., 3.8, 2.4819347291981715, 1., 8.],
+                                      array![5., 1.8400000000000003, 0.8912911982062878, 0.8, 3.2]];
+    let exp = DataFrame::from_vec(exp_values,
+                                  vec!["count", "mean", "std", "min", "max"],
+                                  vec!["B", "D"]);
+    assert_eq!(df.describe(), exp);
+}
+

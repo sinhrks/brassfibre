@@ -2,14 +2,14 @@ use std::borrow::{Borrow, Cow};
 use std::hash::Hash;
 
 use super::Block;
-use super::super::algos::join::{Join, HashJoin};
+use super::super::algos::join::{JoinOp, HashJoin};
 use super::super::indexer::Indexer;
-use super::super::traits::{Slicer, IndexerIndexer, RowIndexer,
-                           Appender, Concatenator, Joiner};
+use super::super::traits::{Slicer, IndexerIndex, RowIndex,
+                           Append, Concatenation, Join};
 
 
-impl<'v, 'i, 'c, V, I, C> Appender<'c> for Block<'v, 'i, 'c, V, I, C>
-    where V: Copy,
+impl<'v, 'i, 'c, V, I, C> Append<'c> for Block<'v, 'i, 'c, V, I, C>
+    where V: Clone,
           I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 
@@ -32,8 +32,8 @@ impl<'v, 'i, 'c, V, I, C> Appender<'c> for Block<'v, 'i, 'c, V, I, C>
     }
 }
 
-impl<'v, 'i, 'c, V, I, C> Concatenator<'i> for Block<'v, 'i, 'c, V, I, C>
-    where V: Copy,
+impl<'v, 'i, 'c, V, I, C> Concatenation<'i> for Block<'v, 'i, 'c, V, I, C>
+    where V: Clone,
           I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 
@@ -55,8 +55,8 @@ impl<'v, 'i, 'c, V, I, C> Concatenator<'i> for Block<'v, 'i, 'c, V, I, C>
     }
 }
 
-impl<'v, 'i, 'c, V, I, C> Joiner for Block<'v, 'i, 'c, V, I, C>
-    where V: Copy,
+impl<'v, 'i, 'c, V, I, C> Join for Block<'v, 'i, 'c, V, I, C>
+    where V: Clone,
           I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 

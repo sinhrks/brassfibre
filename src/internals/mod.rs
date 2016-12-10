@@ -1,6 +1,6 @@
 use super::algos::indexing::Indexing;
 use super::algos::sort::Sorter;
-use super::traits::{Slicer, Appender};
+use super::traits::{Slicer, Append};
 
 mod aggregation;
 mod convert;
@@ -119,7 +119,8 @@ impl Slicer for Array {
     }
 }
 
-impl<'a> Appender<'a> for Array {
+impl<'a> Append<'a> for Array {
+
     fn append(&self, other: &Self) -> Self {
         match (self, other) {
             (&Array::Int64Array(ref svals), &Array::Int64Array(ref ovals)) => {
