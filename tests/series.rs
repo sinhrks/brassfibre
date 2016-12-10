@@ -9,10 +9,10 @@ fn test_series_creation_from_vec() {
 
     let s = Series::<f64, i64>::from_vec(values);
 
-    let exp_values: Vec<f64> = vec![1., 2., 3.];
-    let exp_index: Indexer<usize> = Indexer::new(vec![0, 1, 2]);
+    let exp_values: Cow<Vec<f64>> = Cow::Owned(vec![1., 2., 3.]);
+    let exp_index: Cow<Indexer<usize>> = Cow::Owned(Indexer::new(vec![0, 1, 2]));
     assert_eq!(s.values, exp_values);
-    assert_eq!(s.index, Cow::Owned(exp_index));
+    assert_eq!(s.index, exp_index);
 
     assert_eq!(s.len(), 3);
     assert_eq!(s.index.len(), 3);
@@ -25,10 +25,10 @@ fn test_series_creation_from_index() {
 
     let s = Series::<f64, i64>::new(values, index);
 
-    let exp_values: Vec<f64> = vec![1., 2., 3.];
-    let exp_index: Indexer<i64> = Indexer::new(vec![5, 6, 7]);
+    let exp_values: Cow<Vec<f64>> = Cow::Owned(vec![1., 2., 3.]);
+    let exp_index: Cow<Indexer<i64>> = Cow::Owned(Indexer::new(vec![5, 6, 7]));
     assert_eq!(s.values, exp_values);
-    assert_eq!(s.index, Cow::Owned(exp_index));
+    assert_eq!(s.index, exp_index);
 
     assert_eq!(s.len(), 3);
     assert_eq!(s.index.len(), 3);
@@ -41,10 +41,10 @@ fn test_series_creation_from_into_index() {
 
     let s = Series::<f64, i64>::new(values, index);
 
-    let exp_values: Vec<f64> = vec![1., 2., 3.];
-    let exp_index: Indexer<i64> = Indexer::new(vec![5, 6, 7]);
+    let exp_values: Cow<Vec<f64>> = Cow::Owned(vec![1., 2., 3.]);
+    let exp_index: Cow<Indexer<i64>> = Cow::Owned(Indexer::new(vec![5, 6, 7]));
     assert_eq!(s.values, exp_values);
-    assert_eq!(s.index, Cow::Owned(exp_index));
+    assert_eq!(s.index, exp_index);
 
     assert_eq!(s.len(), 3);
     assert_eq!(s.index.len(), 3);
@@ -58,10 +58,10 @@ fn test_series_copy() {
     let s = Series::<f64, i64>::new(values, index);
     let copied = s.clone();
 
-    let exp_values: Vec<f64> = vec![1., 2., 3.];
-    let exp_index: Indexer<i64> = Indexer::new(vec![5, 6, 7]);
+    let exp_values: Cow<Vec<f64>> = Cow::Owned(vec![1., 2., 3.]);
+    let exp_index: Cow<Indexer<i64>> = Cow::Owned(Indexer::new(vec![5, 6, 7]));
     assert_eq!(copied.values, exp_values);
-    assert_eq!(copied.index, Cow::Owned(exp_index));
+    assert_eq!(copied.index, exp_index);
 
     assert_eq!(copied, s);
 }
@@ -124,10 +124,10 @@ fn test_series_slice_locs() {
     let s = Series::new(values, index);
 
     // test internal constructions
-    let exp_values: Vec<f64> = vec![1., 2., 3., 4., 5.];
-    let exp_index: Indexer<i64> = Indexer::new(vec![10, 20, 30, 40, 50]);
+    let exp_values: Cow<Vec<f64>> = Cow::Owned(vec![1., 2., 3., 4., 5.]);
+    let exp_index: Cow<Indexer<i64>> = Cow::Owned(Indexer::new(vec![10, 20, 30, 40, 50]));
     assert_eq!(s.values, exp_values);
-    assert_eq!(s.index, Cow::Owned(exp_index));
+    assert_eq!(s.index, exp_index);
 
     // test label slice
     let res = s.locs(&vec![20, 30, 50]);
@@ -143,10 +143,10 @@ fn test_series_slice_ilocs() {
     let s = Series::<f64, i64>::new(values, index);
 
     // test internal constructions
-    let exp_values: Vec<f64> = vec![1., 2., 3., 4., 5.];
-    let exp_index: Indexer<i64> = Indexer::new(vec![10, 20, 30, 40, 50]);
+    let exp_values: Cow<Vec<f64>> = Cow::Owned(vec![1., 2., 3., 4., 5.]);
+    let exp_index: Cow<Indexer<i64>> = Cow::Owned(Indexer::new(vec![10, 20, 30, 40, 50]));
     assert_eq!(s.values, exp_values);
-    assert_eq!(s.index, Cow::Owned(exp_index));
+    assert_eq!(s.index, exp_index);
 
     // test index slice
     let res = s.ilocs(&vec![0, 2, 4]);
@@ -163,10 +163,10 @@ fn test_series_slice_blocs() {
     let s = Series::<f64, i64>::new(values, index);
 
     // test internal constructions
-    let exp_values: Vec<f64> = vec![1., 2., 3., 4., 5.];
-    let exp_index: Indexer<i64> = Indexer::new(vec![10, 20, 30, 40, 50]);
+    let exp_values: Cow<Vec<f64>> = Cow::Owned(vec![1., 2., 3., 4., 5.]);
+    let exp_index: Cow<Indexer<i64>> = Cow::Owned(Indexer::new(vec![10, 20, 30, 40, 50]));
     assert_eq!(s.values, exp_values);
-    assert_eq!(s.index, Cow::Owned(exp_index));
+    assert_eq!(s.index, exp_index);
 
     // test bool slice
     let res = s.blocs(&vec![true, false, false, true, true]);

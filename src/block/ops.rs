@@ -9,52 +9,54 @@ macro_rules! define_numeric_op {
     ($t:ident, $m:ident) => {
 
         // Broadcast
-        impl<'i, 'c, V, I, C, O> $t<V> for Block<'i, 'c, V, I, C>
-            where V: Copy + $t<Output=O>,
+        impl<'v, 'i, 'c, V, I, C, O> $t<V> for Block<'v, 'i, 'c, V, I, C>
+            where V: Clone + $t<Output=O>,
                   I: Clone + Eq + Hash,
                   C: Clone + Eq + Hash,
-                  O: Copy {
+                  O: 'v + Clone {
 
-            type Output = Block<'i, 'c, O, I, C>;
+            type Output = Block<'v, 'i, 'c, O, I, C>;
             fn $m(self, _rhs: V) -> Self::Output {
-                let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
+                let mut new_values: Vec<Cow<Vec<O>>> = Vec::with_capacity(self.values.len());
                 for value in self.values.into_iter() {
-                    let new_value = Elemwise::broadcast_oo(value, _rhs, |x, y| x.$m(y));
-                    new_values.push(new_value);
+                    let new_value = Elemwise::broadcast_rr(value.as_ref(),
+                                                           &_rhs, |x, y| x.$m(y));
+                    new_values.push(Cow::Owned(new_value));
                 }
                 Block::from_cow(new_values, self.index, self.columns)
             }
         }
 
-        impl<'i, 'c, 'r, V, I, C, O> $t<&'r V> for Block<'i, 'c, V, I, C>
-            where V: Copy + $t<Output=O>,
+        impl<'v, 'i, 'c, 'r, V, I, C, O> $t<&'r V> for Block<'v, 'i, 'c, V, I, C>
+            where V: Clone + $t<Output=O>,
                   I: Clone + Eq + Hash,
                   C: Clone + Eq + Hash,
-                  O: Copy {
+                  O: 'v + Clone {
 
-            type Output = Block<'i, 'c, O, I, C>;
+            type Output = Block<'v, 'i, 'c, O, I, C>;
             fn $m(self, _rhs: &V) -> Self::Output {
-                let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
+                let mut new_values: Vec<Cow<Vec<O>>> = Vec::with_capacity(self.values.len());
                 for value in self.values.into_iter() {
-                    let new_value = Elemwise::broadcast_or(value, _rhs, |x, y| x.$m(y));
-                    new_values.push(new_value);
+                    let new_value = Elemwise::broadcast_rr(value.as_ref(),
+                                                           _rhs, |x, y| x.$m(y));
+                    new_values.push(Cow::Owned(new_value));
                 }
                 Block::from_cow(new_values, self.index, self.columns)
             }
         }
 
-        impl<'i, 'c, 'l, V, I, C, O> $t<V> for &'l Block<'i, 'c, V, I, C>
-            where V: Copy + $t<Output=O>,
+        impl<'v, 'i, 'c, 'l, V, I, C, O> $t<V> for &'l Block<'v, 'i, 'c, V, I, C>
+            where V: Clone + $t<Output=O>,
                   I: Clone + Eq + Hash,
                   C: Clone + Eq + Hash,
-                  O: Copy {
+                  O: 'l + Clone {
 
-            type Output = Block<'l, 'l, O, I, C>;
+            type Output = Block<'l, 'l, 'l, O, I, C>;
             fn $m(self, _rhs: V) -> Self::Output {
-                let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
+                let mut new_values: Vec<Cow<Vec<O>>> = Vec::with_capacity(self.values.len());
                 for value in self.values.iter() {
-                    let new_value = Elemwise::broadcast_ro(value, _rhs, |x, y| x.$m(y));
-                    new_values.push(new_value);
+                    let new_value = Elemwise::broadcast_rr(value.as_ref(), &_rhs, |x, y| x.$m(y));
+                    new_values.push(Cow::Owned(new_value));
                 }
                 Block::from_cow(new_values,
                                 Cow::Borrowed(self.index.borrow()),
@@ -62,18 +64,19 @@ macro_rules! define_numeric_op {
             }
         }
 
-        impl<'i, 'c, 'l, 'r, V, I, C, O> $t<&'r V> for &'l Block<'i, 'c, V, I, C>
-            where V: Copy + $t<Output=O>,
+        impl<'v, 'i, 'c, 'l, 'r, V, I, C, O> $t<&'r V> for &'l Block<'v, 'i, 'c, V, I, C>
+            where V: Clone + $t<Output=O>,
                   I: Clone + Eq + Hash,
                   C: Clone + Eq + Hash,
-                  O: Copy {
+                  O: 'l + Clone {
 
-            type Output = Block<'l, 'l, O, I, C>;
+            type Output = Block<'l, 'l, 'l, O, I, C>;
             fn $m(self, _rhs: &V) -> Self::Output {
-                let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
+                let mut new_values: Vec<Cow<Vec<O>>> = Vec::with_capacity(self.values.len());
                 for value in self.values.iter() {
-                    let new_value = Elemwise::broadcast_rr(value, _rhs, |x, y| x.$m(y));
-                    new_values.push(new_value);
+                    let new_value = Elemwise::broadcast_rr(value.as_ref(),
+                                                           _rhs, |x, y| x.$m(y));
+                    new_values.push(Cow::Owned(new_value));
                 }
                 Block::from_cow(new_values,
                                 Cow::Borrowed(self.index.borrow()),
@@ -82,64 +85,69 @@ macro_rules! define_numeric_op {
         }
 
         // Element-wise
-        impl<'li, 'lc, 'ri, 'rc, V, I, C, O> $t<Block<'ri, 'rc, V, I, C>>
-            for Block<'li, 'lc, V, I, C>
+        impl<'lv, 'li, 'lc, 'rv, 'ri, 'rc, V, I, C, O> $t<Block<'rv, 'ri, 'rc, V, I, C>>
+            for Block<'lv, 'li, 'lc, V, I, C>
 
-            where V: Copy + $t<Output=O>,
+            where V: Clone + $t<Output=O>,
                   I: Clone + Eq + Hash,
                   C: Clone + Eq + Hash,
-                  O: Copy {
+                  O: 'lv + Clone {
 
-            type Output = Block<'li, 'lc, O, I, C>;
+            type Output = Block<'lv, 'li, 'lc, O, I, C>;
             fn $m(self, _rhs: Block<V, I, C>) -> Self::Output {
                 self.assert_binop(&_rhs);
-                let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
+                let mut new_values: Vec<Cow<Vec<O>>> = Vec::with_capacity(self.values.len());
                 for (value, rvalue) in self.values.into_iter()
                                            .zip(_rhs.values.into_iter()) {
-                    let new_value = Elemwise::elemwise_oo(value, rvalue, |x, y| x.$m(y));
-                    new_values.push(new_value);
+                    let new_value = Elemwise::elemwise_rr(value.as_ref(),
+                                                          rvalue.as_ref(),
+                                                          |x, y| x.$m(y));
+                    new_values.push(Cow::Owned(new_value));
                 }
                 Block::from_cow(new_values, self.index, self.columns)
             }
         }
 
-        impl<'li, 'lc, 'ri, 'rc, 'r, V, I, C, O> $t<&'r Block<'ri, 'rc, V, I, C>>
-            for Block<'li, 'lc, V, I, C>
+        impl<'lv, 'li, 'lc, 'rv, 'ri, 'rc, 'r, V, I, C, O> $t<&'r Block<'rv, 'ri, 'rc, V, I, C>>
+            for Block<'lv, 'li, 'lc, V, I, C>
 
-            where V: Copy + $t<Output=O>,
+            where V: Clone + $t<Output=O>,
                   I: Clone + Eq + Hash,
                   C: Clone + Eq + Hash,
-                  O: Copy {
+                  O: 'lv + Clone {
 
-            type Output = Block<'li, 'lc, O, I, C>;
+            type Output = Block<'lv, 'li, 'lc, O, I, C>;
             fn $m(self, _rhs: &'r Block<V, I, C>) -> Self::Output {
                 self.assert_binop(&_rhs);
-                let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
+                let mut new_values: Vec<Cow<Vec<O>>> = Vec::with_capacity(self.values.len());
                 for (value, rvalue) in self.values.into_iter()
                                            .zip(_rhs.values.iter()) {
-                    let new_value = Elemwise::elemwise_or(value, rvalue, |x, y| x.$m(y));
-                    new_values.push(new_value);
+                    let new_value = Elemwise::elemwise_rr(value.as_ref(),
+                                                          rvalue.as_ref(),
+                                                          |x, y| x.$m(y));
+                    new_values.push(Cow::Owned(new_value));
                 }
                 Block::from_cow(new_values, self.index, self.columns)
             }
         }
 
-        impl<'li, 'lc, 'ri, 'rc, 'l, V, I, C, O> $t<Block<'ri, 'rc, V, I, C>>
-            for &'l Block<'li, 'lc, V, I, C>
+        impl<'lv, 'li, 'lc, 'rv, 'ri, 'rc, 'l, V, I, C, O> $t<Block<'rv, 'ri, 'rc, V, I, C>>
+            for &'l Block<'lv, 'li, 'lc, V, I, C>
 
-            where V: Copy + $t<Output=O>,
+            where V: Clone + $t<Output=O>,
                   I: Clone + Eq + Hash,
                   C: Clone + Eq + Hash,
-                  O: Copy {
+                  O: 'l + Clone {
 
-            type Output = Block<'l, 'l, O, I, C>;
+            type Output = Block<'l, 'l, 'l, O, I, C>;
             fn $m(self, _rhs: Block<V, I, C>) -> Self::Output {
                 self.assert_binop(&_rhs);
-                let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
+                let mut new_values: Vec<Cow<Vec<O>>> = Vec::with_capacity(self.values.len());
                 for (value, rvalue) in self.values.iter()
                                            .zip(_rhs.values.into_iter()) {
-                    let new_value = Elemwise::elemwise_ro(value, rvalue, |x, y| x.$m(y));
-                    new_values.push(new_value);
+                    let new_value = Elemwise::elemwise_rr(value.as_ref(),
+                                                          rvalue.as_ref(), |x, y| x.$m(y));
+                    new_values.push(Cow::Owned(new_value));
                 }
                 Block::from_cow(new_values,
                                 Cow::Borrowed(self.index.borrow()),
@@ -147,22 +155,24 @@ macro_rules! define_numeric_op {
             }
         }
 
-        impl<'li, 'lc, 'ri , 'rc, 'l, 'r, V, I, C, O> $t<&'r Block<'ri, 'rc, V, I, C>>
-            for &'l Block<'li, 'lc, V, I, C>
+        impl<'lv, 'li, 'lc, 'rv, 'ri , 'rc, 'l, 'r, V, I, C, O> $t<&'r Block<'rv, 'ri, 'rc, V, I, C>>
+            for &'l Block<'lv, 'li, 'lc, V, I, C>
 
-            where V: Copy + $t<Output=O>,
+            where V: Clone + $t<Output=O>,
                   I: Clone + Eq + Hash,
                   C: Clone + Eq + Hash,
-                  O: Copy {
+                  O: 'l + Clone {
 
-            type Output = Block<'l, 'l, O, I, C>;
+            type Output = Block<'l, 'l, 'l, O, I, C>;
             fn $m(self, _rhs: &'r Block<V, I, C>) -> Self::Output {
                 self.assert_binop(&_rhs);
-                let mut new_values: Vec<Vec<O>> = Vec::with_capacity(self.values.len());
+                let mut new_values: Vec<Cow<Vec<O>>> = Vec::with_capacity(self.values.len());
                 for (value, rvalue) in self.values.iter()
                                            .zip(_rhs.values.iter()) {
-                    let new_value = Elemwise::elemwise_rr(value, rvalue, |x, y| x.$m(y));
-                    new_values.push(new_value);
+                    let new_value = Elemwise::elemwise_rr(value.as_ref(),
+                                                          rvalue.as_ref(),
+                                                          |x, y| x.$m(y));
+                    new_values.push(Cow::Owned(new_value));
                 }
                 Block::from_cow(new_values,
                                 Cow::Borrowed(self.index.borrow()),

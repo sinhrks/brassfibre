@@ -3,7 +3,7 @@ pub struct Indexing;
 
 impl Indexing {
 
-    pub fn blocs<T: Clone>(values: &Vec<T>, flags: &Vec<bool>) -> Vec<T> {
+    pub fn blocs<T: Clone>(values: &[T], flags: &[bool]) -> Vec<T> {
         assert!(values.len() == flags.len(), "flags must be the same length as values");
         // should use filter_map?
         let new_values: Vec<T> = values.iter()

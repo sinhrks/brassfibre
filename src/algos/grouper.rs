@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
+// ToDo: use Cow?
 
 pub struct HashGrouper<T> {
     pub groups: HashMap<T, Vec<usize>>
@@ -8,7 +9,7 @@ pub struct HashGrouper<T> {
 
 pub trait Grouper<T> {
     // ToDo: Implement efficient multimap
-    fn groupby(key: &Vec<T>) -> HashGrouper<T>;
+    fn groupby(key: &[T]) -> HashGrouper<T>;
     fn get(&self, key: &T) -> Option<&Vec<usize>>;
     fn keys(&self) -> Vec<T>;
     fn len(&self) -> usize;
@@ -17,7 +18,7 @@ pub trait Grouper<T> {
 impl<T> Grouper<T> for HashGrouper<T>
     where T: Clone + Hash + Eq {
 
-    fn groupby(key: &Vec<T>) -> HashGrouper<T> {
+    fn groupby(key: &[T]) -> HashGrouper<T> {
 
         let mut map: HashMap<T, Vec<usize>> = HashMap::new();
 

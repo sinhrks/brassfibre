@@ -1,8 +1,9 @@
+use std::borrow::Cow;
 use std::cmp;
 use std::hash::Hash;
 use std::usize;
 
-use super::set::{union, to_enumhashmap};
+use super::set::{CowCollections, union};
 
 const USIZE_MISSING: usize = usize::MAX;
 
@@ -10,18 +11,18 @@ const USIZE_MISSING: usize = usize::MAX;
 pub struct HashJoin;
 
 pub trait Join<T> {
-    fn inner(left: &Vec<T>, right: &Vec<T>) -> (Vec<T>, Vec<usize>, Vec<usize>);
-    fn left(left: &Vec<T>, right: &Vec<T>) -> (Vec<T>, Vec<usize>, Vec<usize>);
-    fn right(left: &Vec<T>, right: &Vec<T>) -> (Vec<T>, Vec<usize>, Vec<usize>);
-    fn outer(left: &Vec<T>, right: &Vec<T>) -> (Vec<T>, Vec<usize>, Vec<usize>);
+    fn inner(left: &[T], right: &[T]) -> (Vec<T>, Vec<usize>, Vec<usize>);
+    fn left(left: &[T], right: &[T]) -> (Vec<T>, Vec<usize>, Vec<usize>);
+    fn right(left: &[T], right: &[T]) -> (Vec<T>, Vec<usize>, Vec<usize>);
+    fn outer(left: &[T], right: &[T]) -> (Vec<T>, Vec<usize>, Vec<usize>);
 
-    fn keep_first(keep: &Vec<T>, other: &Vec<T>) -> (Vec<T>, Vec<usize>, Vec<usize>);
+    fn keep_first(keep: &[T], other: &[T]) -> (Vec<T>, Vec<usize>, Vec<usize>);
 }
 
 impl<T> Join<T> for HashJoin
     where T: Clone + Hash + Eq {
 
-    fn inner(left: &Vec<T>, right: &Vec<T>) -> (Vec<T>, Vec<usize>, Vec<usize>) {
+    fn inner(left: &[T], right: &[T]) -> (Vec<T>, Vec<usize>, Vec<usize>) {
 
         let exp_capacity = cmp::min(left.len(), right.len());
 
@@ -29,12 +30,12 @@ impl<T> Join<T> for HashJoin
         let mut lindexer: Vec<usize> = Vec::with_capacity(exp_capacity);
         let mut rindexer: Vec<usize> = Vec::with_capacity(exp_capacity);
 
-        let map = to_enumhashmap(right);
+        let map = CowCollections::to_enumhashmap(right);
 
         // keep left order
-        for (i, ref key) in left.iter().enumerate() {
+        for (i, key) in left.iter().enumerate() {
             // ToDo: sort?
-            match map.get(key) {
+            match map.get(&Cow::Borrowed(key)) {
                 Some(val) => {
                     indexer.push((*key).clone());
                     lindexer.push(i);
@@ -46,19 +47,18 @@ impl<T> Join<T> for HashJoin
         (indexer, lindexer, rindexer)
     }
 
-    fn left(left: &Vec<T>, right: &Vec<T>) -> (Vec<T>, Vec<usize>, Vec<usize>) {
+    fn left(left: &[T], right: &[T]) -> (Vec<T>, Vec<usize>, Vec<usize>) {
         HashJoin::keep_first(&left, &right)
     }
 
-    fn right(left: &Vec<T>, right: &Vec<T>) -> (Vec<T>, Vec<usize>, Vec<usize>) {
+    fn right(left: &[T], right: &[T]) -> (Vec<T>, Vec<usize>, Vec<usize>) {
         let res = HashJoin::keep_first(&right, &left);
         (res.0, res.2, res.1)
     }
 
     /// internal fn for left or right join
     /// values in keep is being kept
-    fn keep_first(keep: &Vec<T>, other: &Vec<T>) -> (Vec<T>, Vec<usize>, Vec<usize>) {
-
+    fn keep_first(keep: &[T], other: &[T]) -> (Vec<T>, Vec<usize>, Vec<usize>) {
 
         let exp_capacity = keep.len();
 
@@ -66,11 +66,11 @@ impl<T> Join<T> for HashJoin
         let mut kindexer: Vec<usize> = Vec::with_capacity(exp_capacity);
         let mut oindexer: Vec<usize> = Vec::with_capacity(exp_capacity);
 
-        let map = to_enumhashmap(other);
+        let map = CowCollections::to_enumhashmap(other);
 
-        for (i, ref key) in keep.iter().enumerate() {
+        for (i, key) in keep.iter().enumerate() {
             // ToDo: sort?
-            match map.get(key) {
+            match map.get(&Cow::Borrowed(key)) {
                 Some(loc) => {
                     indexer.push((*key).clone());
                     kindexer.push(i);
@@ -86,7 +86,7 @@ impl<T> Join<T> for HashJoin
         (indexer, kindexer, oindexer)
     }
 
-    fn outer(left: &Vec<T>, right: &Vec<T>) -> (Vec<T>, Vec<usize>, Vec<usize>) {
+    fn outer(left: &[T], right: &[T]) -> (Vec<T>, Vec<usize>, Vec<usize>) {
 
         let exp_capacity = cmp::max(left.len(), right.len());
 
@@ -94,14 +94,14 @@ impl<T> Join<T> for HashJoin
         let mut lindexer: Vec<usize> = Vec::with_capacity(exp_capacity);
         let mut rindexer: Vec<usize> = Vec::with_capacity(exp_capacity);
 
-        let lmap = to_enumhashmap(left);
-        let rmap = to_enumhashmap(right);
+        let lmap = CowCollections::to_enumhashmap(left);
+        let rmap = CowCollections::to_enumhashmap(right);
 
         let indexer = union(left, right);
 
         for key in &indexer {
             // ToDo: sort?
-            match lmap.get(key) {
+            match lmap.get(&Cow::Borrowed(key)) {
                 Some(loc) => {
                     lindexer.push(*loc);
                 },
@@ -109,7 +109,7 @@ impl<T> Join<T> for HashJoin
                     lindexer.push(USIZE_MISSING)
                 }
             }
-            match rmap.get(key) {
+            match rmap.get(&Cow::Borrowed(key)) {
                 Some(loc) => {
                     rindexer.push(*loc);
                 },

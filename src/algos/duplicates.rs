@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
 use std::collections::hash_map::Entry;
 use std::hash::Hash;
@@ -11,8 +12,8 @@ pub enum Duplicates {
 
 impl Duplicates {
 
-    pub fn duplicated<T>(a: &Vec<T>, how: Duplicates) -> Vec<bool>
-        where T: Hash + Eq + Copy {
+    pub fn duplicated<T>(a: &[T], how: Duplicates) -> Vec<bool>
+        where T: Clone + Hash + Eq {
 
         match how {
             Duplicates::First => { Duplicates::duplicated_keepfirst(a) },
@@ -21,31 +22,32 @@ impl Duplicates {
         }
     }
 
-    fn duplicated_keepfirst<T>(a: &Vec<T>) -> Vec<bool>
-        where T: Hash + Eq + Copy {
+    fn duplicated_keepfirst<T>(a: &[T]) -> Vec<bool>
+        where T: Clone + Hash + Eq {
+
         // ToDo: Change return value to BitVec
         let mut res: Vec<bool> = Vec::with_capacity(a.len());
-        let mut set: HashSet<T> = HashSet::with_capacity(a.len());
+        let mut set: HashSet<Cow<T>> = HashSet::with_capacity(a.len());
 
-        for v in a.iter() {
-            if set.contains(v) {
+        for v in a.iter().map(|x| Cow::Borrowed(x)) {
+            if set.contains(&v) {
                 res.push(true)
             } else {
-                set.insert(*v);
+                set.insert(v);
                 res.push(false);
             }
         }
         res
     }
 
-    fn duplicated_keeplast<T>(a: &Vec<T>) -> Vec<bool>
-        where T: Hash + Eq + Copy {
+    fn duplicated_keeplast<T>(a: &[T]) -> Vec<bool>
+        where T: Clone + Hash + Eq {
 
         let mut res: Vec<bool> = Vec::with_capacity(a.len());
-        let mut map: HashMap<T, usize> = HashMap::with_capacity(a.len());
+        let mut map: HashMap<Cow<T>, usize> = HashMap::with_capacity(a.len());
 
         for (i, v) in a.iter().enumerate() {
-            match map.entry(*v) {
+            match map.entry(Cow::Borrowed(v)) {
                 // Do nothing if already occupied
                 Entry::Occupied(mut e) => {
                     let idx = e.insert(i);
@@ -61,14 +63,15 @@ impl Duplicates {
         res
     }
 
-    fn duplicated_keepnone<T>(a: &Vec<T>) -> Vec<bool>
-        where T: Hash + Eq + Copy {
+    fn duplicated_keepnone<T>(a: &[T]) -> Vec<bool>
+        where T: Clone + Hash + Eq {
 
         let mut res: Vec<bool> = Vec::with_capacity(a.len());
-        let mut map: HashMap<T, usize> = HashMap::with_capacity(a.len());
+        let mut map: HashMap<Cow<T>, usize> = HashMap::with_capacity(a.len());
 
         for (i, v) in a.iter().enumerate() {
-            match map.entry(*v) {
+            // Avoid clone
+            match map.entry(Cow::Borrowed(v)) {
                 // Do nothing if already occupied
                 Entry::Occupied(e) => {
                     res[*e.get()] = true;

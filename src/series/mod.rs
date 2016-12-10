@@ -18,8 +18,11 @@ mod ops;
 mod sort;
 
 #[derive(Clone)]
-pub struct Series<'i, V, I: 'i + Clone + Hash> {
-    pub values: Vec<V>,
+pub struct Series<'v, 'i, V, I>
+    where V: 'v + Clone,
+          I: 'i + Clone + Hash {
+
+    pub values: Cow<'v, Vec<V>>,
     pub index: Cow<'i, Indexer<I>>,
 }
 
@@ -27,8 +30,8 @@ pub struct Series<'i, V, I: 'i + Clone + Hash> {
 // Indexing
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, V, I> RowIndexer<'i> for Series<'i, V, I>
-    where V: Copy,
+impl<'v, 'i, V, I> RowIndexer<'i> for Series<'v, 'i, V, I>
+    where V: Clone,
           I: Clone + Eq + Hash {
 
     type Key = I;
@@ -44,23 +47,24 @@ impl<'i, V, I> RowIndexer<'i> for Series<'i, V, I>
     }
 
     fn iloc(&self, location: &usize) -> Self::Row {
-        self.values[*location]
+        self.values[*location].clone()
     }
 
-    fn reindex(&self, labels: &Vec<Self::Key>) -> Self {
+    fn reindex(&self, labels: &[Self::Key]) -> Self {
         let locs = self.index.get_locs(labels);
         let new_values = Sorter::reindex(&self.values, &locs);
-        Series::new(new_values, labels.clone())
+        let new_labels: Vec<Self::Key> = labels.iter().cloned().collect();
+        Series::new(new_values, new_labels)
     }
 
-    fn reindex_by_index(&self, locations: &Vec<usize>) -> Self {
+    fn reindex_by_index(&self, locations: &[usize]) -> Self {
         let new_index = self.index.reindex(&locations);
         let new_values = Sorter::reindex(&self.values, &locations);
         Series::new(new_values, new_index)
     }
 
     /// Slice using given Vec<bool> (slice by Bool LOCationS)
-    fn blocs(&self, flags: &Vec<bool>) -> Self {
+    fn blocs(&self, flags: &[bool]) -> Self {
         let new_values: Vec<Self::Row> = Indexing::blocs(&self.values, flags);
         let new_index = self.index.blocs(flags);
         Series::new(new_values, new_index)
@@ -71,15 +75,15 @@ impl<'i, V, I> RowIndexer<'i> for Series<'i, V, I>
 // Misc
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, V, I> Series<'i, V, I>
-    where V: Copy,
+impl<'v, 'i, V, I> Series<'v, 'i, V, I>
+    where V: 'v + Clone,
           I: 'i + Clone + Eq + Hash {
 
-    pub fn from_vec(values: Vec<V>) -> Series<'i, V, usize> {
+    pub fn from_vec(values: Vec<V>) -> Series<'v, 'i, V, usize> {
         let index: Indexer<usize> = Indexer::<usize>::from_len(values.len());
 
         Series {
-            values: values,
+            values: Cow::Owned(values),
             index: Cow::Owned(index),
         }
     }
@@ -92,12 +96,12 @@ impl<'i, V, I> Series<'i, V, I>
         assert!(values.len() == index.len(), "Length mismatch!");
 
         Series {
-            values: values,
+            values: Cow::Owned(values),
             index: Cow::Owned(index),
         }
     }
 
-    pub fn from_cow(values: Vec<V>, index: Cow<'i, Indexer<I>>) -> Self {
+    pub fn from_cow(values: Cow<'v, Vec<V>>, index: Cow<'i, Indexer<I>>) -> Self {
 
         assert!(values.len() == index.len(), "Length mismatch!");
 
@@ -121,13 +125,15 @@ impl<'i, V, I> Series<'i, V, I>
 // Append
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, V, I> Appender<'i> for Series<'i, V, I>
-    where V: Copy,
+impl<'v, 'i, V, I> Appender<'i> for Series<'v, 'i, V, I>
+    where V: Clone,
           I: Clone + Eq + Hash {
 
     fn append(&self, other: &Self) -> Self {
-        let mut new_values: Vec<V> = self.values.clone();
-        new_values.append(&mut other.values.clone());
+        // clone COW (not values, then into_owned())
+        let mut new_values: Vec<V> = self.values.clone().into_owned();
+        // clone COW (not values, then to_mut())
+        new_values.append(&mut other.values.clone().to_mut());
         let new_index = self.index.append(&other.index);
         Series::new(new_values, new_index)
     }
@@ -137,8 +143,8 @@ impl<'i, V, I> Appender<'i> for Series<'i, V, I>
 // Apply
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, V, I, R> Applicable<'i, R> for Series<'i, V, I>
-    where V: Copy,
+impl<'v, 'i, V, I, R> Applicable<'i, R> for Series<'v, 'i, V, I>
+    where V: Clone,
           I: Clone + Eq + Hash {
 
     type In = Vec<V>;
@@ -154,8 +160,8 @@ impl<'i, V, I, R> Applicable<'i, R> for Series<'i, V, I>
 // Eq
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, V, I> PartialEq for Series<'i, V, I>
-    where V: PartialEq,
+impl<'v, 'i, V, I> PartialEq for Series<'v, 'i, V, I>
+    where V: Clone + PartialEq,
           I: Clone + Hash + Eq {
 
     fn eq(&self, other: &Self) -> bool {
@@ -167,21 +173,23 @@ impl<'i, V, I> PartialEq for Series<'i, V, I>
 // Iterator
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, V, I> IntoIterator for Series<'i, V, I>
-    where I: Clone + Eq + Hash {
+impl<'v, 'i, V, I> IntoIterator for Series<'v, 'i, V, I>
+    where V: Clone,
+          I: Clone + Eq + Hash {
 
     type Item = V;
     type IntoIter = vec::IntoIter<V>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.values.into_iter()
+        self.values.into_owned().into_iter()
     }
 }
 
-impl<'i, V, I> Series<'i, V, I>
-    where I: Clone + Eq + Hash {
+impl<'v, 'i, V, I> Series<'v, 'i, V, I>
+    where V: Clone,
+          I: Clone + Eq + Hash {
 
     pub fn iter(&self) -> slice::Iter<V> {
-        self.values.iter()
+        self.values.as_ref().iter()
     }
 }

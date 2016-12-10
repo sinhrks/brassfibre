@@ -15,13 +15,14 @@ mod indexing;
 mod ops;
 mod sort;
 
-/// Immutable hash index
+/// Hash index
 #[derive(Clone)]
 pub struct Indexer<U: Clone + Hash> {
     // index must be hashable, note that float can't be hashed
     pub values: Vec<U>,
 
     // provides interior mutability
+    // ToDo: use Cow?
     htable: RefCell<HashMap<U, usize>>,
 }
 
@@ -55,12 +56,12 @@ impl<U> Slicer for Indexer<U> where U: Clone + Eq + Hash {
         self.values.len()
     }
 
-    fn ilocs(&self, locations: &Vec<usize>) -> Self {
+    fn ilocs(&self, locations: &[usize]) -> Self {
         let new_values = Sorter::reindex(&self.values, locations);
         Indexer::new(new_values)
     }
 
-    fn blocs(&self, flags: &Vec<bool>) -> Self {
+    fn blocs(&self, flags: &[bool]) -> Self {
         let new_values: Vec<U> = Indexing::blocs(&self.values, flags);
         Indexer::new(new_values)
     }
@@ -94,7 +95,7 @@ impl<U> IndexerIndexer for Indexer<U> where U: Clone + Eq + Hash {
     }
 
     /// Return label locations (Vector) corresponding to given labels (Vector)
-    fn get_locs(&self, labels: &Vec<U>) -> Vec<usize> {
+    fn get_locs(&self, labels: &[U]) -> Vec<usize> {
         labels.iter().map(|label| self.get_loc(&label)).collect()
     }
 

@@ -5,10 +5,10 @@ use num::{Num, Zero, Float, ToPrimitive};
 // Aggregation
 
 pub fn vec_sum<T>(values: &Vec<T>) -> T
-    where T: Copy + Num + Zero {
+    where T: Clone + Num + Zero {
 
     // ToDo: Use AsRef
-    values.iter().fold(T::zero(), |a, b| a + *b)
+    values.iter().fold(T::zero(), |a, b| a + b.clone())
 }
 
 pub fn vec_count<T>(values: &Vec<T>) -> usize {
@@ -20,14 +20,14 @@ pub fn vec_count_as_f64<T>(values: &Vec<T>) -> f64 {
 }
 
 pub fn vec_mean<T>(values: &Vec<T>) -> f64
-    where T: Copy + Num + Zero + ToPrimitive {
+    where T: Clone + Num + Zero + ToPrimitive {
 
     ToPrimitive::to_f64(&vec_sum(values)).unwrap() /
                         vec_count_as_f64(values)
 }
 
 fn mean_sq<T>(values: &Vec<T>) -> f64
-    where T: Copy + Num + Zero + ToPrimitive {
+    where T: Clone + Num + Zero + ToPrimitive {
     // use two pass algorithm, assuming data is not large
     let mean = vec_mean(values);
     values.iter()
@@ -36,25 +36,25 @@ fn mean_sq<T>(values: &Vec<T>) -> f64
 }
 
 pub fn vec_var<T>(values: &Vec<T>) -> f64
-    where T: Copy + Num + Zero + ToPrimitive {
+    where T: Clone + Num + Zero + ToPrimitive {
 
     mean_sq(values) / vec_count_as_f64(values)
 }
 
 pub fn vec_unbiased_var<T>(values: &Vec<T>) -> f64
-    where T: Copy + Num + Zero + ToPrimitive {
+    where T: Clone + Num + Zero + ToPrimitive {
 
     mean_sq(values) / (vec_count_as_f64(values) - 1.)
 }
 
 pub fn vec_std<T>(values: &Vec<T>) -> f64
-    where T: Copy + Num + Zero + ToPrimitive {
+    where T: Clone + Num + Zero + ToPrimitive {
 
     vec_var(values).sqrt()
 }
 
 pub fn vec_unbiased_std<T>(values: &Vec<T>) -> f64
-    where T: Copy + Num + Zero + ToPrimitive {
+    where T: Clone + Num + Zero + ToPrimitive {
 
     vec_unbiased_var(values).sqrt()
 }
@@ -123,16 +123,16 @@ define_float_stats!(f32);
 
 
 pub fn vec_min<T>(values: &Vec<T>) -> T
-    where T: Copy + Num + NanMinMax<T> {
+    where T: Clone + Num + NanMinMax<T> {
 
     // can't use normal min(a, b), because it can't handle NaN
-    values.iter().fold(T::nanmax_value(), |a, b| a.nanmin(*b))
+    values.iter().fold(T::nanmax_value(), |a, b| a.nanmin((*b).clone()))
 }
 
 pub fn vec_max<T>(values: &Vec<T>) -> T
-    where T: Copy + Num + NanMinMax<T> {
+    where T: Clone + Num + NanMinMax<T> {
 
-    values.iter().fold(T::nanmin_value(), |a, b| a.nanmax(*b))
+    values.iter().fold(T::nanmin_value(), |a, b| a.nanmax((*b).clone()))
 }
 
 #[cfg(test)]

@@ -376,8 +376,8 @@ fn test_block_into_iter() {
                                 vec!["A", "B", "C"],
                                 vec!["X", "Y"]);
     let mut it = b.into_iter();
-    assert_eq!(it.next(), Some(vec![1., 2., 3.]));
-    assert_eq!(it.next(), Some(vec![4., 5., 6.]));
+    assert_eq!(it.next(), Some(Cow::Owned(vec![1., 2., 3.])));
+    assert_eq!(it.next(), Some(Cow::Owned(vec![4., 5., 6.])));
     assert_eq!(it.next(), None);
 }
 
@@ -387,7 +387,7 @@ fn test_block_iter() {
                                 vec!["A", "B", "C"],
                                 vec!["X", "Y"]);
     let mut it = b.iter();
-    assert_eq!(it.next(), Some(&vec![1., 2., 3.]));
-    assert_eq!(it.next(), Some(&vec![4., 5., 6.]));
+    assert_eq!(it.next(), Some(&Cow::Owned(vec![1., 2., 3.])));
+    assert_eq!(it.next(), Some(&Cow::Owned(vec![4., 5., 6.])));
     assert_eq!(it.next(), None);
 }

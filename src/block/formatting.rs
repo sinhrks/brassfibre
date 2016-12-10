@@ -5,7 +5,7 @@ use super::Block;
 use super::super::formatting;
 
 
-impl<'i, 'c, V, I, C> fmt::Display for Block<'i, 'c, V, I, C>
+impl<'v, 'i, 'c, V, I, C> fmt::Display for Block<'v, 'i, 'c, V, I, C>
     where V: Copy,
           I: Clone + Eq + Hash,
           C: Clone + Eq + Hash + fmt::Debug {
@@ -16,7 +16,7 @@ impl<'i, 'c, V, I, C> fmt::Display for Block<'i, 'c, V, I, C>
 
 }
 
-impl<'i, 'c, V, I, C> fmt::Debug for Block<'i, 'c, V, I, C>
+impl<'v, 'i, 'c, V, I, C> fmt::Debug for Block<'v, 'i, 'c, V, I, C>
     where V: Copy + ToString,
           I: Clone + Eq + Hash + ToString,
           C: Clone + Eq + Hash + ToString {

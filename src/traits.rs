@@ -7,10 +7,10 @@
 /// Indexing methods for non-labeled Array / Indexer
 pub trait Slicer: Sized {
     fn len(&self) -> usize;
-    fn ilocs(&self, locations: &Vec<usize>) -> Self;
-    fn blocs(&self, flags: &Vec<bool>) -> Self;
+    fn ilocs(&self, locations: &[usize]) -> Self;
+    fn blocs(&self, flags: &[bool]) -> Self;
 
-    fn reindex(&self, locations: &Vec<usize>) -> Self {
+    fn reindex(&self, locations: &[usize]) -> Self {
         self.ilocs(locations)
     }
 }
@@ -23,7 +23,7 @@ pub trait IndexerIndexer: Slicer {
     fn contains(&self, label: &Self::Key) -> bool;
     fn push(&mut self, label: Self::Key);
     fn get_loc(&self, label: &Self::Key) -> usize;
-    fn get_locs(&self, labels: &Vec<Self::Key>) -> Vec<usize>;
+    fn get_locs(&self, labels: &[Self::Key]) -> Vec<usize>;
 
     // temp
     fn init_state(&self);
@@ -50,8 +50,8 @@ pub trait RowIndexer<'s>: Sized {
         self.ilocs(&indexer)
     }
 
-    fn reindex<'l>(&'s self, labels: &'l Vec<Self::Key>) -> Self;
-    fn reindex_by_index<'l>(&'s self, locations: &'l Vec<usize>) -> Self;
+    fn reindex<'l>(&'s self, labels: &'l [Self::Key]) -> Self;
+    fn reindex_by_index<'l>(&'s self, locations: &'l [usize]) -> Self;
 
     // selection
 
@@ -62,17 +62,17 @@ pub trait RowIndexer<'s>: Sized {
     fn iloc<'l>(&'s self, location: &'l usize) -> Self::Row;
 
     /// Slice using given labels (slice by LOCationS)
-    fn locs<'l>(&'s self, labels: &'l Vec<Self::Key>) -> Self {
+    fn locs<'l>(&'s self, labels: &'l [Self::Key]) -> Self {
         self.reindex(labels)
     }
 
     /// Slice using given indices (slice by Index LOCationS)
-    fn ilocs<'l>(&'s self, locations: &'l Vec<usize>) -> Self {
+    fn ilocs<'l>(&'s self, locations: &'l [usize]) -> Self {
         self.reindex_by_index(locations)
     }
 
     /// Slice using given Vec<bool> (slice by Bool LOCationS)
-    fn blocs<'l>(&'s self, flags: &'l Vec<bool>) -> Self;
+    fn blocs<'l>(&'s self, flags: &'l [bool]) -> Self;
 }
 
 /// Indexing methods for Columns
@@ -90,10 +90,10 @@ pub trait ColIndexer<'s>: Sized {
     fn iget<'l>(&'s self, label: &'l usize) -> Self::Column;
 
     /// Slice columns using labels
-    fn gets<'l>(&'s self, labels: &'l Vec<Self::Key>) -> Self;
+    fn gets<'l>(&'s self, labels: &'l [Self::Key]) -> Self;
 
     /// Slice columns given indices
-    fn igets<'l>(&'s self, locations: &'l Vec<usize>) -> Self;
+    fn igets<'l>(&'s self, locations: &'l [usize]) -> Self;
 
     // ToDo: Add .insert
 }

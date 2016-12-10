@@ -9,105 +9,124 @@ macro_rules! define_numeric_op {
     ($t:ident, $m:ident) => {
 
         // Broadcast
-        impl<'i, V, I, O> $t<V> for Series<'i, V, I>
-            where V: Copy + $t<Output=O>,
+        impl<'v, 'i, V, I, O> $t<V> for Series<'v, 'i, V, I>
+            where V: Clone + $t<Output=O>,
                   I: Clone + Eq + Hash,
-                  O: Copy {
+                  O: 'v + Clone {
 
-            type Output = Series<'i, O, I>;
+            type Output = Series<'v, 'i, O, I>;
             fn $m(self, _rhs: V) -> Self::Output {
-                let new_values: Vec<O> = Elemwise::broadcast_oo(self.values, _rhs, |x, y| x.$m(y));
+                // binary ops doesn't require value's ownership
+                let new_values: Vec<O> = Elemwise::broadcast_ro(self.values.as_ref(),
+                                                                _rhs, |x, y| x.$m(y));
                 // self is moved, pass index to new instance
-                Series::from_cow(new_values, self.index)
+                Series::from_cow(Cow::Owned(new_values), self.index)
             }
         }
 
-        impl<'i, 'r, V, I, O> $t<&'r V> for Series<'i, V, I>
-            where V: Copy + $t<Output=O>,
+        impl<'v, 'i, 'r, V, I, O> $t<&'r V> for Series<'v, 'i, V, I>
+            where V: Clone + $t<Output=O>,
                   I: Clone + Eq + Hash,
-                  O: Copy {
+                  O: 'v + Clone {
 
-            type Output = Series<'i, O, I>;
+            type Output = Series<'v, 'i, O, I>;
             fn $m(self, _rhs: &'r V) -> Self::Output {
-                let new_values: Vec<O> = Elemwise::broadcast_or(self.values, _rhs, |x, y| x.$m(y));
-                Series::from_cow(new_values, self.index)
+                let new_values: Vec<O> = Elemwise::broadcast_rr(self.values.as_ref(),
+                                                                _rhs, |x, y| x.$m(y));
+                Series::from_cow(Cow::Owned(new_values), self.index)
             }
         }
 
-        impl<'i, 'l, V, I, O> $t<V> for &'l Series<'i, V, I>
-            where V: Copy + $t<Output=O>,
+        impl<'v, 'i, 'l, V, I, O> $t<V> for &'l Series<'v, 'i, V, I>
+            where V: Clone + $t<Output=O>,
                   I: Clone + Eq + Hash,
-                  O: Copy {
+                  O: 'l + Clone {
 
-            type Output = Series<'l, O, I>;
+            type Output = Series<'l, 'l, O, I>;
             fn $m(self, _rhs: V) -> Self::Output {
-                let new_values: Vec<O> = Elemwise::broadcast_ro(&self.values, _rhs, |x, y| x.$m(y));
-                Series::from_cow(new_values, Cow::Borrowed(self.index.borrow()))
+                let new_values: Vec<O> = Elemwise::broadcast_ro(self.values.as_ref(),
+                                                                _rhs, |x, y| x.$m(y));
+                Series::from_cow(Cow::Owned(new_values),
+                                 Cow::Borrowed(self.index.borrow()))
             }
         }
 
-        impl<'i, 'l, 'r, V, I, O> $t<&'r V> for &'l Series<'i, V, I>
-            where V: Copy + $t<Output=O>,
+        impl<'v, 'i, 'l, 'r, V, I, O> $t<&'r V> for &'l Series<'v, 'i, V, I>
+            where V: Clone + $t<Output=O>,
                   I: Clone + Eq + Hash,
-                  O: Copy {
+                  O: 'l + Clone {
 
-            type Output = Series<'l, O, I>;
+            type Output = Series<'l, 'l, O, I>;
             fn $m(self, _rhs: &'r V) -> Self::Output {
-                let new_values: Vec<O> = Elemwise::broadcast_rr(&self.values, _rhs, |x, y| x.$m(y));
-                Series::from_cow(new_values, Cow::Borrowed(self.index.borrow()))
+                let new_values: Vec<O> = Elemwise::broadcast_rr(self.values.as_ref(),
+                                                                _rhs, |x, y| x.$m(y));
+                Series::from_cow(Cow::Owned(new_values),
+                                 Cow::Borrowed(self.index.borrow()))
             }
         }
 
         // Element-wise
-        impl<'li, 'ri, V, I, O> $t<Series<'ri, V, I>> for Series<'li, V, I>
-            where V: Copy + $t<Output=O>,
+        impl<'lv, 'rv, 'li, 'ri, V, I, O> $t<Series<'rv, 'ri, V, I>> for Series<'lv, 'li, V, I>
+            where V: Clone + $t<Output=O>,
                   I: Clone + Eq + Hash,
-                  O: Copy {
+                  O: 'lv + Clone {
 
-            type Output = Series<'li, O, I>;
+            type Output = Series<'lv, 'li, O, I>;
             fn $m(self, _rhs: Series<V, I>) -> Self::Output {
                 self.assert_binop(&_rhs);
-                let new_values: Vec<O> = Elemwise::elemwise_oo(self.values, _rhs.values, |x, y| x.$m(y));
-                Series::from_cow(new_values, self.index)
+                let new_values: Vec<O> = Elemwise::elemwise_oo(self.values.into_owned(),
+                                                               _rhs.values.into_owned(),
+                                                               |x, y| x.$m(y));
+                Series::from_cow(Cow::Owned(new_values), self.index)
             }
         }
 
-        impl<'li, 'ri, 'r, V, I, O> $t<&'r Series<'ri, V, I>> for Series<'li, V, I>
-            where V: Copy + $t<Output=O>,
+        impl<'lv, 'rv, 'li, 'ri, 'r, V, I, O> $t<&'r Series<'rv, 'ri, V, I>> for Series<'lv, 'li, V, I>
+            where V: Clone + $t<Output=O>,
                   I: Clone + Eq + Hash,
-                  O: Copy {
+                  O: 'lv + Clone {
 
-            type Output = Series<'li, O, I>;
+            type Output = Series<'lv, 'li, O, I>;
             fn $m(self, _rhs: &'r Series<V, I>) -> Self::Output {
                 self.assert_binop(&_rhs);
-                let new_values: Vec<O> = Elemwise::elemwise_or(self.values, &_rhs.values, |x, y| x.$m(y));
-                Series::from_cow(new_values, self.index)
+                let new_values: Vec<O> = Elemwise::elemwise_or(self.values.into_owned(),
+                                                               &_rhs.values.as_ref(),
+                                                               |x, y| x.$m(y));
+                Series::from_cow(Cow::Owned(new_values), self.index)
             }
         }
 
-        impl<'li, 'ri, 'l, V, I, O> $t<Series<'ri, V, I>> for &'l Series<'li, V, I>
-            where V: Copy + $t<Output=O>,
+        impl<'lv, 'rv, 'li, 'ri, 'l, V, I, O> $t<Series<'rv, 'ri, V, I>> for &'l Series<'lv, 'li, V, I>
+            where V: Clone + $t<Output=O>,
                   I: Clone + Eq + Hash,
-                  O: Copy {
-
-            type Output = Series<'l, O, I>;
+                  O: 'l + Clone {
+            // cannot use 'n lifetime for associated dtype (uncostrained)
+            type Output = Series<'l, 'l, O, I>;
             fn $m(self, _rhs: Series<V, I>) -> Self::Output {
                 self.assert_binop(&_rhs);
-                let new_values: Vec<O> = Elemwise::elemwise_ro(&self.values, _rhs.values, |x, y| x.$m(y));
-                Series::from_cow(new_values, Cow::Borrowed(self.index.borrow()))
+
+                // ToDo: match with Cow::Owned / Borrowed
+                let new_values: Vec<O> = Elemwise::elemwise_ro(&self.values.as_ref(),
+                                                               _rhs.values.into_owned(),
+                                                               |x, y| x.$m(y));
+                Series::from_cow(Cow::Owned(new_values),
+                                 Cow::Borrowed(self.index.borrow()))
             }
         }
 
-        impl<'li, 'ri, 'l, 'r, V, I, O> $t<&'r Series<'ri, V, I>> for &'l Series<'li, V, I>
-            where V: Copy + $t<Output=O>,
-                  I: Clone + Eq + Hash,
-                  O: Copy {
+        impl<'lv, 'rv, 'li, 'ri, 'l, 'r, V, I, O> $t<&'r Series<'rv, 'ri, V, I>>
+            for &'l Series<'lv, 'li, V, I>
 
-            type Output = Series<'l, O, I>;
+            where V: Clone + $t<Output=O>,
+                  I: Clone + Eq + Hash,
+                  O: 'l + Clone {
+
+            type Output = Series<'l, 'l, O, I>;
             fn $m(self, _rhs: &'r Series<V, I>) -> Self::Output {
                 self.assert_binop(&_rhs);
                 let new_values: Vec<O> = Elemwise::elemwise_rr(&self.values, &_rhs.values, |x, y| x.$m(y));
-                Series::from_cow(new_values, Cow::Borrowed(self.index.borrow()))
+                Series::from_cow(Cow::Owned(new_values),
+                                 Cow::Borrowed(self.index.borrow()))
             }
         }
     }

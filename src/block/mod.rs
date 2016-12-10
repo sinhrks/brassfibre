@@ -17,8 +17,9 @@ mod ops;
 mod reshape;
 
 #[derive(Clone)]
-pub struct Block<'i, 'c, V, I, C>
-    where I: 'i + Clone + Hash,
+pub struct Block<'v, 'i, 'c, V, I, C>
+    where V: 'v + Clone,
+          I: 'i + Clone + Hash,
           C: 'c + Clone + Hash {
     /// 2-dimentional block contains a single type.
     /// V: type of values
@@ -26,7 +27,7 @@ pub struct Block<'i, 'c, V, I, C>
     /// C: type of columns
 
     // ToDo: may be simpler to use 1-d Vec?
-    pub values: Vec<Vec<V>>,
+    pub values: Vec<Cow<'v, Vec<V>>>,
     pub index: Cow<'i, Indexer<I>>,
     pub columns: Cow<'c, Indexer<C>>,
 }
@@ -35,8 +36,8 @@ pub struct Block<'i, 'c, V, I, C>
 // Indexing
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, 'c, V, I, C> RowIndexer<'c> for Block<'i, 'c, V, I, C>
-    where V: Copy,
+impl<'v, 'i, 'c, V, I, C> RowIndexer<'c> for Block<'v, 'i, 'c, V, I, C>
+    where V: Clone,
           I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 
@@ -55,37 +56,37 @@ impl<'i, 'c, V, I, C> RowIndexer<'c> for Block<'i, 'c, V, I, C>
         unimplemented!()
     }
 
-    fn reindex<'l>(&'c self, labels: &'l Vec<Self::Key>) -> Self {
+    fn reindex<'l>(&'c self, labels: &'l [Self::Key]) -> Self {
         let locations = self.index.get_locs(labels);
         self.reindex_by_index(&locations)
     }
 
-    fn reindex_by_index<'l>(&'c self, locations: &'l Vec<usize>) -> Self {
+    fn reindex_by_index<'l>(&'c self, locations: &'l [usize]) -> Self {
         let new_index = self.index.reindex(locations);
 
-        let mut new_values: Vec<Vec<V>> = Vec::with_capacity(self.columns.len());
+        let mut new_values: Vec<Cow<Vec<V>>> = Vec::with_capacity(self.columns.len());
         for current in self.values.iter() {
             let new_value = Sorter::reindex(current, locations);
-            new_values.push(new_value);
+            new_values.push(Cow::Owned(new_value));
         }
         Block::from_cow(new_values,
                         Cow::Owned(new_index),
                         Cow::Borrowed(self.columns.borrow()))
     }
 
-    fn blocs<'l>(&'c self, labels: &'l Vec<bool>) -> Self {
+    fn blocs<'l>(&'c self, labels: &'l [bool]) -> Self {
         unimplemented!()
         // ToDo: fix Series impl
     }
 }
 
-impl<'i, 'c, V, I, C> ColIndexer<'i> for Block<'i, 'c, V, I, C>
-    where V: Copy,
+impl<'v, 'i, 'c, V, I, C> ColIndexer<'i> for Block<'v, 'i, 'c, V, I, C>
+    where V: 'i + Clone,
           I: 'i + Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 
     type Key = C;
-    type Column = Series<'i, V, I>;
+    type Column = Series<'i, 'i, V, I>;
 
     fn get<'l>(&'i self, label: &'l Self::Key) -> Self::Column {
         let loc = self.columns.get_loc(label);
@@ -93,21 +94,23 @@ impl<'i, 'c, V, I, C> ColIndexer<'i> for Block<'i, 'c, V, I, C>
     }
 
     fn iget<'l>(&'i self, loc: &'l usize) -> Self::Column {
-        let new_values = self.values[*loc].clone();
-        Series::from_cow(new_values, Cow::Borrowed(self.index.borrow()))
+        Series::from_cow(Cow::Borrowed(self.values[*loc].borrow()),
+                         Cow::Borrowed(self.index.borrow()))
     }
 
-    fn gets<'l>(&'i self, labels: &'l Vec<Self::Key>) -> Self {
+    fn gets<'l>(&'i self, labels: &'l [Self::Key]) -> Self {
         let locs = self.columns.get_locs(labels);
         self.igets(&locs)
     }
 
-    fn igets<'l>(&'i self, locations: &'l Vec<usize>) -> Self {
+    fn igets<'l>(&'i self, locations: &'l [usize]) -> Self {
         let new_columns = self.columns.reindex(locations);
 
-        let mut new_values: Vec<Vec<V>> = Vec::with_capacity(new_columns.len());
+        let mut new_values: Vec<Cow<Vec<V>>> = Vec::with_capacity(new_columns.len());
         for loc in locations {
-            new_values.push(self.values[*loc].clone());
+            // ToDo: Avoid clone
+            // new_values.push(Cow::Borrowed(self.values[*loc].borrow()));
+            new_values.push(Cow::Owned(self.values[*loc].clone().into_owned()));
         }
         Block::from_cow(new_values,
                         Cow::Borrowed(self.index.borrow()),
@@ -119,8 +122,8 @@ impl<'i, 'c, V, I, C> ColIndexer<'i> for Block<'i, 'c, V, I, C>
 // Misc
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, 'c, V, I, C> Block<'i, 'c, V, I, C>
-    where V: Copy,
+impl<'v, 'i, 'c, V, I, C> Block<'v, 'i, 'c, V, I, C>
+    where V: Clone,
           I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 
@@ -137,10 +140,10 @@ impl<'i, 'c, V, I, C> Block<'i, 'c, V, I, C>
 
         assert!(values.len() == len * cols, "Length mismatch!");
 
-        let mut new_values: Vec<Vec<V>> = Vec::with_capacity(columns.len());
+        let mut new_values: Vec<Cow<Vec<V>>> = Vec::with_capacity(columns.len());
         for value in values.chunks(len) {
             let v: Vec<V> = value.iter().cloned().collect();
-            new_values.push(v);
+            new_values.push(Cow::Owned(v));
         }
         Block {
             values: new_values,
@@ -162,13 +165,14 @@ impl<'i, 'c, V, I, C> Block<'i, 'c, V, I, C>
 
         assert!(values.len() == len * cols, "Length mismatch!");
 
-        let mut new_values: Vec<Vec<V>> = Vec::with_capacity(columns.len());
+        let mut new_values: Vec<Cow<Vec<V>>> = Vec::with_capacity(columns.len());
         for i in 0..cols {
             let mut new_value: Vec<V> = Vec::with_capacity(index.len());
             for j in 0..len {
-                new_value.push(values[j * cols + i]);
+                // ToDo: avoid clone
+                new_value.push(values[j * cols + i].clone());
             }
-            new_values.push(new_value);
+            new_values.push(Cow::Owned(new_value));
         }
         Block {
             values: new_values,
@@ -188,9 +192,13 @@ impl<'i, 'c, V, I, C> Block<'i, 'c, V, I, C>
         assert!(values.len() == columns.len(), "Length mismatch!");
 
         let len = index.len();
+        // ToDo: can merge with below logic?
         for value in values.iter() {
             assert!(value.len() == len, "Length mismatch!");
         }
+        let values: Vec<Cow<Vec<V>>> = values.into_iter()
+                                             .map(|x| Cow::Owned(x))
+                                             .collect();
         Block {
             values: values,
             index: Cow::Owned(index),
@@ -205,7 +213,7 @@ impl<'i, 'c, V, I, C> Block<'i, 'c, V, I, C>
         Block::from_vec(values, index, columns)
     }
 
-    fn from_cow(values: Vec<Vec<V>>,
+    fn from_cow(values: Vec<Cow<'v, Vec<V>>>,
                 index: Cow<'i, Indexer<I>>,
                 columns: Cow<'c, Indexer<C>>) -> Self {
         Block {
@@ -216,8 +224,8 @@ impl<'i, 'c, V, I, C> Block<'i, 'c, V, I, C>
     }
 
     /// Instanciate from Series
-    pub fn from_series(series: Series<'i, V, I>, name: C) -> Self {
-        let values: Vec<Vec<V>> = vec![series.values];
+    pub fn from_series(series: Series<'v, 'i, V, I>, name: C) -> Self {
+        let values: Vec<Cow<Vec<V>>> = vec![series.values];
 
         // mapper is not updated properly by vec![name]
         let mut columns = Indexer::new(vec![]);
@@ -238,7 +246,7 @@ impl<'i, 'c, V, I, C> Block<'i, 'c, V, I, C>
     /// Add columns inplace
     pub fn insert(&mut self, name: C, values: Vec<V>) {
         assert!(self.len() == values.len(), "Length mismatch!");
-        self.values.push(values);
+        self.values.push(Cow::Owned(values));
         self.columns.to_mut().push(name);
     }
 
@@ -247,15 +255,15 @@ impl<'i, 'c, V, I, C> Block<'i, 'c, V, I, C>
         GroupBy::new(&self, other)
     }
 
-    pub fn transpose(&'i self) -> Block<'i, 'i, V, C, I> {
+    pub fn transpose(&'i self) -> Block<'i, 'i, 'i, V, C, I> {
 
-        let mut new_values: Vec<Vec<V>> = vec![];
+        let mut new_values: Vec<Cow<Vec<V>>> = vec![];
         for i in 0..self.index.len() {
             let mut new_value: Vec<V> = vec![];
             for value in self.values.iter() {
-                new_value.push(value[i]);
+                new_value.push(value[i].clone());
             }
-            new_values.push(new_value);
+            new_values.push(Cow::Owned(new_value));
         }
         Block::from_cow(new_values,
                         Cow::Borrowed(self.columns.borrow()),
@@ -267,22 +275,24 @@ impl<'i, 'c, V, I, C> Block<'i, 'c, V, I, C>
 // Apply
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'a, 'b, V, I, C, R> Applicable<'b, R> for Block<'a, 'b, V, I, C>
-    where V: Copy,
+impl<'v, 'i, 'c, V, I, C, R> Applicable<'i, R> for Block<'v, 'i, 'c, V, I, C>
+    where V: Clone,
           I: Clone + Eq + Hash,
-          C: Clone + Eq + Hash,
-          R: Copy {
+          C: 'i + Clone + Eq + Hash,
+          R: 'i + Clone {
 
     type In = Vec<V>;
     type FOut = R;
-    type Out = Series<'b, R, C>;
+    // ToDo: use 'n lifetime for values
+    type Out = Series<'i, 'i, R, C>;
 
-    fn apply<'f>(&'b self, func: &'f Fn(&Vec<V>) -> R) -> Series<'b, R, C> {
+    fn apply<'f>(&'i self, func: &'f Fn(&Vec<V>) -> R) -> Series<'i, 'i, R, C> {
         let mut new_values = vec![];
         for current in self.values.iter() {
             new_values.push(func(&current));
         }
-        Series::from_cow(new_values, Cow::Borrowed(self.columns.borrow()))
+        Series::from_cow(Cow::Owned(new_values),
+                         Cow::Borrowed(self.columns.borrow()))
     }
 }
 
@@ -290,8 +300,8 @@ impl<'a, 'b, V, I, C, R> Applicable<'b, R> for Block<'a, 'b, V, I, C>
 // Eq
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'a, 'b, V, I, C> PartialEq for Block<'a, 'b, V, I, C>
-    where V: PartialEq,
+impl<'v, 'i, 'c, V, I, C> PartialEq for Block<'v, 'i, 'c, V, I, C>
+    where V: Clone + PartialEq,
           I: Clone + Hash + Eq,
           C: Clone + Hash + Eq {
 
@@ -306,23 +316,26 @@ impl<'a, 'b, V, I, C> PartialEq for Block<'a, 'b, V, I, C>
 // Iterator
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'a, 'b, V, I, C> IntoIterator for Block<'a, 'b, V, I, C>
-    where I: Clone + Hash + Eq,
+impl<'v, 'i, 'c, V, I, C> IntoIterator for Block<'v, 'i, 'c, V, I, C>
+    where V: Clone,
+          I: Clone + Hash + Eq,
           C: Clone + Hash + Eq  {
 
-    type Item = Vec<V>;
-    type IntoIter = vec::IntoIter<Vec<V>>;
+    // ToDo: remove cow, return Series
+    type Item = Cow<'v, Vec<V>>;
+    type IntoIter = vec::IntoIter<Cow<'v, Vec<V>>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.values.into_iter()
     }
 }
 
-impl<'a, 'b, V, I, C> Block<'a, 'b, V, I, C>
-    where I: Clone + Hash + Eq,
+impl<'v, 'i, 'c, V, I, C> Block<'v, 'i, 'c, V, I, C>
+    where V: Clone,
+          I: Clone + Hash + Eq,
           C: Clone + Hash + Eq  {
 
-    pub fn iter(&self) -> slice::Iter<Vec<V>> {
+    pub fn iter(&self) -> slice::Iter<Cow<Vec<V>>> {
         self.values.iter()
     }
 }

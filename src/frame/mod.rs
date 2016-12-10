@@ -49,12 +49,12 @@ impl<'i, 'c, I, C> RowIndexer<'c> for DataFrame<'i, 'c, I, C>
         unimplemented!()
     }
 
-    fn reindex<'l>(&'c self, labels: &'l Vec<Self::Key>) -> Self {
+    fn reindex<'l>(&'c self, labels: &'l [Self::Key]) -> Self {
         let locations = self.index.get_locs(labels);
         self.reindex_by_index(&locations)
     }
 
-    fn reindex_by_index<'l>(&'c self, locations: &'l Vec<usize>) -> Self {
+    fn reindex_by_index<'l>(&'c self, locations: &'l [usize]) -> Self {
 
         let new_index = self.index.reindex(locations);
 
@@ -68,7 +68,7 @@ impl<'i, 'c, I, C> RowIndexer<'c> for DataFrame<'i, 'c, I, C>
                             Cow::Borrowed(self.columns.borrow()))
     }
 
-    fn blocs(&self, labels: &Vec<bool>) -> Self {
+    fn blocs(&self, labels: &[bool]) -> Self {
         unimplemented!()
         // ToDo: fix Series impl
     }
@@ -89,12 +89,12 @@ impl<'i, 'c, I, C> ColIndexer<'i> for DataFrame<'i, 'c, I, C>
         unimplemented!();
     }
 
-    fn gets<'l>(&'i self, labels: &'l Vec<Self::Key>) -> Self {
+    fn gets<'l>(&'i self, labels: &'l [Self::Key]) -> Self {
         let locs = self.columns.get_locs(labels);
         self.igets(&locs)
     }
 
-    fn igets<'l>(&'i self, locations: &'l Vec<usize>) -> Self {
+    fn igets<'l>(&'i self, locations: &'l [usize]) -> Self {
         let new_columns = self.columns.reindex(locations);
 
         let mut new_values: Vec<Array> = Vec::with_capacity(new_columns.len());

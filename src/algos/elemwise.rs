@@ -24,7 +24,7 @@ impl Elemwise {
         new_values
     }
 
-    pub fn broadcast_ro<T, V, R, F>(values: &Vec<T>, _rhs: V, func: F) -> Vec<R>
+    pub fn broadcast_ro<T, V, R, F>(values: &[T], _rhs: V, func: F) -> Vec<R>
         where T: Clone,
               V: Clone,
               F: Fn(T, V) -> R {
@@ -35,7 +35,7 @@ impl Elemwise {
         new_values
     }
 
-    pub fn broadcast_rr<T, V, R, F>(values: &Vec<T>, _rhs: &V, func: F) -> Vec<R>
+    pub fn broadcast_rr<T, V, R, F>(values: &[T], _rhs: &V, func: F) -> Vec<R>
         where T: Clone,
               V: Clone,
               F: Fn(T, V) -> R {
@@ -57,7 +57,7 @@ impl Elemwise {
         new_values
     }
 
-    pub fn elemwise_or<T, V, R, F>(values: Vec<T>, _rhs: &Vec<V>, func: F) -> Vec<R>
+    pub fn elemwise_or<T, V, R, F>(values: Vec<T>, _rhs: &[V], func: F) -> Vec<R>
         where V: Clone,
               F: Fn(T, V) -> R {
 
@@ -69,7 +69,7 @@ impl Elemwise {
         new_values
     }
 
-    pub fn elemwise_ro<T, V, R, F>(values: &Vec<T>, _rhs: Vec<V>, func: F) -> Vec<R>
+    pub fn elemwise_ro<T, V, R, F>(values: &[T], _rhs: Vec<V>, func: F) -> Vec<R>
         where T: Clone,
               F: Fn(T, V) -> R {
 
@@ -81,7 +81,7 @@ impl Elemwise {
         new_values
     }
 
-    pub fn elemwise_rr<T, V, R, F>(values: &Vec<T>, _rhs: &Vec<V>, func: F) -> Vec<R>
+    pub fn elemwise_rr<T, V, R, F>(values: &[T], _rhs: &[V], func: F) -> Vec<R>
         where T: Clone,
               V: Clone,
               F: Fn(T, V) -> R {

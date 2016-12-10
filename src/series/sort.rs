@@ -9,7 +9,7 @@ use super::super::traits::Slicer;
 // Soat
 //**********************************************
 
-impl<'i, V, I> Series<'i, V, I>
+impl<'v, 'i, V, I> Series<'v, 'i, V, I>
     where V: Copy,
           I: Clone + Eq + Hash + Ord {
 
@@ -20,7 +20,7 @@ impl<'i, V, I> Series<'i, V, I>
     }
 }
 
-impl<'i, V, I> Series<'i, V, I>
+impl<'v, 'i, V, I> Series<'v, 'i, V, I>
     where V: Copy + Ord,
           I: Clone + Eq + Hash {
 

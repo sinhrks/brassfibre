@@ -2,15 +2,18 @@ use std::hash::Hash;
 
 use super::Series;
 
-impl<'i, V: Copy> From<Vec<V>> for Series<'i, V, usize> {
+impl<'v, 'i, V: Clone> From<Vec<V>> for Series<'v, 'i, V, usize> {
     fn from(values: Vec<V>) -> Self {
-        Series::<'i, V, usize>::from_vec(values)
+        Self::from_vec(values)
     }
 }
 
-impl<'i, V, I: Clone + Hash> Into<Vec<V>> for Series<'i, V, I> {
+impl<'v, 'i, V, I> Into<Vec<V>> for Series<'v, 'i, V, I>
+    where V: Clone,
+          I: Clone + Hash {
+
     fn into(self) -> Vec<V> {
-        self.values
+        self.values.into_owned()
     }
 }
 

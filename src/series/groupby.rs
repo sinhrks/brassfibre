@@ -12,20 +12,21 @@ use super::super::traits::{Applicable, Aggregator};
 // Apply
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, V, I, G, W> Applicable<'i, W>
-    for GroupBy<'i, Series<'i, V, I>, G>
+impl<'v, 'i, V, I, G, W> Applicable<'i, W>
+    for GroupBy<'i, Series<'v, 'i, V, I>, G>
 
-    where V: Copy,
+    where V: 'v + Clone,
           I: Clone + Eq + Hash,
           G: 'i + Clone + Eq + Hash + Ord,
-          W: 'i + Copy {
+          W: 'i + Clone {
 
-    type In = Series<'i, V, I>;
+    type In = Series<'v, 'i, V, I>;
     type FOut = W;
-    type Out = Series<'i, W, G>;
+    // ToDo: use 'n lifetime for value
+    type Out = Series<'i, 'i, W, G>;
 
     /// Apply passed function to each group
-    fn apply<'f>(&'i self, func: &'f Fn(&Series<'i, V, I>) -> W) -> Series<'i, W, G> {
+    fn apply<'f>(&'i self, func: &'f Fn(&Series<'v, 'i, V, I>) -> W) -> Series<'i, 'i, W, G> {
 
         let mut new_values: Vec<W> = Vec::with_capacity(self.grouper.len());
 
@@ -42,15 +43,16 @@ impl<'i, V, I, G, W> Applicable<'i, W>
 // Aggregation
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, V, I, G> Aggregator<'i> for GroupBy<'i, Series<'i, V, I>, G>
-    where V: Copy + Eq + Hash + Num + Zero + ToPrimitive,
+impl<'v, 'i, V, I, G> Aggregator<'i> for GroupBy<'i, Series<'v, 'i, V, I>, G>
+    where V: Clone + Eq + Hash + Num + Zero + ToPrimitive,
           I: Clone + Eq + Hash,
-          G: 'i + Copy + Eq + Hash + Ord {
+          G: 'i + Clone + Eq + Hash + Ord {
 
     // result can have different lifetime
-    type Kept = Series<'i, V, G>;
-    type Counted = Series<'i, usize, G>;
-    type Coerced = Series<'i, f64, G>;
+    // ToDo: use 'n lifetime for value
+    type Kept = Series<'i, 'i, V, G>;
+    type Counted = Series<'i, 'i, usize, G>;
+    type Coerced = Series<'i, 'i, f64, G>;
 
     fn sum(&'i self) -> Self::Kept {
         self.apply(&|x: &Series<V, I>| x.sum())
@@ -102,13 +104,13 @@ mod tests {
         let s1 = sg.get_group(&1);
         let exp_values: Vec<f64> = vec![1., 2., 3.];
         let exp_index: Indexer<usize> = Indexer::new(vec![0, 1, 2]);
-        assert_eq!(s1.values, exp_values);
+        assert_eq!(s1.values, Cow::Borrowed(&exp_values));
         assert_eq!(s1.index, Cow::Owned(exp_index));
 
         let s2 = sg.get_group(&2);
         let exp_values: Vec<f64> = vec![4., 5., 6.];
         let exp_index: Indexer<usize> = Indexer::new(vec![3, 4, 5]);
-        assert_eq!(s2.values, exp_values);
+        assert_eq!(s2.values, Cow::Borrowed(&exp_values));
         assert_eq!(s2.index, Cow::Owned(exp_index));
     }
 
@@ -121,10 +123,8 @@ mod tests {
         let sg = GroupBy::<Series<i64, i64>, i64>::new(&s, vec![1, 1, 1, 2, 2]);
         let sum = sg.sum();
 
-        let exp_values: Vec<i64> = vec![6, 9];
-        let exp_index: Indexer<i64> = Indexer::new(vec![1, 2]);
-        assert_eq!(sum.values, exp_values);
-        assert_eq!(sum.index, Cow::Owned(exp_index));
+        let exp: Series<i64, i64> = Series::new(vec![6, 9], vec![1, 2]);
+        assert_eq!(sum, exp);
     }
 
     #[test]
@@ -135,10 +135,8 @@ mod tests {
         let sg = GroupBy::<Series<i64, i64>, &str>::new(&s, vec!["A", "A", "A", "B", "B"]);
         let sum = sg.sum();
 
-        let exp_values: Vec<i64> = vec![6, 9];
-        let exp_index: Indexer<&str> = Indexer::new(vec!["A", "B"]);
-        assert_eq!(sum.values, exp_values);
-        assert_eq!(sum.index, Cow::Owned(exp_index));
+        let exp: Series<i64, &str> = Series::new(vec![6, 9], vec!["A", "B"]);
+        assert_eq!(sum, exp);
     }
 
     #[test]
@@ -150,9 +148,7 @@ mod tests {
         let sg = GroupBy::<Series<i64, i64>, i64>::new(&s, vec![1, 1, 1, 2, 2]);
         let sum = sg.mean();
 
-        let exp_values: Vec<f64> = vec![2.0, 4.5];
-        let exp_index: Indexer<i64> = Indexer::new(vec![1, 2]);
-        assert_eq!(sum.values, exp_values);
-        assert_eq!(sum.index, Cow::Owned(exp_index));
+        let exp: Series<f64, i64> = Series::new(vec![2.0, 4.5], vec![1, 2]);
+        assert_eq!(sum, exp);
     }
 }

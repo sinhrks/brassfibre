@@ -6,14 +6,14 @@ use super::super::computations;
 use super::super::series::Series;
 use super::super::traits::{Applicable, Aggregator};
 
-impl<'i, 'c, V, I, C> Aggregator<'c> for Block<'i, 'c, V, I, C>
-    where V: Copy + Num + Zero + ToPrimitive,
+impl<'v, 'i, 'c, V, I, C> Aggregator<'c> for Block<'v, 'i, 'c, V, I, C>
+    where V: 'c + Clone + Num + Zero + ToPrimitive,
           I: Clone + Eq + Hash,
           C: 'c + Clone + Eq + Hash {
 
-    type Kept = Series<'c, V, C>;
-    type Counted = Series<'c, usize, C>;
-    type Coerced = Series<'c, f64, C>;
+    type Kept = Series<'c, 'c, V, C>;
+    type Counted = Series<'c, 'c, usize, C>;
+    type Coerced = Series<'c, 'c, f64, C>;
 
     fn sum(&'c self) -> Self::Kept {
         self.apply(&computations::vec_sum)
@@ -44,16 +44,16 @@ impl<'i, 'c, V, I, C> Aggregator<'c> for Block<'i, 'c, V, I, C>
     }
 }
 
-impl<'i, 'c, V, I, C> Block<'i, 'c, V, I, C>
-    where V: Copy + Num + Zero + computations::NanMinMax<V>,
+impl<'v, 'i, 'c, V, I, C> Block<'v, 'i, 'c, V, I, C>
+    where V: Clone + Num + Zero + computations::NanMinMax<V>,
           I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 
-    pub fn min(&'c self) -> Series<'c, V, C> {
+    pub fn min(&'c self) -> Series<'c, 'c, V, C> {
         self.apply(&computations::vec_min)
     }
 
-    pub fn max(&'c self) -> Series<'c, V, C> {
+    pub fn max(&'c self) -> Series<'c, 'c, V, C> {
         self.apply(&computations::vec_max)
     }
 }

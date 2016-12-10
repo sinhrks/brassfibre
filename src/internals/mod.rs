@@ -84,7 +84,7 @@ impl Slicer for Array {
         }
     }
 
-    fn ilocs(&self, locations: &Vec<usize>) -> Self {
+    fn ilocs(&self, locations: &[usize]) -> Self {
         match self {
             &Array::Int64Array(ref vals) => {
                 Array::Int64Array(Sorter::reindex(vals, locations))
@@ -101,7 +101,7 @@ impl Slicer for Array {
         }
     }
 
-    fn blocs(&self, flags: &Vec<bool>) -> Self {
+    fn blocs(&self, flags: &[bool]) -> Self {
         match self {
             &Array::Int64Array(ref vals) => {
                 Array::Int64Array(Indexing::blocs(vals, flags))

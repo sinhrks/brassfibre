@@ -4,7 +4,7 @@ use std::fmt;
 use super::Series;
 use super::super::formatting;
 
-impl<'i, V, I> fmt::Display for Series<'i, V, I>
+impl<'v, 'i, V, I> fmt::Display for Series<'v, 'i, V, I>
     where V: Copy + fmt::Debug,
           I: Clone + Eq + Hash {
 
@@ -14,7 +14,7 @@ impl<'i, V, I> fmt::Display for Series<'i, V, I>
 
 }
 
-impl<'i, V, I> fmt::Debug for Series<'i, V, I>
+impl<'v, 'i, V, I> fmt::Debug for Series<'v, 'i, V, I>
     where V: Copy + ToString,
           I: Clone + Eq + Hash + ToString {
 
