@@ -1,7 +1,4 @@
-
 use std::string::ToString;
-
-use super::computations;
 
 /// Convert each element in a vector to String
 fn to_string_vector<T: ToString>(values: &[T]) -> Vec<String> {
@@ -10,8 +7,7 @@ fn to_string_vector<T: ToString>(values: &[T]) -> Vec<String> {
 
 /// Get max number of characters in a vector of String
 fn get_width(values: &[String]) -> usize {
-    let lens: Vec<usize> = values.iter().map(|x| x.len()).collect();
-    computations::vec_max(&lens)
+    values.iter().map(|x| x.len()).max().unwrap()
 }
 
 fn pad_str(s: &str, pad: usize) -> String {

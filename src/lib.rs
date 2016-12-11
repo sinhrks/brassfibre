@@ -5,7 +5,6 @@ extern crate rustc_serialize;
 
 mod algos;
 mod block;
-mod computations;
 mod formatting;
 mod frame;
 mod groupby;

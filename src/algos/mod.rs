@@ -1,3 +1,4 @@
+pub mod computation;
 pub mod counter;
 mod duplicates;
 pub mod elemwise;

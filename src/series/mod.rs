@@ -144,14 +144,14 @@ impl<'v, 'i, V, I> Append<'i> for Series<'v, 'i, V, I>
 ////////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, V, I, R> Apply<'i, R> for Series<'v, 'i, V, I>
-    where V: Clone,
+    where V: 'i + Clone,
           I: Clone + Eq + Hash {
 
     type In = Vec<V>;
     type FOut = R;
     type Out = R;
 
-    fn apply<'f>(&'i self, func: &'f Fn(&Vec<V>) -> R) -> R {
+    fn apply<'f>(&'i self, func: &'f Fn(&Self::In) -> Self::FOut) -> Self::Out {
         func(&self.values)
     }
 }

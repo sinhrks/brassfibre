@@ -286,7 +286,7 @@ impl<'v, 'i, 'c, V, I, C, R> Apply<'i, R> for Block<'v, 'i, 'c, V, I, C>
     // ToDo: use 'n lifetime for values
     type Out = Series<'i, 'i, R, C>;
 
-    fn apply<'f>(&'i self, func: &'f Fn(&Vec<V>) -> R) -> Series<'i, 'i, R, C> {
+    fn apply<'f>(&'i self, func: &'f Fn(&Self::In) -> Self::FOut) -> Self::Out {
         let mut new_values = vec![];
         for current in self.values.iter() {
             new_values.push(func(&current));

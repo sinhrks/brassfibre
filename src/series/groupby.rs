@@ -5,8 +5,8 @@ use std::ops::{Add, Sub, Div};
 use std::hash::Hash;
 
 use super::Series;
-use super::super::algos::grouper::{Grouper};
-use super::super::computations;
+use super::super::algos::computation::NanMinMax;
+use super::super::algos::grouper::Grouper;
 use super::super::groupby::GroupBy;
 use super::super::traits::{Apply, BasicAggregation, NumericAggregation,
                            ComparisonAggregation};
@@ -29,7 +29,7 @@ impl<'v, 'i, V, I, G, W> Apply<'i, W>
     type Out = Series<'i, 'i, W, G>;
 
     /// Apply passed function to each group
-    fn apply<'f>(&'i self, func: &'f Fn(&Series<'v, 'i, V, I>) -> W) -> Series<'i, 'i, W, G> {
+    fn apply<'f>(&'i self, func: &'f Fn(&Self::In) -> Self::FOut) -> Self::Out {
 
         let mut new_values: Vec<W> = Vec::with_capacity(self.grouper.len());
 
@@ -96,7 +96,7 @@ impl<'v, 'i, V, I, G> NumericAggregation<'i> for GroupBy<'i, Series<'v, 'i, V, I
 }
 
 impl<'v, 'i, V, I, G> ComparisonAggregation<'i> for GroupBy<'i, Series<'v, 'i, V, I>, G>
-    where V: Clone + computations::NanMinMax<V>,
+    where V: Clone + NanMinMax<V>,
           I: Clone + Eq + Hash,
           G: 'i + Clone + Eq + Hash + Ord {
 

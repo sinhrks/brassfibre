@@ -6,8 +6,8 @@ use std::hash::Hash;
 use std::ops::{Add, Sub, Div};
 
 use super::Block;
+use super::super::algos::computation::NanMinMax;
 use super::super::algos::grouper::{Grouper};
-use super::super::computations;
 use super::super::groupby::GroupBy;
 use super::super::traits::{Apply, BasicAggregation, NumericAggregation,
                            ComparisonAggregation};
@@ -30,8 +30,7 @@ impl<'v, 'i, 'c, V, I, C, G, W> Apply<'c, Vec<W>>
     type Out = Block<'c, 'c, 'c, W, G, C>;
 
     /// Apply passed function to each group
-    fn apply<'f>(&'c self, func: &'f Fn(&Block<'v, 'i, 'c, V, I, C>) -> Vec<W>)
-        -> Block<'c, 'c, 'c, W, G, C> {
+    fn apply<'f>(&'c self, func: &'f Fn(&Self::In) -> Self::FOut) -> Self::Out {
 
         let mut new_values: Vec<W> = Vec::with_capacity(self.grouper.len());
 
@@ -99,7 +98,7 @@ impl<'v, 'i, 'c, V, I, C, G> NumericAggregation<'c> for GroupBy<'i, Block<'v, 'i
 
 
 impl<'v, 'i, 'c, V, I, C, G> ComparisonAggregation<'c> for GroupBy<'i, Block<'v, 'i, 'c, V, I, C>, G>
-    where V: 'c + Clone + computations::NanMinMax<V>,
+    where V: 'c + Clone + NanMinMax<V>,
           I: Clone + Eq + Hash,
           C: Clone + Eq + Hash,
           G: 'c + Clone + Eq + Hash + Ord {
