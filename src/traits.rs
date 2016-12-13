@@ -96,6 +96,7 @@ pub trait ColIndex<'s>: Sized {
     fn igets<'l>(&'s self, locations: &'l [usize]) -> Self;
 
     // ToDo: Add .insert
+    // ToDo bgets
 }
 
 ////////////////////////////////////////////////////////////////////////////////

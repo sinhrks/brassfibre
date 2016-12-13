@@ -121,6 +121,18 @@ fn test_clone() {
 }
 
 #[test]
+fn test_astype() {
+    let iarr = Array::Int64Array(vec![1, 2, 3]);
+    assert_eq!(iarr.astype::<f64>(), Array::Float64Array(vec![1., 2., 3.]));
+    assert_eq!(iarr.astype::<i64>(), Array::Int64Array(vec![1, 2, 3]));
+
+    let farr = Array::Float64Array(vec![1.1, 2.1, 3.1]);
+    assert_eq!(farr.astype::<f64>(), Array::Float64Array(vec![1.1, 2.1, 3.1]));
+    assert_eq!(farr.astype::<i64>(), Array::Int64Array(vec![1, 2, 3]));
+}
+
+
+#[test]
 fn test_ilocs() {
     let iarr = Array::Int64Array(vec![1, 2, 3, 4, 5]);
     assert_eq!(iarr.dtype(), "i64");

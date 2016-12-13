@@ -8,7 +8,7 @@ use super::super::series::Series;
 use super::super::traits::{BasicAggregation, NumericAggregation,
                            ComparisonAggregation, Description};
 
-impl<'i, 'c, I, C> BasicAggregation<'c> for DataFrame<'i, 'c, I, C>
+impl<'v, 'i, 'c, I, C> BasicAggregation<'c> for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
           C: 'c + Clone + Eq + Hash {
 
@@ -29,7 +29,7 @@ impl<'i, 'c, I, C> BasicAggregation<'c> for DataFrame<'i, 'c, I, C>
     }
 }
 
-impl<'i, 'c, I, C> NumericAggregation<'c> for DataFrame<'i, 'c, I, C>
+impl<'v, 'i, 'c, I, C> NumericAggregation<'c> for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
           C: 'c + Clone + Eq + Hash {
 
@@ -67,7 +67,7 @@ impl<'i, 'c, I, C> NumericAggregation<'c> for DataFrame<'i, 'c, I, C>
     }
 }
 
-impl<'i, 'c, I, C> ComparisonAggregation<'c> for DataFrame<'i, 'c, I, C>
+impl<'v, 'i, 'c, I, C> ComparisonAggregation<'c> for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
           C: 'c + Clone + Eq + Hash {
 
@@ -87,11 +87,11 @@ impl<'i, 'c, I, C> ComparisonAggregation<'c> for DataFrame<'i, 'c, I, C>
     }
 }
 
-impl<'i, 'c, I, C> Description<'c> for DataFrame<'i, 'c, I, C>
+impl<'v, 'i, 'c, I, C> Description<'c> for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 
-    type Described = DataFrame<'c, 'c, &'c str, C>;
+    type Described = DataFrame<'v, 'c, 'c, &'c str, C>;
 
     fn describe(&'c self) -> Self::Described {
         let ndf = self.get_numeric_data();
@@ -102,7 +102,9 @@ impl<'i, 'c, I, C> Description<'c> for DataFrame<'i, 'c, I, C>
                                                             x.mean(), x.std(),
                                                             x.min(), x.max()]);
 
-        let new_values: Vec<Array> = ndf.values.iter().map(|ref x| describe(x)).collect();
+        let new_values: Vec<Cow<Array>> = ndf.values.iter()
+                                                    .map(|ref x| Cow::Owned(describe(x)))
+                                                    .collect();
         DataFrame::from_cow(new_values,
                             Cow::Owned(Indexer::new(new_index)),
                             ndf.columns)

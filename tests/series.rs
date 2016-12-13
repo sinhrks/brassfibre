@@ -234,3 +234,10 @@ fn test_series_iter() {
     assert_eq!(it.next(), Some(&3));
     assert_eq!(it.next(), None);
 }
+
+#[test]
+fn test_series_from_iter() {
+    let s: Series<i64, usize> = (3..6).collect();
+    let exp: Series<i64, usize> = Series::new(vec![3, 4, 5], vec![0, 1, 2]);
+    assert_eq!(s, exp);
+}

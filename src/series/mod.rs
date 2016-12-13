@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::hash::Hash;
+use std::iter::FromIterator;
 use std::slice;
 use std::vec;
 
@@ -191,5 +192,16 @@ impl<'v, 'i, V, I> Series<'v, 'i, V, I>
 
     pub fn iter(&self) -> slice::Iter<V> {
         self.values.as_ref().iter()
+    }
+}
+
+impl<'v, 'i, V> FromIterator<V> for Series<'v, 'i, V, usize>
+    where V: Clone {
+
+    fn from_iter<T>(iter: T) -> Series<'v, 'i, V, usize>
+        where T: IntoIterator<Item=V> {
+
+        let values: Vec<V> = iter.into_iter().collect();
+        Series::<V, usize>::from_vec(values)
     }
 }

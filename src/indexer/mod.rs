@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
 use std::hash::Hash;
+use std::iter::FromIterator;
 use std::slice;
 use std::vec;
 
@@ -34,8 +35,7 @@ impl<U> Indexer<U> where U: Clone + Eq + Hash {
 
     pub fn from_len(len: usize) -> Indexer<usize> {
         // ToDo: don't need hash if index is range-like
-        let index: Vec<usize> = (0..len).collect();
-        Indexer::new(index)
+        (0..len).collect()
     }
 
     pub fn new(values: Vec<U>) -> Self {
@@ -159,5 +159,13 @@ impl<U> Indexer<U>
 
     pub fn iter(&self) -> slice::Iter<U> {
         self.values.iter()
+    }
+}
+
+impl<U> FromIterator<U> for Indexer<U>
+    where U: Clone + Eq + Hash {
+    fn from_iter<T>(iter: T) -> Self where T: IntoIterator<Item=U> {
+        let values: Vec<U> = iter.into_iter().collect();
+        Indexer::new(values)
     }
 }

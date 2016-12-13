@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 #[macro_use]
 extern crate brassfibre;
 use brassfibre::*;
@@ -113,8 +115,8 @@ fn test_frame_into_iter() {
                                  vec!["A", "BB", "CC"],
                                  vec!["X", "YYY"]);
     let mut it = df.into_iter();
-    assert_eq!(it.next(), Some(Array::Int64Array(vec![1, 2, 3])));
-    assert_eq!(it.next(), Some(Array::Float64Array(vec![6., 7., 8.])));
+    assert_eq!(it.next(), Some(Cow::Owned(Array::Int64Array(vec![1, 2, 3]))));
+    assert_eq!(it.next(), Some(Cow::Owned(Array::Float64Array(vec![6., 7., 8.]))));
     assert_eq!(it.next(), None);
 }
 
@@ -126,8 +128,8 @@ fn test_frame_iter() {
                                  vec!["A", "BB", "CC"],
                                  vec!["X", "YYY"]);
     let mut it = df.iter();
-    assert_eq!(it.next(), Some(&Array::Int64Array(vec![1, 2, 3])));
-    assert_eq!(it.next(), Some(&Array::Float64Array(vec![6., 7., 8.])));
+    assert_eq!(it.next(), Some(&Cow::Owned(Array::Int64Array(vec![1, 2, 3]))));
+    assert_eq!(it.next(), Some(&Cow::Owned(Array::Float64Array(vec![6., 7., 8.]))));
     assert_eq!(it.next(), None);
 }
 

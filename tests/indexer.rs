@@ -159,3 +159,10 @@ fn test_index_iter() {
     assert_eq!(it.next(), Some(&3));
     assert_eq!(it.next(), None);
 }
+
+#[test]
+fn test_index_from_iter() {
+    let index: Indexer<i64> = (3..6).collect();
+    let exp: Indexer<i64> = Indexer::new(vec![3, 4, 5]);
+    assert_eq!(index, exp);
+}

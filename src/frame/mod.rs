@@ -13,7 +13,7 @@ mod formatting;
 mod reshape;
 
 #[derive(Clone)]
-pub struct DataFrame<'i, 'c, I: Hash, C: Hash>
+pub struct DataFrame<'v, 'i, 'c, I: Hash, C: Hash>
     where I: 'i + Clone + Hash,
           C: 'c + Clone + Hash {
     /// 2-dimentional block contains multiple type.
@@ -21,7 +21,7 @@ pub struct DataFrame<'i, 'c, I: Hash, C: Hash>
     /// C: type of columns
 
     // Do not use #[derice(PartialEq)] as internals may not be comparable
-    pub values: Vec<Array>,
+    pub values: Vec<Cow<'v, Array>>,
     pub index: Cow<'i, Indexer<I>>,
     pub columns: Cow<'c, Indexer<C>>,
 }
@@ -30,7 +30,7 @@ pub struct DataFrame<'i, 'c, I: Hash, C: Hash>
 // Indexing
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, 'c, I, C> RowIndex<'c> for DataFrame<'i, 'c, I, C>
+impl<'v, 'i, 'c, I, C> RowIndex<'c> for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 
@@ -58,10 +58,10 @@ impl<'i, 'c, I, C> RowIndex<'c> for DataFrame<'i, 'c, I, C>
 
         let new_index = self.index.reindex(locations);
 
-        let mut new_values: Vec<Array> = Vec::with_capacity(self.columns.len());
+        let mut new_values: Vec<Cow<Array>> = Vec::with_capacity(self.columns.len());
         for current in self.values.iter() {
             let new_value = current.ilocs(locations);
-            new_values.push(new_value);
+            new_values.push(Cow::Owned(new_value));
         }
         DataFrame::from_cow(new_values,
                             Cow::Owned(new_index),
@@ -74,7 +74,7 @@ impl<'i, 'c, I, C> RowIndex<'c> for DataFrame<'i, 'c, I, C>
     }
 }
 
-impl<'i, 'c, I, C> ColIndex<'i> for DataFrame<'i, 'c, I, C>
+impl<'v, 'i, 'c, I, C> ColIndex<'i> for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 
@@ -97,9 +97,10 @@ impl<'i, 'c, I, C> ColIndex<'i> for DataFrame<'i, 'c, I, C>
     fn igets<'l>(&'i self, locations: &'l [usize]) -> Self {
         let new_columns = self.columns.reindex(locations);
 
-        let mut new_values: Vec<Array> = Vec::with_capacity(new_columns.len());
+        let mut new_values: Vec<Cow<Array>> = Vec::with_capacity(new_columns.len());
         for loc in locations {
-            new_values.push(self.values[*loc].clone());
+            // new_values.push(Cow::Borrowed(self.values[*loc].borrow()));
+            new_values.push(Cow::Owned(self.values[*loc].clone().into_owned()));
         }
         DataFrame::from_cow(new_values,
                             Cow::Borrowed(self.index.borrow()),
@@ -111,7 +112,7 @@ impl<'i, 'c, I, C> ColIndex<'i> for DataFrame<'i, 'c, I, C>
 // Misc
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'s, 'i, 'c, I, C> DataFrame<'i, 'c, I, C>
+impl<'v, 'i, 'c, I, C> DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 
@@ -124,6 +125,9 @@ impl<'s, 'i, 'c, I, C> DataFrame<'i, 'c, I, C>
         let columns: Indexer<C> = columns.into();
 
         assert!(values.len() == columns.len(), "Length mismatch!");
+        let values: Vec<Cow<Array>> = values.into_iter()
+                                            .map(|x| Cow::Owned(x))
+                                            .collect();
 
         let len = index.len();
         for value in values.iter() {
@@ -136,7 +140,7 @@ impl<'s, 'i, 'c, I, C> DataFrame<'i, 'c, I, C>
         }
     }
 
-    fn from_cow(values: Vec<Array>,
+    fn from_cow(values: Vec<Cow<'v, Array>>,
                 index: Cow<'i, Indexer<I>>,
                 columns: Cow<'c, Indexer<C>>) -> Self {
         // temp internal, use IntoCow
@@ -155,17 +159,14 @@ impl<'s, 'i, 'c, I, C> DataFrame<'i, 'c, I, C>
         self.iter().map(|ref x| x.is_numeric()).collect()
     }
 
-    fn get_numeric_data(&'i self) -> Self {
+    fn get_numeric_data(&'i self) -> DataFrame<'i, 'i, 'i, I, C> {
         let flags = self.is_numeric();
-        let new_columns = self.columns.blocs(&flags);
-        let new_values: Vec<Array> = self.iter()
-                                         .zip(flags.iter())
-                                         .filter(|&(_, y)| *y)
-                                         .map(|(ref x, _)| (*x).clone())
-                                         .collect();
-        DataFrame::from_cow(new_values,
-                            Cow::Borrowed(self.index.borrow()),
-                            Cow::Owned(new_columns))
+        // ToDo: use bgets
+        let indexer: Vec<usize> = flags.iter()
+                                       .enumerate()
+                                       .filter(|&(_, &f)| f)
+                                       .map(|(i, _)| i).collect();
+        self.igets(&indexer)
     }
 
     fn assert_binop(&self, other: &Self) {
@@ -176,7 +177,7 @@ impl<'s, 'i, 'c, I, C> DataFrame<'i, 'c, I, C>
     pub fn insert(&mut self, values: Array, name: C) {
         assert!(self.len() == values.len(), "Length mismatch!");
 
-        self.values.push(values);
+        self.values.push(Cow::Owned(values));
         self.columns.to_mut().push(name);
     }
 
@@ -191,7 +192,7 @@ impl<'s, 'i, 'c, I, C> DataFrame<'i, 'c, I, C>
 // Eq
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'i, 'c, I, C> PartialEq for DataFrame<'i, 'c, I, C>
+impl<'v, 'i, 'c, I, C> PartialEq for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Hash + Eq,
           C: Clone + Hash + Eq {
 
@@ -206,23 +207,23 @@ impl<'i, 'c, I, C> PartialEq for DataFrame<'i, 'c, I, C>
 // Iterator
 ////////////////////////////////////////////////////////////////////////////////
 
-impl<'a, 'b, I, C> IntoIterator for DataFrame<'a, 'b, I, C>
+impl<'v, 'i, 'c, I, C> IntoIterator for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Hash + Eq,
           C: Clone + Hash + Eq  {
 
-    type Item = Array;
-    type IntoIter = vec::IntoIter<Array>;
+    type Item = Cow<'v, Array>;
+    type IntoIter = vec::IntoIter<Cow<'v, Array>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.values.into_iter()
     }
 }
 
-impl<'a, 'b, I, C> DataFrame<'a, 'b, I, C>
+impl<'v, 'i, 'c, I, C> DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Hash + Eq,
           C: Clone + Hash + Eq  {
 
-    pub fn iter(&self) -> slice::Iter<Array> {
+    pub fn iter(&self) -> slice::Iter<Cow<Array>> {
         self.values.iter()
     }
 }

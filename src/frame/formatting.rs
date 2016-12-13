@@ -5,7 +5,7 @@ use super::DataFrame;
 use super::super::formatting;
 
 
-impl<'i, 'c, I, C> fmt::Display for DataFrame<'i, 'c, I, C>
+impl<'v, 'i, 'c, I, C> fmt::Display for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
           C: Clone + Eq + Hash + fmt::Debug {
 
@@ -15,7 +15,7 @@ impl<'i, 'c, I, C> fmt::Display for DataFrame<'i, 'c, I, C>
 
 }
 
-impl<'i, 'c, I, C> fmt::Debug for DataFrame<'i, 'c, I, C>
+impl<'v, 'i, 'c, I, C> fmt::Debug for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash + ToString,
           C: Clone + Eq + Hash + ToString {
 

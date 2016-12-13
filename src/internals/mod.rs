@@ -1,3 +1,5 @@
+use std::any::TypeId;
+
 use super::algos::indexing::Indexing;
 use super::algos::sort::Sorter;
 use super::traits::{Slicer, Append};
@@ -71,6 +73,41 @@ impl Array {
             }
         }
     }
+
+    pub fn astype<V: 'static>(&self) -> Array {
+        let typ = TypeId::of::<V>();
+
+        let arr: Array;
+        if typ == TypeId::of::<i64>() {
+            arr = match self {
+                &Array::Int64Array(ref vals) => {
+                    vals.clone().into()
+                },
+                &Array::Float64Array(ref vals) => {
+                    let new_vals: Vec<i64> = vals.iter().map(|&x| x as i64).collect();
+                    new_vals.into()
+                },
+                // ToDo: parse str
+                _ => panic!("unablet to convert to specified type")
+            };
+        } else if typ == TypeId::of::<f64>() {
+            arr = match self {
+                &Array::Int64Array(ref vals) => {
+                    let new_vals: Vec<f64> = vals.iter().map(|&x| x as f64).collect();
+                    new_vals.into()
+                },
+                &Array::Float64Array(ref vals) => {
+                    vals.clone().into()
+                },
+                // ToDo: parse str
+                _ => panic!("unablet to convert to specified type")
+            };
+        } else {
+            // ToDo: support more types
+            panic!("unablet to convert to specified type");
+        }
+        arr
+    }
 }
 
 impl Slicer for Array {
@@ -87,16 +124,16 @@ impl Slicer for Array {
     fn ilocs(&self, locations: &[usize]) -> Self {
         match self {
             &Array::Int64Array(ref vals) => {
-                Array::Int64Array(Sorter::reindex(vals, locations))
+                Sorter::reindex(vals, locations).into()
             },
             &Array::Float64Array(ref vals) => {
-                Array::Float64Array(Sorter::reindex(vals, locations))
+                Sorter::reindex(vals, locations).into()
             },
             &Array::BoolArray(ref vals) => {
-                Array::BoolArray(Sorter::reindex(vals, locations))
+                Sorter::reindex(vals, locations).into()
             },
             &Array::StringArray(ref vals) => {
-                Array::StringArray(Sorter::reindex(vals, locations))
+                Sorter::reindex(vals, locations).into()
             }
         }
     }
@@ -104,16 +141,16 @@ impl Slicer for Array {
     fn blocs(&self, flags: &[bool]) -> Self {
         match self {
             &Array::Int64Array(ref vals) => {
-                Array::Int64Array(Indexing::blocs(vals, flags))
+                Indexing::blocs(vals, flags).into()
             },
             &Array::Float64Array(ref vals) => {
-                Array::Float64Array(Indexing::blocs(vals, flags))
+                Indexing::blocs(vals, flags).into()
             },
             &Array::BoolArray(ref vals) => {
-                Array::BoolArray(Indexing::blocs(vals, flags))
+                Indexing::blocs(vals, flags).into()
             },
             &Array::StringArray(ref vals) => {
-                Array::StringArray(Indexing::blocs(vals, flags))
+                Indexing::blocs(vals, flags).into()
             }
         }
     }
@@ -126,22 +163,22 @@ impl<'a> Append<'a> for Array {
             (&Array::Int64Array(ref svals), &Array::Int64Array(ref ovals)) => {
                 let mut new_values = svals.clone();
                 new_values.append(&mut ovals.clone());
-                Array::Int64Array(new_values)
+                new_values.into()
             },
             (&Array::Float64Array(ref svals), &Array::Float64Array(ref ovals)) => {
                 let mut new_values = svals.clone();
                 new_values.append(&mut ovals.clone());
-                Array::Float64Array(new_values)
+                new_values.into()
             },
             (&Array::BoolArray(ref svals), &Array::BoolArray(ref ovals)) => {
                 let mut new_values = svals.clone();
                 new_values.append(&mut ovals.clone());
-                Array::BoolArray(new_values)
+                new_values.into()
             },
             (&Array::StringArray(ref svals), &Array::StringArray(ref ovals)) => {
                 let mut new_values = svals.clone();
                 new_values.append(&mut ovals.clone());
-                Array::StringArray(new_values)
+                new_values.into()
             },
             _ => panic!("Unable to append different dtype")
         }

@@ -10,7 +10,7 @@ fn default_columns(n: usize) -> Vec<String> {
     columns.into_iter().map(|x| x.to_string()).collect()
 }
 
-pub fn read_csv<'a, R: Read>(mut reader: Reader<R>) -> DataFrame<'a, 'a, usize, String> {
+pub fn read_csv<'a, R: Read>(mut reader: Reader<R>) -> DataFrame<'a, 'a, 'a, usize, String> {
 
     // headers read 1st row regardless of has_headers property
     let header : Vec<String> = reader.headers().unwrap();

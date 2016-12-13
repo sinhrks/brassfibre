@@ -3,12 +3,13 @@ use std::hash::Hash;
 
 use super::DataFrame;
 use super::super::algos::join::{JoinOp, HashJoin};
+use super::super::indexer::Indexer;
 use super::super::internals::Array;
 use super::super::traits::{Slicer, IndexerIndex, RowIndex,
                            Append, Concatenation, Join};
 
 
-impl<'i, 'c, I, C> Append<'c> for DataFrame<'i, 'c, I, C>
+impl<'v, 'i, 'c, I, C> Append<'c> for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 
@@ -17,10 +18,10 @@ impl<'i, 'c, I, C> Append<'c> for DataFrame<'i, 'c, I, C>
 
         let new_index = self.index.append(&other.index);
 
-        let mut new_values: Vec<Array> = Vec::with_capacity(self.columns.len());
+        let mut new_values: Vec<Cow<Array>> = Vec::with_capacity(self.columns.len());
         for (svalues, ovalues) in self.values.iter().zip(&other.values) {
             let new_value = svalues.append(&ovalues);
-            new_values.push(new_value);
+            new_values.push(Cow::Owned(new_value));
         }
         DataFrame::from_cow(new_values,
                             Cow::Owned(new_index),
@@ -28,7 +29,7 @@ impl<'i, 'c, I, C> Append<'c> for DataFrame<'i, 'c, I, C>
     }
 }
 
-impl<'i, 'c, I, C> Concatenation<'i> for DataFrame<'i, 'c, I, C>
+impl<'v, 'i, 'c, I, C> Concatenation<'i> for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 
@@ -37,9 +38,10 @@ impl<'i, 'c, I, C> Concatenation<'i> for DataFrame<'i, 'c, I, C>
 
         let new_columns = self.columns.append(&other.columns);
 
-        let mut new_values: Vec<Array> = Vec::with_capacity(new_columns.len());
-        for values in self.values.iter().chain(&other.values) {
-            new_values.push(values.clone());
+        let mut new_values: Vec<Cow<Array>> = Vec::with_capacity(new_columns.len());
+        for values in self.values.iter().chain(other.values.iter()) {
+            // new_values.push(Cow::Borrowed(values.borrow()));
+            new_values.push(Cow::Owned(values.clone().into_owned()));
         }
         DataFrame::from_cow(new_values,
                             Cow::Borrowed(self.index.borrow()),
@@ -47,7 +49,7 @@ impl<'i, 'c, I, C> Concatenation<'i> for DataFrame<'i, 'c, I, C>
     }
 }
 
-impl<'i, 'c, I, C> Join for DataFrame<'i, 'c, I, C>
+impl<'v, 'i, 'c, I, C> Join for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
           C: Clone + Eq + Hash {
 
@@ -56,15 +58,17 @@ impl<'i, 'c, I, C> Join for DataFrame<'i, 'c, I, C>
         let (new_index, lindexer, rindexer) = HashJoin::inner(&self.index.values, &other.index.values);
         let new_columns = self.columns.append(&other.columns);
 
-        let mut new_values: Vec<Array> = Vec::with_capacity(new_columns.len());
+        let mut new_values: Vec<Cow<Array>> = Vec::with_capacity(new_columns.len());
 
         for values in self.ilocs(&lindexer).values {
-            new_values.push(values.clone());
+            new_values.push(values);
         }
         for values in other.ilocs(&rindexer).values {
-            new_values.push(values.clone());
+            new_values.push(values);
         }
 
-        DataFrame::from_vec(new_values, new_index, new_columns)
+        DataFrame::from_cow(new_values,
+                            Cow::Owned(Indexer::new(new_index)),
+                            Cow::Owned(new_columns))
     }
 }
