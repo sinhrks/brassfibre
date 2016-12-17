@@ -339,6 +339,18 @@ fn test_block_reindex() {
 }
 
 #[test]
+#[should_panic]
+fn test_block_reindex_panic() {
+    let values = vec![vec![1, 2, 3, 4, 5],
+                      vec![6, 7, 8, 9, 10],
+                      vec![11, 12, 13, 14, 15]];
+    let b = Block::from_nested_vec(values,
+                                   vec!["A", "BB", "CC", "D", "EEE"],
+                                   vec!["X", "YYY", "ZZ"]);
+    b.reindex(&vec!["BB", "D", "X"]);
+}
+
+#[test]
 fn test_block_reindex_by_index() {
     let values = vec![vec![1, 2, 3, 4, 5],
                       vec![6, 7, 8, 9, 10],
@@ -355,6 +367,18 @@ fn test_block_reindex_by_index() {
                                      vec!["BB", "D", "A"],
                                      vec!["X", "YYY", "ZZ"]);
     assert_eq!(res, exp);
+}
+
+#[test]
+#[should_panic]
+fn test_block_reindex_by_index_panic() {
+    let values = vec![vec![1, 2, 3, 4, 5],
+                      vec![6, 7, 8, 9, 10],
+                      vec![11, 12, 13, 14, 15]];
+    let b = Block::from_nested_vec(values,
+                                   vec!["A", "BB", "CC", "D", "EEE"],
+                                   vec!["X", "YYY", "ZZ"]);
+    b.reindex_by_index(&vec![1, 3, 5]);
 }
 
 #[test]

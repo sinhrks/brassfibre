@@ -187,14 +187,29 @@ fn test_series_reindex() {
 }
 
 #[test]
+#[should_panic]
+fn test_series_reindex_panic() {
+    let s: Series<&str, &str> = Series::new(vec!["a", "b", "c", "d"],
+                                                vec!["A", "B", "C", "D"]);
+    s.reindex(&vec!["D", "C", "X"]);
+}
+
+#[test]
 fn test_series_reindex_by_index() {
     let s: Series<&str, &str> = Series::new(vec!["a", "b", "c", "d"],
                                             vec!["A", "B", "C", "D"]);
     let res = s.reindex_by_index(&vec![1, 3, 0]);
     let exp: Series<&str, &str> = Series::new(vec!["b", "d", "a"],
                                               vec!["B", "D", "A"]);
-
     assert_eq!(res, exp);
+}
+
+#[test]
+#[should_panic]
+fn test_series_reindex_by_index_panic() {
+    let s: Series<&str, &str> = Series::new(vec!["a", "b", "c", "d"],
+                                            vec!["A", "B", "C", "D"]);
+    s.reindex_by_index(&vec![1, 3, 10]);
 }
 
 #[test]

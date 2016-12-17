@@ -59,6 +59,19 @@ fn test_frame_slice_locs() {
 }
 
 #[test]
+#[should_panic]
+fn test_frame_slice_locs_panic() {
+    let values = vec![Array::Int64Array(vec![1, 2, 3, 4, 5]),
+                      Array::Float64Array(vec![6., 7., 8., 9., 10.]),
+                      Array::Int64Array(vec![11, 12, 13, 14, 15])];
+    let df = DataFrame::from_vec(values,
+                                 vec!["A", "BB", "CC", "D", "EEE"],
+                                 vec!["X", "YYY", "ZZ"]);
+
+    df.locs(&vec!["A", "D", "X"]);
+}
+
+#[test]
 fn test_frame_slice_ilocs() {
     let values = vec![Array::Int64Array(vec![1, 2, 3, 4, 5]),
                       Array::Float64Array(vec![6., 7., 8., 9., 10.]),
@@ -78,6 +91,18 @@ fn test_frame_slice_ilocs() {
     assert_eq!(res.values, exp.values);
     assert_eq!(res.index, exp.index);
     assert_eq!(res.columns, exp.columns);
+}
+
+#[test]
+#[should_panic]
+fn test_frame_slice_ilocs_panic() {
+    let values = vec![Array::Int64Array(vec![1, 2, 3, 4, 5]),
+                      Array::Float64Array(vec![6., 7., 8., 9., 10.]),
+                      Array::Int64Array(vec![11, 12, 13, 14, 15])];
+    let df = DataFrame::from_vec(values,
+                                 vec!["A", "BB", "CC", "D", "EEE"],
+                                 vec!["X", "YYY", "ZZ"]);
+    df.ilocs(&vec![0, 5, 2]);
 }
 
 #[test]

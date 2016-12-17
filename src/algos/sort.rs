@@ -70,28 +70,21 @@ impl Sorter {
 
     /// reorder values based on given locations
     pub fn reindex<T: Clone>(values: &[T], locs: &[usize]) -> Vec<T> {
-
-        let mut new_values: Vec<T> = Vec::with_capacity(values.len());
-        for loc in locs {
-            new_values.push(values[*loc].clone());
+        Sorter::assert_index_boundary(values, locs);
+        unsafe {
+            Sorter::reindex_unchecked(values, locs)
         }
-        new_values
     }
 
     /// reorder values based on given locations
-    pub fn reindex_unchecked<T: Clone>(values: &[T], locs: &[usize]) -> Vec<T> {
-
-        let mut new_values: Vec<T> = Vec::with_capacity(values.len());
-        for loc in locs {
-
-            unsafe {
-                // avoid boudary check
-                new_values.push(values.get_unchecked(*loc).clone());
-            }
-        }
-        new_values
+    pub unsafe fn reindex_unchecked<T: Clone>(values: &[T], locs: &[usize]) -> Vec<T> {
+        locs.iter().map(|&i| values.get_unchecked(i).clone()).collect()
     }
 
+    pub fn assert_index_boundary<T>(values: &[T], locs: &[usize]) {
+        let len = values.len();
+        assert!(locs.iter().all(|&i| i < len), "Index out of bounds");
+    }
 }
 
 #[cfg(test)]

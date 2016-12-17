@@ -154,6 +154,13 @@ fn test_ilocs() {
 }
 
 #[test]
+#[should_panic]
+fn test_ilocs_panic() {
+    let iarr = Array::Int64Array(vec![1, 2, 3, 4, 5]);
+    iarr.ilocs(&vec![1, 5, 0]);
+}
+
+#[test]
 fn test_blocs() {
     let iarr = Array::Int64Array(vec![1, 2, 3]);
     assert_eq!(iarr.dtype(), "i64");

@@ -55,12 +55,14 @@ impl<'v, 'i, 'c, I, C> RowIndex<'c> for DataFrame<'v, 'i, 'c, I, C>
     }
 
     fn reindex_by_index<'l>(&'c self, locations: &'l [usize]) -> Self {
-
         let new_index = self.index.reindex(locations);
+        // boudaries are checked in Indexer.reindex
 
         let mut new_values: Vec<Cow<Array>> = Vec::with_capacity(self.columns.len());
         for current in self.values.iter() {
-            let new_value = current.ilocs(locations);
+            let new_value = unsafe {
+                current.ilocs_unchecked(locations)
+            };
             new_values.push(Cow::Owned(new_value));
         }
         DataFrame::from_cow(new_values,

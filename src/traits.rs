@@ -8,6 +8,7 @@
 pub trait Slicer: Sized {
     fn len(&self) -> usize;
     fn ilocs(&self, locations: &[usize]) -> Self;
+    unsafe fn ilocs_unchecked(&self, locations: &[usize]) -> Self;
     fn blocs(&self, flags: &[bool]) -> Self;
 
     fn reindex(&self, locations: &[usize]) -> Self {

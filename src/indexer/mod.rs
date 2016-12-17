@@ -61,6 +61,11 @@ impl<U> Slicer for Indexer<U> where U: Clone + Eq + Hash {
         Indexer::new(new_values)
     }
 
+    unsafe fn ilocs_unchecked(&self, locations: &[usize]) -> Self {
+        let new_values = Sorter::reindex_unchecked(&self.values, locations);
+        Indexer::new(new_values)
+    }
+
     fn blocs(&self, flags: &[bool]) -> Self {
         let new_values: Vec<U> = Indexing::blocs(&self.values, flags);
         Indexer::new(new_values)

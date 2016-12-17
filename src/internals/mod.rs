@@ -138,6 +138,23 @@ impl Slicer for Array {
         }
     }
 
+    unsafe fn ilocs_unchecked(&self, locations: &[usize]) -> Self {
+        match self {
+            &Array::Int64Array(ref vals) => {
+                Array::Int64Array(Sorter::reindex_unchecked(vals, locations))
+            },
+            &Array::Float64Array(ref vals) => {
+                Array::Float64Array(Sorter::reindex_unchecked(vals, locations))
+            },
+            &Array::BoolArray(ref vals) => {
+                Array::BoolArray(Sorter::reindex_unchecked(vals, locations))
+            },
+            &Array::StringArray(ref vals) => {
+                Array::StringArray(Sorter::reindex_unchecked(vals, locations))
+            }
+        }
+    }
+
     fn blocs(&self, flags: &[bool]) -> Self {
         match self {
             &Array::Int64Array(ref vals) => {

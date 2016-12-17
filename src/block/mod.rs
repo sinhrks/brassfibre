@@ -63,10 +63,13 @@ impl<'v, 'i, 'c, V, I, C> RowIndex<'c> for Block<'v, 'i, 'c, V, I, C>
 
     fn reindex_by_index<'l>(&'c self, locations: &'l [usize]) -> Self {
         let new_index = self.index.reindex(locations);
+        // boudaries are checked in Indexer.reindex
 
         let mut new_values: Vec<Cow<Vec<V>>> = Vec::with_capacity(self.columns.len());
         for current in self.values.iter() {
-            let new_value = Sorter::reindex(current, locations);
+            let new_value = unsafe {
+                Sorter::reindex_unchecked(current, locations)
+            };
             new_values.push(Cow::Owned(new_value));
         }
         Block::from_cow(new_values,

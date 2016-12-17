@@ -52,15 +52,20 @@ impl<'v, 'i, V, I> RowIndex<'i> for Series<'v, 'i, V, I>
     }
 
     fn reindex(&self, labels: &[Self::Key]) -> Self {
-        let locs = self.index.get_locs(labels);
-        let new_values = Sorter::reindex(&self.values, &locs);
-        let new_labels: Vec<Self::Key> = labels.iter().cloned().collect();
-        Series::new(new_values, new_labels)
+        let locations = self.index.get_locs(labels);
+
+        let new_index = self.index.reindex(&locations);
+        let new_values = unsafe {
+            Sorter::reindex_unchecked(&self.values, &locations)
+        };
+        Series::new(new_values, new_index)
     }
 
     fn reindex_by_index(&self, locations: &[usize]) -> Self {
         let new_index = self.index.reindex(&locations);
-        let new_values = Sorter::reindex(&self.values, &locations);
+        let new_values = unsafe {
+            Sorter::reindex_unchecked(&self.values, &locations)
+        };
         Series::new(new_values, new_index)
     }
 
