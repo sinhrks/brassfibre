@@ -10,7 +10,7 @@ Single-dtype 1-dimentional vector with label (index).
 
 ```rust
 extern crate brassfibre;
-use brassfibre::*;
+use brassfibre::prelude::*;
 
 let values: Vec<i64> = vec![1, 2, 3, 4, 3];
 let index: Vec<i64> = vec![10, 20, 30, 40, 50];
@@ -88,7 +88,7 @@ Single-dtype 2-dimentional vector with labels (index and columns).
 
 ```rust
 extern crate brassfibre;
-use brassfibre::*;
+use brassfibre::prelude::*;
 
 let values = vec![1, 2, 3, 4, 5,
                   6, 7, 8, 9, 10,
@@ -216,7 +216,7 @@ Multiple-dtype 2-dimentional vector with labels (index and columns).
 ```rust
 #[macro_use]
 extern crate brassfibre;
-use brassfibre::*;
+use brassfibre::prelude::*;
 
 let values = vec![array![1, 2, 3, 4, 5],
                   array![6.1, 7.1, 8.1, 9.1, 10.1],

@@ -1,6 +1,6 @@
 #[macro_use]
 extern crate brassfibre;
-use brassfibre::*;
+use brassfibre::prelude::*;
 
 #[test]
 fn test_dataframe_append() {

@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 extern crate brassfibre;
-use brassfibre::*;
+use brassfibre::prelude::*;
 
 #[test]
 fn test_block_creation_from_col_vec() {

@@ -1,5 +1,5 @@
 extern crate brassfibre;
-use brassfibre::*;
+use brassfibre::prelude::*;
 
 #[test]
 fn test_frame_get_group() {

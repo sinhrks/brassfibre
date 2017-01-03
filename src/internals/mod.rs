@@ -13,9 +13,10 @@ mod scalar;
 /// Scalar
 /// /////////////////////////////////////////////////////////////////////////////
 #[allow(non_camel_case_types)]
-#[derive(RustcDecodable, Clone, PartialEq, Debug)]
+#[derive(RustcDecodable, RustcEncodable, Clone, PartialEq, Debug)]
 pub enum Scalar {
     i64(i64),
+    usize(usize),
     f64(f64),
     bool(bool),
     String(String),
@@ -36,6 +37,16 @@ impl Array {
     pub fn new<T: Into<Array>>(values: T) -> Self {
         let arr: Array = values.into();
         arr
+    }
+
+    pub fn iloc(&self, index: usize) -> Scalar {
+        // ToDo: move Slicer
+        match self {
+            &Array::Int64Array(ref vals) => Scalar::i64(vals[index]),
+            &Array::Float64Array(ref vals) => Scalar::f64(vals[index]),
+            &Array::BoolArray(ref vals) => Scalar::bool(vals[index]),
+            &Array::StringArray(ref vals) => Scalar::String(vals[index].clone()),
+        }
     }
 
     pub fn dtype(&self) -> String {
@@ -72,7 +83,9 @@ impl Array {
             arr = match self {
                 &Array::Int64Array(ref vals) => vals.clone().into(),
                 &Array::Float64Array(ref vals) => {
-                    let new_vals: Vec<i64> = vals.iter().map(|&x| x as i64).collect();
+                    let new_vals: Vec<i64> = vals.iter()
+                        .map(|&x| x as i64)
+                        .collect();
                     new_vals.into()
                 }
                 // ToDo: parse str
@@ -81,7 +94,9 @@ impl Array {
         } else if typ == TypeId::of::<f64>() {
             arr = match self {
                 &Array::Int64Array(ref vals) => {
-                    let new_vals: Vec<f64> = vals.iter().map(|&x| x as f64).collect();
+                    let new_vals: Vec<f64> = vals.iter()
+                        .map(|&x| x as f64)
+                        .collect();
                     new_vals.into()
                 }
                 &Array::Float64Array(ref vals) => vals.clone().into(),

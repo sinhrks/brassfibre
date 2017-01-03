@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 #[macro_use]
 extern crate brassfibre;
-use brassfibre::*;
+use brassfibre::prelude::*;
 
 #[test]
 fn test_frame_creation_from_vec() {

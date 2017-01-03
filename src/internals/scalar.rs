@@ -4,6 +4,7 @@ impl Scalar {
     pub fn dtype(&self) -> String {
         match self {
             &Scalar::i64(_) => "i64".to_string(),
+            &Scalar::usize(_) => "usize".to_string(),
             &Scalar::f64(_) => "f64".to_string(),
             &Scalar::bool(_) => "bool".to_string(),
             &Scalar::String(_) => "str".to_string(),

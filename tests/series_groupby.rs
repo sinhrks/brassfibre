@@ -1,5 +1,5 @@
 extern crate brassfibre;
-use brassfibre::*;
+use brassfibre::prelude::*;
 
 // Some tests are under series::groupby which directly uses SeriesGroupBy (private internal)
 

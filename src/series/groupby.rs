@@ -115,9 +115,9 @@ mod tests {
 
     use std::borrow::Cow;
     use super::super::Series;
-    use super::super::super::indexer::Indexer;
-    use super::super::super::groupby::GroupBy;
-    use super::super::super::{BasicAggregation, NumericAggregation, ComparisonAggregation};
+    use indexer::Indexer;
+    use groupby::GroupBy;
+    use traits::{BasicAggregation, NumericAggregation, ComparisonAggregation};
 
     #[test]
     fn test_series_get_group() {

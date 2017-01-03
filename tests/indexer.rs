@@ -1,5 +1,5 @@
 extern crate brassfibre;
-use brassfibre::*;
+use brassfibre::prelude::*;
 
 #[test]
 fn test_index_creation_from_len() {

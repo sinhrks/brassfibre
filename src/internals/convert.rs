@@ -51,6 +51,8 @@ impl From<Vec<Scalar>> for Array {
             &Scalar::String(_) => {
                 Array::StringArray(values.iter().map(|ref x| x.as_str()).collect())
             }
+            // ToDo: impl usize
+            _ => panic!(""),
         }
     }
 }
@@ -90,6 +92,7 @@ macro_rules! add_scalar_conversion {
     }
 }
 add_scalar_conversion!(i64);
+add_scalar_conversion!(usize);
 add_scalar_conversion!(f64);
 add_scalar_conversion!(bool);
 add_scalar_conversion!(String);
@@ -316,10 +319,10 @@ mod tests {
     fn test_i64_primitives_to_scalar() {
         let exp = Scalar::i64(1);
 
-        let res: Scalar = 1.into();
+        let res: Scalar = 1i64.into();
         assert_eq!(res, exp);
 
-        let res: Scalar = Scalar::from(1);
+        let res: Scalar = Scalar::from(1i64);
         assert_eq!(res, exp);
     }
 
