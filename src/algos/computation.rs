@@ -5,7 +5,7 @@ use std::ops::{Add, Sub, Div};
 use num::{Num, Zero, Float, ToPrimitive};
 
 //**********************************************
-// Min, Max
+//*Min, Max
 //**********************************************
 
 pub trait NanMinMax<A> {
@@ -70,9 +70,9 @@ pub struct Aggregation;
 
 // Aggregation
 impl Aggregation {
-
     pub fn vec_sum<T>(values: &Vec<T>) -> T
-        where T: Clone + Zero + Add {
+        where T: Clone + Zero + Add
+    {
 
         // ToDo: Use AsRef
         values.iter().fold(T::zero(), |a, b| a + b.clone())
@@ -83,7 +83,8 @@ impl Aggregation {
     }
 
     pub fn vec_mean<T>(values: &Vec<T>) -> f64
-        where T: Clone + Zero + Add + ToPrimitive {
+        where T: Clone + Zero + Add + ToPrimitive
+    {
 
         let sum: f64 = ToPrimitive::to_f64(&Aggregation::vec_sum(values)).unwrap();
         let count: f64 = Aggregation::vec_count(values) as f64;
@@ -91,47 +92,54 @@ impl Aggregation {
     }
 
     fn mean_sq<T>(values: &Vec<T>) -> f64
-        where T: Clone + Zero + Add + Sub + ToPrimitive {
+        where T: Clone + Zero + Add + Sub + ToPrimitive
+    {
         // use two pass algorithm, assuming data is not large
         let mean = Aggregation::vec_mean(values);
         values.iter()
-              .map(|x| ToPrimitive::to_f64(x).unwrap())
-              .fold(0., |a, b| a + (b - mean) * (b - mean))
+            .map(|x| ToPrimitive::to_f64(x).unwrap())
+            .fold(0., |a, b| a + (b - mean) * (b - mean))
     }
 
     pub fn vec_var<T>(values: &Vec<T>) -> f64
-        where T: Clone + Zero + Add + Sub + Div + ToPrimitive {
+        where T: Clone + Zero + Add + Sub + Div + ToPrimitive
+    {
 
         Aggregation::mean_sq(values) / (Aggregation::vec_count(values) as f64)
     }
 
     pub fn vec_unbiased_var<T>(values: &Vec<T>) -> f64
-        where T: Clone + Zero + Add + Sub + Div + ToPrimitive {
+        where T: Clone + Zero + Add + Sub + Div + ToPrimitive
+    {
 
         Aggregation::mean_sq(values) / ((Aggregation::vec_count(values) as f64) - 1.)
     }
 
     pub fn vec_std<T>(values: &Vec<T>) -> f64
-        where T: Clone + Zero + Add + Sub + Div + ToPrimitive {
+        where T: Clone + Zero + Add + Sub + Div + ToPrimitive
+    {
 
         Aggregation::vec_var(values).sqrt()
     }
 
     pub fn vec_unbiased_std<T>(values: &Vec<T>) -> f64
-        where T: Clone + Zero + Add + Sub + Div + ToPrimitive {
+        where T: Clone + Zero + Add + Sub + Div + ToPrimitive
+    {
 
         Aggregation::vec_unbiased_var(values).sqrt()
     }
 
     pub fn vec_min<T>(values: &Vec<T>) -> T
-        where T: Clone + NanMinMax<T> {
+        where T: Clone + NanMinMax<T>
+    {
 
         // can't use normal min(a, b), because it can't handle NaN
         values.iter().fold(T::nanmax_value(), |a, b| a.nanmin((*b).clone()))
     }
 
     pub fn vec_max<T>(values: &Vec<T>) -> T
-        where T: Clone + NanMinMax<T> {
+        where T: Clone + NanMinMax<T>
+    {
 
         values.iter().fold(T::nanmin_value(), |a, b| a.nanmax((*b).clone()))
     }

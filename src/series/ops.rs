@@ -81,7 +81,8 @@ macro_rules! define_numeric_op {
             }
         }
 
-        impl<'lv, 'rv, 'li, 'ri, 'r, V, I, O> $t<&'r Series<'rv, 'ri, V, I>> for Series<'lv, 'li, V, I>
+        impl<'lv, 'rv, 'li, 'ri, 'r, V, I, O> $t<&'r Series<'rv, 'ri, V, I>>
+            for Series<'lv, 'li, V, I>
             where V: Clone + $t<Output=O>,
                   I: Clone + Eq + Hash,
                   O: 'lv + Clone {
@@ -96,7 +97,8 @@ macro_rules! define_numeric_op {
             }
         }
 
-        impl<'lv, 'rv, 'li, 'ri, 'l, V, I, O> $t<Series<'rv, 'ri, V, I>> for &'l Series<'lv, 'li, V, I>
+        impl<'lv, 'rv, 'li, 'ri, 'l, V, I, O> $t<Series<'rv, 'ri, V, I>>
+            for &'l Series<'lv, 'li, V, I>
             where V: Clone + $t<Output=O>,
                   I: Clone + Eq + Hash,
                   O: 'l + Clone {
@@ -124,7 +126,9 @@ macro_rules! define_numeric_op {
             type Output = Series<'l, 'l, O, I>;
             fn $m(self, _rhs: &'r Series<V, I>) -> Self::Output {
                 self.assert_binop(&_rhs);
-                let new_values: Vec<O> = Elemwise::elemwise_rr(&self.values, &_rhs.values, |x, y| x.$m(y));
+                let new_values: Vec<O> = Elemwise::elemwise_rr(&self.values,
+                                                               &_rhs.values,
+                                                               |x, y| x.$m(y));
                 Series::from_cow(Cow::Owned(new_values),
                                  Cow::Borrowed(self.index.borrow()))
             }

@@ -17,20 +17,15 @@ fn test_frame_creation_from_vec() {
 
 #[test]
 fn test_frame_add_columns() {
-    let values = vec![Array::Int64Array(vec![1, 2, 3]),
-                      Array::Float64Array(vec![4., 5., 6.])];
-    let mut df = DataFrame::from_vec(values,
-                                     vec!["A", "BB", "CC"],
-                                     vec!["X", "Y"]);
+    let values = vec![Array::Int64Array(vec![1, 2, 3]), Array::Float64Array(vec![4., 5., 6.])];
+    let mut df = DataFrame::from_vec(values, vec!["A", "BB", "CC"], vec!["X", "Y"]);
     assert_eq!(df.len(), 3);
     df.insert(Array::Int64Array(vec![10, 11, 12]), "Z");
 
     let exp_values = vec![Array::Int64Array(vec![1, 2, 3]),
                           Array::Float64Array(vec![4., 5., 6.]),
                           Array::Int64Array(vec![10, 11, 12])];
-    let exp = DataFrame::from_vec(exp_values,
-                                  vec!["A", "BB", "CC"],
-                                  vec!["X", "Y", "Z"]);
+    let exp = DataFrame::from_vec(exp_values, vec!["A", "BB", "CC"], vec!["X", "Y", "Z"]);
     assert_eq!(df.values, exp.values);
     assert_eq!(df.index, exp.index);
     assert_eq!(df.columns, exp.columns);
@@ -50,9 +45,7 @@ fn test_frame_slice_locs() {
     let exp_values = vec![Array::Int64Array(vec![1, 4, 3]),
                           Array::Float64Array(vec![6., 9., 8.]),
                           Array::Int64Array(vec![11, 14, 13])];
-    let exp = DataFrame::from_vec(exp_values,
-                                  vec!["A", "D", "CC"],
-                                  vec!["X", "YYY", "ZZ"]);
+    let exp = DataFrame::from_vec(exp_values, vec!["A", "D", "CC"], vec!["X", "YYY", "ZZ"]);
     assert_eq!(res.values, exp.values);
     assert_eq!(res.index, exp.index);
     assert_eq!(res.columns, exp.columns);
@@ -85,9 +78,7 @@ fn test_frame_slice_ilocs() {
     let exp_values = vec![Array::Int64Array(vec![1, 4, 3]),
                           Array::Float64Array(vec![6., 9., 8.]),
                           Array::Int64Array(vec![11, 14, 13])];
-    let exp = DataFrame::from_vec(exp_values,
-                                  vec!["A", "D", "CC"],
-                                  vec!["X", "YYY", "ZZ"]);
+    let exp = DataFrame::from_vec(exp_values, vec!["A", "D", "CC"], vec!["X", "YYY", "ZZ"]);
     assert_eq!(res.values, exp.values);
     assert_eq!(res.index, exp.index);
     assert_eq!(res.columns, exp.columns);
@@ -134,27 +125,25 @@ fn test_frame_columns_slice() {
 
 #[test]
 fn test_frame_into_iter() {
-    let values = vec![Array::Int64Array(vec![1, 2, 3]),
-                      Array::Float64Array(vec![6., 7., 8.])];
-    let df = DataFrame::from_vec(values,
-                                 vec!["A", "BB", "CC"],
-                                 vec!["X", "YYY"]);
+    let values = vec![Array::Int64Array(vec![1, 2, 3]), Array::Float64Array(vec![6., 7., 8.])];
+    let df = DataFrame::from_vec(values, vec!["A", "BB", "CC"], vec!["X", "YYY"]);
     let mut it = df.into_iter();
-    assert_eq!(it.next(), Some(Cow::Owned(Array::Int64Array(vec![1, 2, 3]))));
-    assert_eq!(it.next(), Some(Cow::Owned(Array::Float64Array(vec![6., 7., 8.]))));
+    assert_eq!(it.next(),
+               Some(Cow::Owned(Array::Int64Array(vec![1, 2, 3]))));
+    assert_eq!(it.next(),
+               Some(Cow::Owned(Array::Float64Array(vec![6., 7., 8.]))));
     assert_eq!(it.next(), None);
 }
 
 #[test]
 fn test_frame_iter() {
-    let values = vec![Array::Int64Array(vec![1, 2, 3]),
-                      Array::Float64Array(vec![6., 7., 8.])];
-    let df = DataFrame::from_vec(values,
-                                 vec!["A", "BB", "CC"],
-                                 vec!["X", "YYY"]);
+    let values = vec![Array::Int64Array(vec![1, 2, 3]), Array::Float64Array(vec![6., 7., 8.])];
+    let df = DataFrame::from_vec(values, vec!["A", "BB", "CC"], vec!["X", "YYY"]);
     let mut it = df.iter();
-    assert_eq!(it.next(), Some(&Cow::Owned(Array::Int64Array(vec![1, 2, 3]))));
-    assert_eq!(it.next(), Some(&Cow::Owned(Array::Float64Array(vec![6., 7., 8.]))));
+    assert_eq!(it.next(),
+               Some(&Cow::Owned(Array::Int64Array(vec![1, 2, 3]))));
+    assert_eq!(it.next(),
+               Some(&Cow::Owned(Array::Float64Array(vec![6., 7., 8.]))));
     assert_eq!(it.next(), None);
 }
 
@@ -162,14 +151,14 @@ fn test_frame_iter() {
 fn test_frame_properties() {
     let values: Vec<Array> = vec![array!["a", "b", "c", "d", "e"],
                                   array![1, 2, 3, 4, 5],
-                                  array![true, false, true, false ,true],
+                                  array![true, false, true, false, true],
                                   array![6., 7., 8., 9., 10.]];
     let index: Vec<i64> = vec![10, 20, 30, 40, 50];
     let columns: Vec<&str> = vec!["A", "B", "C", "D"];
     let df = DataFrame::from_vec(values, index, columns);
 
-    let exp: Vec<String> = vec!["str".to_string(), "i64".to_string(),
-                                "bool".to_string(), "f64".to_string()];
+    let exp: Vec<String> =
+        vec!["str".to_string(), "i64".to_string(), "bool".to_string(), "f64".to_string()];
     assert_eq!(df.dtypes(), exp);
 
     let exp: Vec<bool> = vec![false, true, false, true];

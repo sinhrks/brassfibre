@@ -7,15 +7,14 @@ pub struct GroupBy<'a, D: 'a, G: Hash> {
     /// Grouped Series
     /// D: grouped data
     /// V: type of Group indexer
-
     pub data: &'a D,
     pub grouper: HashGrouper<G>,
 }
 
 impl<'a, D, G> GroupBy<'a, D, G>
     where D: RowIndex<'a>,
-          G: Clone + Eq + Hash + Ord {
-
+          G: Clone + Eq + Hash + Ord
+{
     pub fn new(data: &'a D, indexer: Vec<G>) -> Self {
 
         assert!(data.len() == indexer.len(),

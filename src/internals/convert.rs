@@ -1,8 +1,8 @@
 use super::{Array, Scalar};
 
-////////////////////////////////////////////////////////////////////////////////
-// Vec to Array
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Vec to Array
+/// /////////////////////////////////////////////////////////////////////////////
 
 macro_rules! add_array_conversion {
     ($t:ident, $klass:ident) => {
@@ -36,9 +36,9 @@ impl<'a> From<Vec<&'a str>> for Array {
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Scalar Vec to Array
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Scalar Vec to Array
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl From<Vec<Scalar>> for Array {
     fn from(values: Vec<Scalar>) -> Self {
@@ -48,7 +48,9 @@ impl From<Vec<Scalar>> for Array {
             &Scalar::i64(_) => Array::Int64Array(values.iter().map(|ref x| x.as_i64()).collect()),
             &Scalar::f64(_) => Array::Float64Array(values.iter().map(|ref x| x.as_f64()).collect()),
             &Scalar::bool(_) => Array::BoolArray(values.iter().map(|ref x| x.as_bool()).collect()),
-            &Scalar::String(_) => Array::StringArray(values.iter().map(|ref x| x.as_str()).collect())
+            &Scalar::String(_) => {
+                Array::StringArray(values.iter().map(|ref x| x.as_str()).collect())
+            }
         }
     }
 }
@@ -64,9 +66,9 @@ impl From<Array> for Vec<Scalar> {
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Scalar to primitives
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Scalar to primitives
+/// /////////////////////////////////////////////////////////////////////////////
 
 macro_rules! add_scalar_conversion {
     ($t:ident) => {
@@ -265,7 +267,8 @@ mod tests {
         let res: Array = vals.into();
         assert_eq!(res, exp);
 
-        let vals: Vec<Scalar> = vec![Scalar::String("a".to_string()), Scalar::String("b".to_string())];
+        let vals: Vec<Scalar> = vec![Scalar::String("a".to_string()),
+                                     Scalar::String("b".to_string())];
         let res: Array = vals.into();
         assert_eq!(res, exp);
 
@@ -278,7 +281,8 @@ mod tests {
         let res = Array::from(vals);
         assert_eq!(res, exp);
 
-        let vals: Vec<Scalar> = vec![Scalar::String("a".to_string()), Scalar::String("b".to_string())];
+        let vals: Vec<Scalar> = vec![Scalar::String("a".to_string()),
+                                     Scalar::String("b".to_string())];
         let res = Array::from(vals);
         assert_eq!(res, exp);
     }
@@ -286,7 +290,8 @@ mod tests {
     #[test]
     fn test_str_array_to_vec() {
         let exp: Vec<String> = vec!["a".to_string(), "b".to_string()];
-        let exps: Vec<Scalar> = vec![Scalar::String("a".to_string()), Scalar::String("b".to_string())];
+        let exps: Vec<Scalar> = vec![Scalar::String("a".to_string()),
+                                     Scalar::String("b".to_string())];
 
         // Into
         let vals = Array::StringArray(vec!["a".to_string(), "b".to_string()]);

@@ -5,13 +5,12 @@ use super::DataFrame;
 use indexer::Indexer;
 use internals::Array;
 use series::Series;
-use traits::{BasicAggregation, NumericAggregation,
-             ComparisonAggregation, Description};
+use traits::{BasicAggregation, NumericAggregation, ComparisonAggregation, Description};
 
 impl<'v, 'i, 'c, I, C> BasicAggregation<'c> for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
-          C: 'c + Clone + Eq + Hash {
-
+          C: 'c + Clone + Eq + Hash
+{
     // ToDo: use 'n lifetime for values
     type Kept = Series<'c, 'c, f64, C>;
     type Counted = Series<'c, 'c, usize, C>;
@@ -31,8 +30,8 @@ impl<'v, 'i, 'c, I, C> BasicAggregation<'c> for DataFrame<'v, 'i, 'c, I, C>
 
 impl<'v, 'i, 'c, I, C> NumericAggregation<'c> for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
-          C: 'c + Clone + Eq + Hash {
-
+          C: 'c + Clone + Eq + Hash
+{
     // ToDo: use 'n lifetime for values
     type Coerced = Series<'c, 'c, f64, C>;
 
@@ -69,8 +68,8 @@ impl<'v, 'i, 'c, I, C> NumericAggregation<'c> for DataFrame<'v, 'i, 'c, I, C>
 
 impl<'v, 'i, 'c, I, C> ComparisonAggregation<'c> for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
-          C: 'c + Clone + Eq + Hash {
-
+          C: 'c + Clone + Eq + Hash
+{
     // ToDo: use 'n lifetime for values
     type Kept = Series<'c, 'c, f64, C>;
 
@@ -89,8 +88,8 @@ impl<'v, 'i, 'c, I, C> ComparisonAggregation<'c> for DataFrame<'v, 'i, 'c, I, C>
 
 impl<'v, 'i, 'c, I, C> Description<'c> for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
-          C: Clone + Eq + Hash {
-
+          C: Clone + Eq + Hash
+{
     type Described = DataFrame<'v, 'c, 'c, &'c str, C>;
 
     fn describe(&'c self) -> Self::Described {
@@ -98,16 +97,14 @@ impl<'v, 'i, 'c, I, C> Description<'c> for DataFrame<'v, 'i, 'c, I, C>
 
         let new_index: Vec<&str> = vec!["count", "mean", "std", "min", "max"];
 
-        let describe = |x: &Array| Array::Float64Array(vec![x.count() as f64,
-                                                            x.mean(), x.std(),
-                                                            x.min(), x.max()]);
+        let describe = |x: &Array| {
+            Array::Float64Array(vec![x.count() as f64, x.mean(), x.std(), x.min(), x.max()])
+        };
 
-        let new_values: Vec<Cow<Array>> = ndf.values.iter()
-                                                    .map(|ref x| Cow::Owned(describe(x)))
-                                                    .collect();
-        DataFrame::from_cow(new_values,
-                            Cow::Owned(Indexer::new(new_index)),
-                            ndf.columns)
+        let new_values: Vec<Cow<Array>> = ndf.values
+            .iter()
+            .map(|ref x| Cow::Owned(describe(x)))
+            .collect();
+        DataFrame::from_cow(new_values, Cow::Owned(Indexer::new(new_index)), ndf.columns)
     }
-
 }

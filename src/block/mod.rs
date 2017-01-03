@@ -19,27 +19,26 @@ mod reshape;
 pub struct Block<'v, 'i, 'c, V, I, C>
     where V: 'v + Clone,
           I: 'i + Clone + Hash,
-          C: 'c + Clone + Hash {
+          C: 'c + Clone + Hash
+{
     /// 2-dimentional block contains a single type.
     /// V: type of values
     /// I: type of indexer
     /// C: type of columns
-
-    // ToDo: may be simpler to use 1-d Vec?
     pub values: Vec<Cow<'v, Vec<V>>>,
     pub index: Cow<'i, Indexer<I>>,
     pub columns: Cow<'c, Indexer<C>>,
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Indexing
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Indexing
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, 'c, V, I, C> RowIndex<'c> for Block<'v, 'i, 'c, V, I, C>
     where V: Clone,
           I: Clone + Eq + Hash,
-          C: Clone + Eq + Hash {
-
+          C: Clone + Eq + Hash
+{
     type Key = I;
     type Row = V;
 
@@ -66,9 +65,7 @@ impl<'v, 'i, 'c, V, I, C> RowIndex<'c> for Block<'v, 'i, 'c, V, I, C>
 
         let mut new_values: Vec<Cow<Vec<V>>> = Vec::with_capacity(self.columns.len());
         for current in self.values.iter() {
-            let new_value = unsafe {
-                Sorter::reindex_unchecked(current, locations)
-            };
+            let new_value = unsafe { Sorter::reindex_unchecked(current, locations) };
             new_values.push(Cow::Owned(new_value));
         }
         Block::from_cow(new_values,
@@ -85,8 +82,8 @@ impl<'v, 'i, 'c, V, I, C> RowIndex<'c> for Block<'v, 'i, 'c, V, I, C>
 impl<'v, 'i, 'c, V, I, C> ColIndex<'i> for Block<'v, 'i, 'c, V, I, C>
     where V: 'i + Clone,
           I: 'i + Clone + Eq + Hash,
-          C: Clone + Eq + Hash {
-
+          C: Clone + Eq + Hash
+{
     type Key = C;
     type Column = Series<'i, 'i, V, I>;
 
@@ -120,19 +117,20 @@ impl<'v, 'i, 'c, V, I, C> ColIndex<'i> for Block<'v, 'i, 'c, V, I, C>
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Misc
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Misc
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, 'c, V, I, C> Block<'v, 'i, 'c, V, I, C>
     where V: Clone,
           I: Clone + Eq + Hash,
-          C: Clone + Eq + Hash {
-
+          C: Clone + Eq + Hash
+{
     /// Instanciate from column-wise Vec
     pub fn from_col_vec<X, Y>(values: Vec<V>, index: X, columns: Y) -> Self
         where X: Into<Indexer<I>>,
-              Y: Into<Indexer<C>> {
+              Y: Into<Indexer<C>>
+    {
 
         let index: Indexer<I> = index.into();
         let columns: Indexer<C> = columns.into();
@@ -157,7 +155,8 @@ impl<'v, 'i, 'c, V, I, C> Block<'v, 'i, 'c, V, I, C>
     /// Instanciate from column-wise Vec
     pub fn from_row_vec<X, Y>(values: Vec<V>, index: X, columns: Y) -> Self
         where X: Into<Indexer<I>>,
-              Y: Into<Indexer<C>> {
+              Y: Into<Indexer<C>>
+    {
 
         let index: Indexer<I> = index.into();
         let columns: Indexer<C> = columns.into();
@@ -186,7 +185,8 @@ impl<'v, 'i, 'c, V, I, C> Block<'v, 'i, 'c, V, I, C>
     /// Instanciate from nested Vec
     pub fn from_vec<X, Y>(values: Vec<Vec<V>>, index: X, columns: Y) -> Self
         where X: Into<Indexer<I>>,
-              Y: Into<Indexer<C>> {
+              Y: Into<Indexer<C>>
+    {
 
         let index: Indexer<I> = index.into();
         let columns: Indexer<C> = columns.into();
@@ -199,8 +199,8 @@ impl<'v, 'i, 'c, V, I, C> Block<'v, 'i, 'c, V, I, C>
             assert!(value.len() == len, "Length mismatch!");
         }
         let values: Vec<Cow<Vec<V>>> = values.into_iter()
-                                             .map(|x| Cow::Owned(x))
-                                             .collect();
+            .map(|x| Cow::Owned(x))
+            .collect();
         Block {
             values: values,
             index: Cow::Owned(index),
@@ -211,13 +211,15 @@ impl<'v, 'i, 'c, V, I, C> Block<'v, 'i, 'c, V, I, C>
     /// Instanciate from nested Vec
     pub fn from_nested_vec<X, Y>(values: Vec<Vec<V>>, index: X, columns: Y) -> Self
         where X: Into<Indexer<I>>,
-              Y: Into<Indexer<C>> {
+              Y: Into<Indexer<C>>
+    {
         Block::from_vec(values, index, columns)
     }
 
     fn from_cow(values: Vec<Cow<'v, Vec<V>>>,
                 index: Cow<'i, Indexer<I>>,
-                columns: Cow<'c, Indexer<C>>) -> Self {
+                columns: Cow<'c, Indexer<C>>)
+                -> Self {
         Block {
             values: values,
             index: index,
@@ -253,7 +255,8 @@ impl<'v, 'i, 'c, V, I, C> Block<'v, 'i, 'c, V, I, C>
     }
 
     pub fn groupby<G>(&self, other: Vec<G>) -> GroupBy<Block<V, I, C>, G>
-        where G: Clone + Eq + Hash + Ord {
+        where G: Clone + Eq + Hash + Ord
+    {
         GroupBy::new(&self, other)
     }
 
@@ -273,16 +276,16 @@ impl<'v, 'i, 'c, V, I, C> Block<'v, 'i, 'c, V, I, C>
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Apply
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Apply
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, 'c, V, I, C, R> Apply<'i, R> for Block<'v, 'i, 'c, V, I, C>
     where V: Clone,
           I: Clone + Eq + Hash,
           C: 'i + Clone + Eq + Hash,
-          R: 'i + Clone {
-
+          R: 'i + Clone
+{
     type In = Vec<V>;
     type FOut = R;
     // ToDo: use 'n lifetime for values
@@ -293,36 +296,34 @@ impl<'v, 'i, 'c, V, I, C, R> Apply<'i, R> for Block<'v, 'i, 'c, V, I, C>
         for current in self.values.iter() {
             new_values.push(func(&current));
         }
-        Series::from_cow(Cow::Owned(new_values),
-                         Cow::Borrowed(self.columns.borrow()))
+        Series::from_cow(Cow::Owned(new_values), Cow::Borrowed(self.columns.borrow()))
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Eq
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Eq
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, 'c, V, I, C> PartialEq for Block<'v, 'i, 'c, V, I, C>
     where V: Clone + PartialEq,
           I: Clone + Hash + Eq,
-          C: Clone + Hash + Eq {
-
+          C: Clone + Hash + Eq
+{
     fn eq(&self, other: &Self) -> bool {
-        (self.index.eq(&other.index)) &&
-        (self.columns.eq(&other.columns)) &&
+        (self.index.eq(&other.index)) && (self.columns.eq(&other.columns)) &&
         (self.values.eq(&other.values))
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Iterator
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Iterator
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, 'c, V, I, C> IntoIterator for Block<'v, 'i, 'c, V, I, C>
     where V: Clone,
           I: Clone + Hash + Eq,
-          C: Clone + Hash + Eq  {
-
+          C: Clone + Hash + Eq
+{
     // ToDo: remove cow, return Series
     type Item = Cow<'v, Vec<V>>;
     type IntoIter = vec::IntoIter<Cow<'v, Vec<V>>>;
@@ -335,8 +336,8 @@ impl<'v, 'i, 'c, V, I, C> IntoIterator for Block<'v, 'i, 'c, V, I, C>
 impl<'v, 'i, 'c, V, I, C> Block<'v, 'i, 'c, V, I, C>
     where V: Clone,
           I: Clone + Hash + Eq,
-          C: Clone + Hash + Eq  {
-
+          C: Clone + Hash + Eq
+{
     pub fn iter(&self) -> slice::Iter<Cow<Vec<V>>> {
         self.values.iter()
     }

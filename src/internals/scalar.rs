@@ -1,7 +1,6 @@
 use super::Scalar;
 
 impl Scalar {
-
     pub fn dtype(&self) -> String {
         match self {
             &Scalar::i64(_) => "i64".to_string(),
@@ -14,28 +13,28 @@ impl Scalar {
     pub fn is_i64(&self) -> bool {
         match self {
             &Scalar::i64(_) => true,
-            _ => false
+            _ => false,
         }
     }
 
     pub fn is_f64(&self) -> bool {
         match self {
             &Scalar::f64(_) => true,
-            _ => false
+            _ => false,
         }
     }
 
     pub fn is_bool(&self) -> bool {
         match self {
             &Scalar::bool(_) => true,
-            _ => false
+            _ => false,
         }
     }
 
     pub fn is_str(&self) -> bool {
         match self {
             &Scalar::String(_) => true,
-            _ => false
+            _ => false,
         }
     }
 
@@ -44,7 +43,7 @@ impl Scalar {
             &Scalar::i64(val) => val,
             &Scalar::f64(val) => val as i64,
             &Scalar::bool(val) => val as i64,
-            _ => panic!("unable to coerce to i64")
+            _ => panic!("unable to coerce to i64"),
         }
     }
 
@@ -52,21 +51,21 @@ impl Scalar {
         match self {
             &Scalar::i64(val) => val as f64,
             &Scalar::f64(val) => val,
-            _ => panic!("unable to coerce to f64")
+            _ => panic!("unable to coerce to f64"),
         }
     }
 
     pub fn as_bool(&self) -> bool {
         match self {
             &Scalar::bool(val) => val,
-            _ => panic!("unable to coerce to bool")
+            _ => panic!("unable to coerce to bool"),
         }
     }
 
     pub fn as_str(&self) -> String {
         match self {
             &Scalar::String(ref val) => val.clone(),
-            _ => panic!("unable to coerce to String")
+            _ => panic!("unable to coerce to String"),
         }
     }
 }

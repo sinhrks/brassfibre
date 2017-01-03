@@ -7,23 +7,24 @@ use std::hash::Hash;
 pub enum Duplicates {
     First,
     Last,
-    None
+    None,
 }
 
 impl Duplicates {
-
     pub fn duplicated<T>(a: &[T], how: Duplicates) -> Vec<bool>
-        where T: Clone + Hash + Eq {
+        where T: Clone + Hash + Eq
+    {
 
         match how {
-            Duplicates::First => { Duplicates::duplicated_keepfirst(a) },
-            Duplicates::Last => { Duplicates::duplicated_keeplast(a) },
-            Duplicates::None => { Duplicates::duplicated_keepnone(a) }
+            Duplicates::First => Duplicates::duplicated_keepfirst(a),
+            Duplicates::Last => Duplicates::duplicated_keeplast(a),
+            Duplicates::None => Duplicates::duplicated_keepnone(a),
         }
     }
 
     fn duplicated_keepfirst<T>(a: &[T]) -> Vec<bool>
-        where T: Clone + Hash + Eq {
+        where T: Clone + Hash + Eq
+    {
 
         // ToDo: Change return value to BitVec
         let mut res: Vec<bool> = Vec::with_capacity(a.len());
@@ -41,7 +42,8 @@ impl Duplicates {
     }
 
     fn duplicated_keeplast<T>(a: &[T]) -> Vec<bool>
-        where T: Clone + Hash + Eq {
+        where T: Clone + Hash + Eq
+    {
 
         let mut res: Vec<bool> = Vec::with_capacity(a.len());
         let mut map: HashMap<Cow<T>, usize> = HashMap::with_capacity(a.len());
@@ -53,7 +55,7 @@ impl Duplicates {
                     let idx = e.insert(i);
                     res[idx] = true;
                     res.push(false);
-                },
+                }
                 Entry::Vacant(e) => {
                     e.insert(i);
                     res.push(false);
@@ -64,7 +66,8 @@ impl Duplicates {
     }
 
     fn duplicated_keepnone<T>(a: &[T]) -> Vec<bool>
-        where T: Clone + Hash + Eq {
+        where T: Clone + Hash + Eq
+    {
 
         let mut res: Vec<bool> = Vec::with_capacity(a.len());
         let mut map: HashMap<Cow<T>, usize> = HashMap::with_capacity(a.len());
@@ -76,7 +79,7 @@ impl Duplicates {
                 Entry::Occupied(e) => {
                     res[*e.get()] = true;
                     res.push(true);
-                },
+                }
                 Entry::Vacant(e) => {
                     e.insert(i);
                     res.push(false);
@@ -111,10 +114,12 @@ mod tests {
         let key = vec!["a", "b", "c", "b", "a", "c", "d", "b"];
 
         let res = Duplicates::duplicated(&key, Duplicates::First);
-        assert_eq!(res, vec![false, false, false, true, true, true, false, true]);
+        assert_eq!(res,
+                   vec![false, false, false, true, true, true, false, true]);
 
         let res = Duplicates::duplicated(&key, Duplicates::Last);
-        assert_eq!(res, vec![true, true, true, true, false, false, false, false]);
+        assert_eq!(res,
+                   vec![true, true, true, true, false, false, false, false]);
 
         let res = Duplicates::duplicated(&key, Duplicates::None);
         assert_eq!(res, vec![true, true, true, true, true, true, false, true]);

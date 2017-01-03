@@ -3,14 +3,14 @@ use std::collections::{BTreeMap, HashMap};
 use std::hash::Hash;
 
 pub struct Counter<'a, T>
-    where T: 'a + Clone + Hash + Eq {
-
-    counts : HashMap<Cow<'a, T>, usize>,
+    where T: 'a + Clone + Hash + Eq
+{
+    counts: HashMap<Cow<'a, T>, usize>,
 }
 
 impl<'a, T> Counter<'a, T>
-    where T: Clone + Hash + Eq {
-
+    where T: Clone + Hash + Eq
+{
     pub fn new(values: &'a [T]) -> Counter<'a, T> {
 
         // ToDo: allocation is too much?
@@ -109,15 +109,18 @@ mod tests {
 
     #[test]
     fn test_counter_string() {
-        let vals: Vec<String> = vec!["a".to_string(), "b".to_string(),
-                                     "b".to_string(), "a".to_string(),
-                                     "b".to_string(), "c".to_string()];
+        let vals: Vec<String> = vec!["a".to_string(),
+                                     "b".to_string(),
+                                     "b".to_string(),
+                                     "a".to_string(),
+                                     "b".to_string(),
+                                     "c".to_string()];
         let c: Counter<String> = Counter::new(&vals);
         assert_eq!(c.len(), 3);
 
         let (keys, counts) = c.get_results();
-        assert_eq!(keys, vec!["b".to_string(), "a".to_string(),
-                              "c".to_string()]);
+        assert_eq!(keys,
+                   vec!["b".to_string(), "a".to_string(), "c".to_string()]);
         assert_eq!(counts, vec![3, 2, 1]);
     }
 }

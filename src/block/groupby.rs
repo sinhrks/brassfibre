@@ -7,23 +7,21 @@ use std::ops::{Add, Sub, Div};
 
 use super::Block;
 use algos::computation::NanMinMax;
-use algos::grouper::{Grouper};
+use algos::grouper::Grouper;
 use groupby::GroupBy;
 use traits::{Apply, BasicAggregation, NumericAggregation, ComparisonAggregation};
 
-////////////////////////////////////////////////////////////////////////////////
-// Apply
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Apply
+/// /////////////////////////////////////////////////////////////////////////////
 
-impl<'v, 'i, 'c, V, I, C, G, W> Apply<'c, Vec<W>>
-    for GroupBy<'i, Block<'v, 'i, 'c, V, I, C>, G>
-
+impl<'v, 'i, 'c, V, I, C, G, W> Apply<'c, Vec<W>> for GroupBy<'i, Block<'v, 'i, 'c, V, I, C>, G>
     where V: Clone,
           I: Clone + Eq + Hash,
           C: Clone + Eq + Hash,
           G: 'c + Clone + Eq + Hash + Ord,
-          W: 'c + Clone {
-
+          W: 'c + Clone
+{
     type In = Block<'v, 'i, 'c, V, I, C>;
     type FOut = Vec<W>;
     type Out = Block<'c, 'c, 'c, W, G, C>;
@@ -39,21 +37,20 @@ impl<'v, 'i, 'c, V, I, C, G, W> Apply<'c, Vec<W>>
             new_values.append(&mut func(&s));
         }
         let new_columns = self.data.columns.clone();
-        Block::from_row_vec(new_values, groups,
-                            new_columns.into_owned())
+        Block::from_row_vec(new_values, groups, new_columns.into_owned())
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Aggregation
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Aggregation
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, 'c, V, I, C, G> BasicAggregation<'c> for GroupBy<'i, Block<'v, 'i, 'c, V, I, C>, G>
     where V: 'c + Clone + Zero + Add,
           I: Clone + Eq + Hash,
           C: Clone + Eq + Hash,
-          G: 'c + Clone + Eq + Hash + Ord {
-
+          G: 'c + Clone + Eq + Hash + Ord
+{
     type Kept = Block<'c, 'c, 'c, V, G, C>;
     type Counted = Block<'c, 'c, 'c, usize, G, C>;
 
@@ -70,8 +67,8 @@ impl<'v, 'i, 'c, V, I, C, G> NumericAggregation<'c> for GroupBy<'i, Block<'v, 'i
     where V: 'c + Clone + Zero + Add + Sub + Div + ToPrimitive,
           I: Clone + Eq + Hash,
           C: Clone + Eq + Hash,
-          G: 'c + Clone + Eq + Hash + Ord {
-
+          G: 'c + Clone + Eq + Hash + Ord
+{
     type Coerced = Block<'c, 'c, 'c, f64, G, C>;
 
     fn mean(&'c self) -> Self::Coerced {
@@ -96,12 +93,13 @@ impl<'v, 'i, 'c, V, I, C, G> NumericAggregation<'c> for GroupBy<'i, Block<'v, 'i
 }
 
 
-impl<'v, 'i, 'c, V, I, C, G> ComparisonAggregation<'c> for GroupBy<'i, Block<'v, 'i, 'c, V, I, C>, G>
+impl<'v, 'i, 'c, V, I, C, G> ComparisonAggregation<'c>
+    for GroupBy<'i, Block<'v, 'i, 'c, V, I, C>, G>
     where V: 'c + Clone + NanMinMax<V>,
           I: Clone + Eq + Hash,
           C: Clone + Eq + Hash,
-          G: 'c + Clone + Eq + Hash + Ord {
-
+          G: 'c + Clone + Eq + Hash + Ord
+{
     type Kept = Block<'c, 'c, 'c, V, G, C>;
 
     fn min(&'c self) -> Self::Kept {

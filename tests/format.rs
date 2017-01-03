@@ -22,7 +22,8 @@ fn test_series_format_debug() {
     // better way?
     let mut buf = Vec::new();
     let _ = write!(&mut buf, "{:?}", s);
-    assert_eq!(&buf, b"XX   1
+    assert_eq!(&buf,
+               b"XX   1
  Y  10
 ZZ 100");
 }
@@ -50,7 +51,8 @@ fn test_block_format_debug() {
     let mut buf = Vec::new();
     let _ = write!(&mut buf, "{:?}", b);
     let res = str::from_utf8(&buf).unwrap();
-    assert_eq!(res, "     A BBB CCCCC
+    assert_eq!(res,
+               "     A BBB CCCCC
 XX   1 100     1
  Y  10  10     1
 ZZ 100   1     1");
@@ -58,12 +60,9 @@ ZZ 100   1     1");
 
 #[test]
 fn test_dataframe_format() {
-    let values = vec![array![1, 2, 3, 4, 5],
-                      array![6.1, 7.1, 8.1, 9.1, 10.1],
-                      array![11, 12, 13, 14, 15]];
-    let df = DataFrame::from_vec(values,
-                                 vec![10, 20, 30, 40, 50],
-                                 vec!["X", "YYY", "ZZ"]);
+    let values =
+        vec![array![1, 2, 3, 4, 5], array![6.1, 7.1, 8.1, 9.1, 10.1], array![11, 12, 13, 14, 15]];
+    let df = DataFrame::from_vec(values, vec![10, 20, 30, 40, 50], vec!["X", "YYY", "ZZ"]);
 
     // better way?
     let mut buf = Vec::new();
@@ -74,18 +73,16 @@ fn test_dataframe_format() {
 
 #[test]
 fn test_dataframe_format_debug() {
-    let values = vec![array![1, 2, 3, 4, 5],
-                      array![6.1, 7.1, 8.1, 9.1, 10.1],
-                      array![11, 12, 13, 14, 15]];
-    let df = DataFrame::from_vec(values,
-                                 vec![10, 20, 30, 40, 50],
-                                 vec!["X", "YYY", "ZZ"]);
+    let values =
+        vec![array![1, 2, 3, 4, 5], array![6.1, 7.1, 8.1, 9.1, 10.1], array![11, 12, 13, 14, 15]];
+    let df = DataFrame::from_vec(values, vec![10, 20, 30, 40, 50], vec!["X", "YYY", "ZZ"]);
 
     // better way?
     let mut buf = Vec::new();
     let _ = write!(&mut buf, "{:?}", df);
     let res = str::from_utf8(&buf).unwrap();
-    assert_eq!(res, "   X  YYY ZZ
+    assert_eq!(res,
+               "   X  YYY ZZ
 10 1  6.1 11
 20 2  7.1 12
 30 3  8.1 13

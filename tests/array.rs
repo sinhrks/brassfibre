@@ -127,7 +127,8 @@ fn test_astype() {
     assert_eq!(iarr.astype::<i64>(), Array::Int64Array(vec![1, 2, 3]));
 
     let farr = Array::Float64Array(vec![1.1, 2.1, 3.1]);
-    assert_eq!(farr.astype::<f64>(), Array::Float64Array(vec![1.1, 2.1, 3.1]));
+    assert_eq!(farr.astype::<f64>(),
+               Array::Float64Array(vec![1.1, 2.1, 3.1]));
     assert_eq!(farr.astype::<i64>(), Array::Int64Array(vec![1, 2, 3]));
 }
 
@@ -150,7 +151,8 @@ fn test_ilocs() {
 
     let sarr = Array::StringArray(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
     let sres = sarr.ilocs(&vec![2, 0]);
-    assert_eq!(sres, Array::StringArray(vec!["c".to_string(), "a".to_string()]));
+    assert_eq!(sres,
+               Array::StringArray(vec!["c".to_string(), "a".to_string()]));
 }
 
 #[test]
@@ -178,7 +180,8 @@ fn test_blocs() {
 
     let sarr = Array::StringArray(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
     let sres = sarr.blocs(&vec![true, false, true]);
-    assert_eq!(sres, Array::StringArray(vec!["a".to_string(), "c".to_string()]));
+    assert_eq!(sres,
+               Array::StringArray(vec!["a".to_string(), "c".to_string()]));
 }
 
 #[test]

@@ -10,8 +10,8 @@ impl<'v, 'i, V: Clone> From<Vec<V>> for Series<'v, 'i, V, usize> {
 
 impl<'v, 'i, V, I> Into<Vec<V>> for Series<'v, 'i, V, I>
     where V: Clone,
-          I: Clone + Hash {
-
+          I: Clone + Hash
+{
     fn into(self) -> Vec<V> {
         self.values.into_owned()
     }

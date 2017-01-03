@@ -6,10 +6,10 @@ pub struct Sorter;
 // ToDo: merge with Indexing?
 
 impl Sorter {
-
     pub fn sort<T, R>(values: R) -> Vec<T>
         where T: Clone + Ord,
-              R: AsRef<Vec<T>> {
+              R: AsRef<Vec<T>>
+    {
 
         let values: &Vec<T> = values.as_ref();
 
@@ -22,7 +22,8 @@ impl Sorter {
     /// Sort by values returning indexer and sorted values
     pub fn argsort<T, R>(values: R) -> (Vec<usize>, Vec<T>)
         where T: Clone + Ord,
-              R: AsRef<Vec<T>> {
+              R: AsRef<Vec<T>>
+    {
 
         let values: &Vec<T> = values.as_ref();
         let mut map: BTreeMap<T, Vec<usize>> = BTreeMap::new();
@@ -47,7 +48,8 @@ impl Sorter {
     /// Sort values by key returning sorted key and values
     pub fn sort_by<T, U>(keys: &Vec<T>, values: &Vec<U>) -> (Vec<T>, Vec<U>)
         where T: Clone + Ord,
-              U: Clone {
+              U: Clone
+    {
 
         let mut map: BTreeMap<T, Vec<U>> = BTreeMap::new();
 
@@ -71,9 +73,7 @@ impl Sorter {
     /// reorder values based on given locations
     pub fn reindex<T: Clone>(values: &[T], locs: &[usize]) -> Vec<T> {
         Sorter::assert_index_boundary(values, locs);
-        unsafe {
-            Sorter::reindex_unchecked(values, locs)
-        }
+        unsafe { Sorter::reindex_unchecked(values, locs) }
     }
 
     /// reorder values based on given locations
@@ -119,24 +119,21 @@ mod tests {
 
     #[test]
     fn test_sort_by_int() {
-        let (keys, vals) = Sorter::sort_by(&vec![5, 4, 3, 2, 1],
-                                           &vec![1, 2, 3, 4, 5]);
+        let (keys, vals) = Sorter::sort_by(&vec![5, 4, 3, 2, 1], &vec![1, 2, 3, 4, 5]);
         assert_eq!(keys, vec![1, 2, 3, 4, 5]);
         assert_eq!(vals, vec![5, 4, 3, 2, 1]);
     }
 
     #[test]
     fn test_sort_by_int_dup() {
-        let (keys, vals) = Sorter::sort_by(&vec![3, 3, 1, 1, 1],
-                                           &vec![1, 2, 3, 4, 5]);
+        let (keys, vals) = Sorter::sort_by(&vec![3, 3, 1, 1, 1], &vec![1, 2, 3, 4, 5]);
         assert_eq!(keys, vec![1, 1, 1, 3, 3]);
         assert_eq!(vals, vec![3, 4, 5, 1, 2]);
     }
 
     #[test]
     fn test_sort_by_int_float() {
-        let (keys, vals) = Sorter::sort_by(&vec![3, 2, 1, 4, 1],
-                                           &vec![1.1, 2.1, 3.1, 4.1, 5.1]);
+        let (keys, vals) = Sorter::sort_by(&vec![3, 2, 1, 4, 1], &vec![1.1, 2.1, 3.1, 4.1, 5.1]);
         assert_eq!(keys, vec![1, 1, 2, 3, 4]);
         assert_eq!(vals, vec![3.1, 5.1, 2.1, 1.1, 4.1]);
     }

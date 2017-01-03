@@ -5,14 +5,13 @@ use std::ops::{Add, Sub, Div};
 use super::Series;
 use algos::computation::{Aggregation, NanMinMax};
 use algos::counter::Counter;
-use traits::{Apply, BasicAggregation, NumericAggregation,
-             ComparisonAggregation, Description};
+use traits::{Apply, BasicAggregation, NumericAggregation, ComparisonAggregation, Description};
 
 
 impl<'v, 'i, V, I> BasicAggregation<'i> for Series<'v, 'i, V, I>
     where V: Clone + Zero + Add,
-          I: Clone + Eq + Hash {
-
+          I: Clone + Eq + Hash
+{
     type Kept = V;
     type Counted = usize;
 
@@ -28,8 +27,8 @@ impl<'v, 'i, V, I> BasicAggregation<'i> for Series<'v, 'i, V, I>
 
 impl<'v, 'i, V, I> NumericAggregation<'i> for Series<'v, 'i, V, I>
     where V: Clone + Zero + Add + Sub + Div + ToPrimitive,
-          I: Clone + Eq + Hash {
-
+          I: Clone + Eq + Hash
+{
     type Coerced = f64;
 
     fn mean(&'i self) -> Self::Coerced {
@@ -55,8 +54,8 @@ impl<'v, 'i, V, I> NumericAggregation<'i> for Series<'v, 'i, V, I>
 
 impl<'v, 'i, V, I> ComparisonAggregation<'i> for Series<'v, 'i, V, I>
     where V: Clone + NanMinMax<V>,
-          I: Clone + Eq + Hash {
-
+          I: Clone + Eq + Hash
+{
     type Kept = V;
 
     fn min(&'i self) -> Self::Kept {
@@ -70,8 +69,8 @@ impl<'v, 'i, V, I> ComparisonAggregation<'i> for Series<'v, 'i, V, I>
 
 impl<'v, 'i, V, I> Description<'i> for Series<'v, 'i, V, I>
     where V: Clone + Zero + Add + Sub + Div + ToPrimitive + NanMinMax<V>,
-          I: Clone + Eq + Hash {
-
+          I: Clone + Eq + Hash
+{
     type Described = Series<'i, 'i, f64, &'i str>;
 
     fn describe(&'i self) -> Self::Described {
@@ -81,11 +80,7 @@ impl<'v, 'i, V, I> Description<'i> for Series<'v, 'i, V, I>
         let min = ToPrimitive::to_f64(&self.min()).unwrap();
         let max = ToPrimitive::to_f64(&self.max()).unwrap();
 
-        let new_values: Vec<f64> = vec![count,
-                                        self.mean(),
-                                        self.std(),
-                                        min,
-                                        max];
+        let new_values: Vec<f64> = vec![count, self.mean(), self.std(), min, max];
         Series::new(new_values, new_index)
     }
 }
@@ -94,8 +89,8 @@ impl<'v, 'i, V, I> Description<'i> for Series<'v, 'i, V, I>
 
 impl<'v, 'i, V, I> Series<'v, 'i, V, I>
     where V: Clone + Eq + Hash + Ord,
-          I: Clone + Eq + Hash {
-
+          I: Clone + Eq + Hash
+{
     pub fn value_counts<'a>(&self) -> Series<'a, 'a, usize, V> {
         let c = Counter::new(&self.values);
         let (keys, counts) = c.get_results();

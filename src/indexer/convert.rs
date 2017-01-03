@@ -3,9 +3,9 @@ use std::hash::Hash;
 
 use super::Indexer;
 
-////////////////////////////////////////////////////////////////////////////////
-// From / Into
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// From / Into
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<T: Clone + Eq + Hash> From<Vec<T>> for Indexer<T> {
     fn from(values: Vec<T>) -> Self {
@@ -19,9 +19,9 @@ impl<T: Clone + Hash> Into<Vec<T>> for Indexer<T> {
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Clone on Write
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Clone on Write
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'a, T: Clone + Hash> Into<Cow<'a, Indexer<T>>> for Indexer<T> {
     fn into(self) -> Cow<'a, Self> {
@@ -53,11 +53,10 @@ mod tests {
         let conv: Vec<i64> = idx.into();
         assert_eq!(conv, exp);
 
-        /*
-        let idx: Indexer<i64> = Indexer::new(vec![1, 2, 3]);
-        let conv: Vec<i64> = Vec::from(idx.into());
-        assert_eq!(conv, exp);
-        */
+        // let idx: Indexer<i64> = Indexer::new(vec![1, 2, 3]);
+        // let conv: Vec<i64> = Vec::from(idx.into());
+        // assert_eq!(conv, exp);
+        //
     }
 
     #[test]
@@ -79,21 +78,22 @@ mod tests {
         let conv: Vec<&str> = idx.into();
         assert_eq!(conv, exp);
 
-        /*
-        let idx: Indexer<&str> = Indexer::new(vec!["a", "b", "c"]);
-        let conv: Vec<&str> = Vec::from(idx.into());
-        assert_eq!(conv, exp);
-        */
+        // let idx: Indexer<&str> = Indexer::new(vec!["a", "b", "c"]);
+        // let conv: Vec<&str> = Vec::from(idx.into());
+        // assert_eq!(conv, exp);
+        //
     }
 
     #[test]
     fn test_string_vec_to_indexer() {
-        let exp: Indexer<String> = Indexer::new(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
+        let exp: Indexer<String> =
+            Indexer::new(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
 
         let idx: Indexer<String> = vec!["a".to_string(), "b".to_string(), "c".to_string()].into();
         assert_eq!(idx, exp);
 
-        let idx: Indexer<String> = Indexer::from(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
+        let idx: Indexer<String> =
+            Indexer::from(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
         assert_eq!(idx, exp);
     }
 
@@ -101,14 +101,10 @@ mod tests {
     fn test_string_indexer_to_vec() {
         let exp: Vec<String> = vec!["a".to_string(), "b".to_string(), "c".to_string()];
 
-        let idx: Indexer<String> = Indexer::new(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
+        let idx: Indexer<String> =
+            Indexer::new(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
         let conv: Vec<String> = idx.into();
         assert_eq!(conv, exp);
 
-        /*
-        let idx: Indexer<String> = Indexer::new(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
-        let conv: Vec<String> = Vec::from(idx.into());
-        assert_eq!(conv, exp);
-        */
     }
 }

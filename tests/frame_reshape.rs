@@ -4,25 +4,16 @@ use brassfibre::*;
 
 #[test]
 fn test_dataframe_append() {
-    let values1 = vec![array![1, 2, 3],
-                       array![4.1, 5.1, 6.1],
-                       array![1, 2, 3]];
-    let df1 = DataFrame::from_vec(values1,
-                                  vec!["A", "B", "C"],
-                                  vec!["X", "Y", "Z"]);
+    let values1 = vec![array![1, 2, 3], array![4.1, 5.1, 6.1], array![1, 2, 3]];
+    let df1 = DataFrame::from_vec(values1, vec!["A", "B", "C"], vec!["X", "Y", "Z"]);
 
-    let values2 = vec![array![4, 5],
-                       array![7.1, 8.1],
-                       array![4, 5]];
-    let df2 = DataFrame::from_vec(values2,
-                                  vec!["D", "E"],
-                                  vec!["X", "Y", "Z"]);
+    let values2 = vec![array![4, 5], array![7.1, 8.1], array![4, 5]];
+    let df2 = DataFrame::from_vec(values2, vec!["D", "E"], vec!["X", "Y", "Z"]);
 
     let res = df1.append(&df2);
 
-    let exp_values = vec![array![1, 2, 3, 4, 5],
-                          array![4.1, 5.1, 6.1, 7.1, 8.1],
-                          array![1, 2, 3, 4, 5]];
+    let exp_values =
+        vec![array![1, 2, 3, 4, 5], array![4.1, 5.1, 6.1, 7.1, 8.1], array![1, 2, 3, 4, 5]];
     let exp = DataFrame::from_vec(exp_values,
                                   vec!["A", "B", "C", "D", "E"],
                                   vec!["X", "Y", "Z"]);
@@ -33,19 +24,11 @@ fn test_dataframe_append() {
 #[should_panic]
 fn test_dataframe_append_different_columns() {
     // different columns
-    let values1 = vec![array![1, 2, 3],
-                       array![4.1, 5.1, 6.1],
-                       array![1, 2, 3]];
-    let df1 = DataFrame::from_vec(values1,
-                                  vec!["A", "B", "C"],
-                                  vec!["X", "Y", "Z"]);
+    let values1 = vec![array![1, 2, 3], array![4.1, 5.1, 6.1], array![1, 2, 3]];
+    let df1 = DataFrame::from_vec(values1, vec!["A", "B", "C"], vec!["X", "Y", "Z"]);
 
-    let values2 = vec![array![4, 5],
-                       array![7.1, 8.1],
-                       array![4, 5]];
-    let df2 = DataFrame::from_vec(values2,
-                                  vec!["D", "E"],
-                                  vec!["XX", "Y", "Z"]);
+    let values2 = vec![array![4, 5], array![7.1, 8.1], array![4, 5]];
+    let df2 = DataFrame::from_vec(values2, vec!["D", "E"], vec!["XX", "Y", "Z"]);
 
     df1.append(&df2);
 }
@@ -54,19 +37,11 @@ fn test_dataframe_append_different_columns() {
 #[should_panic]
 fn test_dataframe_append_different_dtype() {
     // different columns
-    let values1 = vec![array![1, 2, 3],
-                       array![4.1, 5.1, 6.1],
-                       array![1, 2, 3]];
-    let df1 = DataFrame::from_vec(values1,
-                                  vec!["A", "B", "C"],
-                                  vec!["X", "Y", "Z"]);
+    let values1 = vec![array![1, 2, 3], array![4.1, 5.1, 6.1], array![1, 2, 3]];
+    let df1 = DataFrame::from_vec(values1, vec!["A", "B", "C"], vec!["X", "Y", "Z"]);
 
-    let values2 = vec![array![4, 5],
-                       array![7.1, 8.1],
-                       array![4.1, 5.1]];
-    let df2 = DataFrame::from_vec(values2,
-                                  vec!["D", "E"],
-                                  vec!["X", "Y", "Z"]);
+    let values2 = vec![array![4, 5], array![7.1, 8.1], array![4.1, 5.1]];
+    let df2 = DataFrame::from_vec(values2, vec!["D", "E"], vec!["X", "Y", "Z"]);
 
     df1.append(&df2);
 }
@@ -74,18 +49,11 @@ fn test_dataframe_append_different_dtype() {
 #[test]
 fn test_dataframe_concat() {
 
-    let values1 = vec![array![1, 2, 3],
-                       array![4.1, 5.1, 6.1],
-                       array![1, 2, 3]];
-    let df1 = DataFrame::from_vec(values1,
-                                  vec!["A", "B", "C"],
-                                  vec!["X", "Y", "Z"]);
+    let values1 = vec![array![1, 2, 3], array![4.1, 5.1, 6.1], array![1, 2, 3]];
+    let df1 = DataFrame::from_vec(values1, vec!["A", "B", "C"], vec!["X", "Y", "Z"]);
 
-    let values2 = vec![array![4, 5, 6],
-                       array![7.1, 8.1, 9.1]];
-    let df2 = DataFrame::from_vec(values2,
-                                  vec!["A", "B", "C"],
-                                  vec!["X2", "Y2"]);
+    let values2 = vec![array![4, 5, 6], array![7.1, 8.1, 9.1]];
+    let df2 = DataFrame::from_vec(values2, vec!["A", "B", "C"], vec!["X2", "Y2"]);
     let res = df1.concat(&df2);
 
     let exp_values = vec![array![1, 2, 3],
@@ -103,35 +71,22 @@ fn test_dataframe_concat() {
 #[should_panic]
 fn test_block_concat_panic() {
     // different index
-    let values1 = vec![array![1, 2, 3],
-                       array![4.1, 5.1, 6.1],
-                       array![1, 2, 3]];
-    let df1 = DataFrame::from_vec(values1,
-                                  vec!["A", "B", "C"],
-                                  vec!["X", "Y", "Z"]);
+    let values1 = vec![array![1, 2, 3], array![4.1, 5.1, 6.1], array![1, 2, 3]];
+    let df1 = DataFrame::from_vec(values1, vec!["A", "B", "C"], vec!["X", "Y", "Z"]);
 
-    let values2 = vec![array![4, 5, 6],
-                       array![7.1, 8.1, 9.1]];
-    let df2 = DataFrame::from_vec(values2,
-                                  vec!["A1", "B", "C"],
-                                  vec!["X2", "Y2"]);
+    let values2 = vec![array![4, 5, 6], array![7.1, 8.1, 9.1]];
+    let df2 = DataFrame::from_vec(values2, vec!["A1", "B", "C"], vec!["X2", "Y2"]);
     df1.concat(&df2);
 }
 
 #[test]
 fn test_block_join() {
-    let values1 = vec![array![1, 2, 3, 4, 5],
-                       array![4.1, 5.1, 6.1, 7.1, 8.1],
-                       array![1, 2, 3, 4, 5]];
-    let df1 = DataFrame::from_vec(values1,
-                                  vec!["A", "B", "C", "D", "E"],
-                                  vec!["X", "Y", "Z"]);
+    let values1 =
+        vec![array![1, 2, 3, 4, 5], array![4.1, 5.1, 6.1, 7.1, 8.1], array![1, 2, 3, 4, 5]];
+    let df1 = DataFrame::from_vec(values1, vec!["A", "B", "C", "D", "E"], vec!["X", "Y", "Z"]);
 
-    let values2 = vec![array![4, 5, 6],
-                       array![7.1, 8.1, 9.1]];
-    let df2 = DataFrame::from_vec(values2,
-                                  vec!["A", "D", "B"],
-                                  vec!["X2", "Y2"]);
+    let values2 = vec![array![4, 5, 6], array![7.1, 8.1, 9.1]];
+    let df2 = DataFrame::from_vec(values2, vec!["A", "D", "B"], vec!["X2", "Y2"]);
     let res = df1.join_inner(&df2);
 
     let exp_values = vec![array![1, 2, 4],

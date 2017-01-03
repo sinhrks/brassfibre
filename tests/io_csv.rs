@@ -13,8 +13,8 @@ z,true,1,4.5";
     let rdr = csv::Reader::from_string(data).has_headers(false);
     let res = read_csv(rdr);
 
-    let exp_dtypes: Vec<String> = vec!["str".to_string(), "bool".to_string(),
-                                       "i64".to_string(), "f64".to_string()];
+    let exp_dtypes: Vec<String> =
+        vec!["str".to_string(), "bool".to_string(), "i64".to_string(), "f64".to_string()];
     assert_eq!(res.dtypes(), exp_dtypes);
 
     let exp_values = vec![array!["x".to_string(), "y".to_string(), "z".to_string()],
@@ -23,8 +23,10 @@ z,true,1,4.5";
                           array![1.1, 2.2, 4.5]];
     let exp = DataFrame::from_vec(exp_values,
                                   vec![0, 1, 2],
-                                  vec!["0".to_string(), "1".to_string(),
-                                       "2".to_string(), "3".to_string()]);
+                                  vec!["0".to_string(),
+                                       "1".to_string(),
+                                       "2".to_string(),
+                                       "3".to_string()]);
 
     assert_eq!(res, exp);
 }
@@ -39,8 +41,8 @@ z,true,1,4.5";
     let rdr = csv::Reader::from_string(data).has_headers(true);
     let res = read_csv(rdr);
 
-    let exp_dtypes: Vec<String> = vec!["str".to_string(), "bool".to_string(),
-                                       "i64".to_string(), "f64".to_string()];
+    let exp_dtypes: Vec<String> =
+        vec!["str".to_string(), "bool".to_string(), "i64".to_string(), "f64".to_string()];
     assert_eq!(res.dtypes(), exp_dtypes);
 
     let exp_values = vec![array!["x".to_string(), "y".to_string(), "z".to_string()],
@@ -49,8 +51,10 @@ z,true,1,4.5";
                           array![1.1, 2.2, 4.5]];
     let exp = DataFrame::from_vec(exp_values,
                                   vec![0, 1, 2],
-                                  vec!["A".to_string(), "B".to_string(),
-                                       "C".to_string(), "D".to_string()]);
+                                  vec!["A".to_string(),
+                                       "B".to_string(),
+                                       "C".to_string(),
+                                       "D".to_string()]);
 
     assert_eq!(res, exp);
 }
@@ -67,8 +71,6 @@ fn test_empty() {
     assert_eq!(res.dtypes(), exp_dtypes);
 
     let exp_values: Vec<Array> = vec![];
-    let exp = DataFrame::from_vec(exp_values,
-                                  vec![],
-                                  vec![]);
+    let exp = DataFrame::from_vec(exp_values, vec![], vec![]);
     assert_eq!(res, exp);
 }

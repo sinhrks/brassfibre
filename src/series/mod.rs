@@ -20,20 +20,20 @@ mod sort;
 #[derive(Clone)]
 pub struct Series<'v, 'i, V, I>
     where V: 'v + Clone,
-          I: 'i + Clone + Hash {
-
+          I: 'i + Clone + Hash
+{
     pub values: Cow<'v, Vec<V>>,
     pub index: Cow<'i, Indexer<I>>,
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Indexing
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Indexing
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, V, I> RowIndex<'i> for Series<'v, 'i, V, I>
     where V: Clone,
-          I: Clone + Eq + Hash {
-
+          I: Clone + Eq + Hash
+{
     type Key = I;
     type Row = V;
 
@@ -54,17 +54,13 @@ impl<'v, 'i, V, I> RowIndex<'i> for Series<'v, 'i, V, I>
         let locations = self.index.get_locs(labels);
 
         let new_index = self.index.reindex(&locations);
-        let new_values = unsafe {
-            Sorter::reindex_unchecked(&self.values, &locations)
-        };
+        let new_values = unsafe { Sorter::reindex_unchecked(&self.values, &locations) };
         Series::new(new_values, new_index)
     }
 
     fn reindex_by_index(&self, locations: &[usize]) -> Self {
         let new_index = self.index.reindex(&locations);
-        let new_values = unsafe {
-            Sorter::reindex_unchecked(&self.values, &locations)
-        };
+        let new_values = unsafe { Sorter::reindex_unchecked(&self.values, &locations) };
         Series::new(new_values, new_index)
     }
 
@@ -76,14 +72,14 @@ impl<'v, 'i, V, I> RowIndex<'i> for Series<'v, 'i, V, I>
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Misc
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Misc
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, V, I> Series<'v, 'i, V, I>
     where V: 'v + Clone,
-          I: 'i + Clone + Eq + Hash {
-
+          I: 'i + Clone + Eq + Hash
+{
     pub fn from_vec(values: Vec<V>) -> Series<'v, 'i, V, usize> {
         let index: Indexer<usize> = Indexer::<usize>::from_len(values.len());
 
@@ -94,7 +90,8 @@ impl<'v, 'i, V, I> Series<'v, 'i, V, I>
     }
 
     pub fn new<X>(values: Vec<V>, index: X) -> Self
-        where X: Into<Indexer<I>> {
+        where X: Into<Indexer<I>>
+    {
 
         let index: Indexer<I> = index.into();
 
@@ -121,19 +118,20 @@ impl<'v, 'i, V, I> Series<'v, 'i, V, I>
     }
 
     pub fn groupby<G>(&self, other: Vec<G>) -> GroupBy<Series<V, I>, G>
-        where G: Clone + Eq + Hash + Ord {
+        where G: Clone + Eq + Hash + Ord
+    {
         GroupBy::new(&self, other)
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Append
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Append
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, V, I> Append<'i> for Series<'v, 'i, V, I>
     where V: Clone,
-          I: Clone + Eq + Hash {
-
+          I: Clone + Eq + Hash
+{
     fn append(&self, other: &Self) -> Self {
         // clone COW (not values, then into_owned())
         let mut new_values: Vec<V> = self.values.clone().into_owned();
@@ -144,14 +142,14 @@ impl<'v, 'i, V, I> Append<'i> for Series<'v, 'i, V, I>
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Apply
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Apply
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, V, I, R> Apply<'i, R> for Series<'v, 'i, V, I>
     where V: 'i + Clone,
-          I: Clone + Eq + Hash {
-
+          I: Clone + Eq + Hash
+{
     type In = Vec<V>;
     type FOut = R;
     type Out = R;
@@ -161,27 +159,27 @@ impl<'v, 'i, V, I, R> Apply<'i, R> for Series<'v, 'i, V, I>
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Eq
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Eq
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, V, I> PartialEq for Series<'v, 'i, V, I>
     where V: Clone + PartialEq,
-          I: Clone + Hash + Eq {
-
+          I: Clone + Hash + Eq
+{
     fn eq(&self, other: &Self) -> bool {
         (self.index.eq(&other.index)) && (self.values.eq(&other.values))
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Iterator
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Iterator
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, V, I> IntoIterator for Series<'v, 'i, V, I>
     where V: Clone,
-          I: Clone + Eq + Hash {
-
+          I: Clone + Eq + Hash
+{
     type Item = V;
     type IntoIter = vec::IntoIter<V>;
 
@@ -192,18 +190,19 @@ impl<'v, 'i, V, I> IntoIterator for Series<'v, 'i, V, I>
 
 impl<'v, 'i, V, I> Series<'v, 'i, V, I>
     where V: Clone,
-          I: Clone + Eq + Hash {
-
+          I: Clone + Eq + Hash
+{
     pub fn iter(&self) -> slice::Iter<V> {
         self.values.as_ref().iter()
     }
 }
 
 impl<'v, 'i, V> FromIterator<V> for Series<'v, 'i, V, usize>
-    where V: Clone {
-
+    where V: Clone
+{
     fn from_iter<T>(iter: T) -> Series<'v, 'i, V, usize>
-        where T: IntoIterator<Item=V> {
+        where T: IntoIterator<Item = V>
+    {
 
         let values: Vec<V> = iter.into_iter().collect();
         Series::<V, usize>::from_vec(values)

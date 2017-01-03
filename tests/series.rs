@@ -69,9 +69,9 @@ fn test_series_copy() {
 #[test]
 fn test_series_equals() {
     let s1 = Series::<f64, i64>::new(vec![1., 2., 3.], vec![5, 6, 7]);
-    let s2 = Series::<f64, i64>::new(vec![1., 2., 3.], vec![9, 6, 7]);;
-    let s3 = Series::<f64, i64>::new(vec![1., 2., 3.], vec![5, 6, 7]);;
-    let s4 = Series::<f64, i64>::new(vec![1., 2., 4.], vec![5, 6, 7]);;
+    let s2 = Series::<f64, i64>::new(vec![1., 2., 3.], vec![9, 6, 7]);
+    let s3 = Series::<f64, i64>::new(vec![1., 2., 3.], vec![5, 6, 7]);
+    let s4 = Series::<f64, i64>::new(vec![1., 2., 4.], vec![5, 6, 7]);
 
     assert_eq!(s1 == s2, false);
     assert_eq!(s1 == s3, true);
@@ -177,11 +177,9 @@ fn test_series_slice_blocs() {
 
 #[test]
 fn test_series_reindex() {
-    let s: Series<&str, &str> = Series::new(vec!["a", "b", "c", "d"],
-                                                vec!["A", "B", "C", "D"]);
+    let s: Series<&str, &str> = Series::new(vec!["a", "b", "c", "d"], vec!["A", "B", "C", "D"]);
     let res = s.reindex(&vec!["D", "C", "A"]);
-    let exp: Series<&str, &str> = Series::new(vec!["d", "c", "a"],
-                                              vec!["D", "C", "A"]);
+    let exp: Series<&str, &str> = Series::new(vec!["d", "c", "a"], vec!["D", "C", "A"]);
 
     assert_eq!(res, exp);
 }
@@ -189,26 +187,22 @@ fn test_series_reindex() {
 #[test]
 #[should_panic]
 fn test_series_reindex_panic() {
-    let s: Series<&str, &str> = Series::new(vec!["a", "b", "c", "d"],
-                                                vec!["A", "B", "C", "D"]);
+    let s: Series<&str, &str> = Series::new(vec!["a", "b", "c", "d"], vec!["A", "B", "C", "D"]);
     s.reindex(&vec!["D", "C", "X"]);
 }
 
 #[test]
 fn test_series_reindex_by_index() {
-    let s: Series<&str, &str> = Series::new(vec!["a", "b", "c", "d"],
-                                            vec!["A", "B", "C", "D"]);
+    let s: Series<&str, &str> = Series::new(vec!["a", "b", "c", "d"], vec!["A", "B", "C", "D"]);
     let res = s.reindex_by_index(&vec![1, 3, 0]);
-    let exp: Series<&str, &str> = Series::new(vec!["b", "d", "a"],
-                                              vec!["B", "D", "A"]);
+    let exp: Series<&str, &str> = Series::new(vec!["b", "d", "a"], vec!["B", "D", "A"]);
     assert_eq!(res, exp);
 }
 
 #[test]
 #[should_panic]
 fn test_series_reindex_by_index_panic() {
-    let s: Series<&str, &str> = Series::new(vec!["a", "b", "c", "d"],
-                                            vec!["A", "B", "C", "D"]);
+    let s: Series<&str, &str> = Series::new(vec!["a", "b", "c", "d"], vec!["A", "B", "C", "D"]);
     s.reindex_by_index(&vec![1, 3, 10]);
 }
 

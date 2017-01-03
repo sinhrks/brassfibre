@@ -3,9 +3,9 @@ use std::ops::{Add, Mul, Sub, Div, Rem, BitAnd, BitOr, BitXor};
 use super::Array;
 use algos::elemwise::Elemwise;
 
-////////////////////////////////////////////////////////////////////////////////
-// Array broadcast ops
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Array broadcast ops
+/// /////////////////////////////////////////////////////////////////////////////
 
 macro_rules! define_primitive_op {
     ($tr:ident, $m:ident, $ty:ident, $ar:ident) => {
@@ -78,9 +78,9 @@ define_primitive_op!(BitAnd, bitand, bool, BoolArray);
 define_primitive_op!(BitOr, bitor, bool, BoolArray);
 define_primitive_op!(BitXor, bitxor, bool, BoolArray);
 
-////////////////////////////////////////////////////////////////////////////////
-// Array elementwise ops
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Array elementwise ops
+/// /////////////////////////////////////////////////////////////////////////////
 
 macro_rules! define_binary_op {
     ($tr:ident, $m:ident, $ot:ident) => {
@@ -168,10 +168,9 @@ mod tests {
 
     use super::super::Array;
 
-    ////////////////////////////////////////////////////////////////////////////
-    // arithmetic op
-    ////////////////////////////////////////////////////////////////////////////
-
+    /// /////////////////////////////////////////////////////////////////////////
+    /// arithmetic op
+    /// /////////////////////////////////////////////////////////////////////////
     #[test]
     fn test_array_ops_i64_broadcast() {
         // arr moves by ops
@@ -221,16 +220,15 @@ mod tests {
         assert_eq!(arr % 2., Array::Float64Array(vec![1., 0., 1.]));
     }
 
-    /*
-    ToDo
-    #[test]
-    fn test_index_ops_str_broadcast() {
-        let idx = Indexer::<String>::new(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
-        // idx moves by ops
-        let exp = Indexer::<String>::new(vec!["ax".to_string(), "bx".to_string(), "cx".to_string()]);
-        assert_eq!(idx + "x".to_string(), exp);
-    }
-    */
+    // ToDo
+    // #[test]
+    // fn test_index_ops_str_broadcast() {
+    // let idx = Indexer::<String>::new(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
+    // idx moves by ops
+    // let exp = Indexer::<String>::new(vec!["ax".to_string(), "bx".to_string(), "cx".to_string()]);
+    // assert_eq!(idx + "x".to_string(), exp);
+    // }
+    //
 
     #[test]
     fn test_array_ops_i64_elemwise() {
@@ -286,17 +284,17 @@ mod tests {
 
         let l = Array::Float64Array(vec![1., 2., 3.]);
         let r = Array::Float64Array(vec![1., 3., 2.]);
-        assert_eq!(l / r, Array::Float64Array(vec![1., 0.6666666666666666, 1.5]));
+        assert_eq!(l / r,
+                   Array::Float64Array(vec![1., 0.6666666666666666, 1.5]));
 
         let l = Array::Float64Array(vec![1., 2., 3.]);
         let r = Array::Float64Array(vec![1., 3., 2.]);
         assert_eq!(l % r, Array::Float64Array(vec![0., 2., 1.]));
     }
 
-    ////////////////////////////////////////////////////////////////////////////
-    // bitwise op
-    ////////////////////////////////////////////////////////////////////////////
-
+    /// /////////////////////////////////////////////////////////////////////////
+    /// bitwise op
+    /// /////////////////////////////////////////////////////////////////////////
     #[test]
     fn test_array_bit_i64_broadcast() {
         let arr = Array::Int64Array(vec![1, 2, 3]);

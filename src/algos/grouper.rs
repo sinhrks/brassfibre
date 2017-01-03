@@ -4,7 +4,7 @@ use std::hash::Hash;
 // ToDo: use Cow?
 
 pub struct HashGrouper<T> {
-    pub groups: HashMap<T, Vec<usize>>
+    pub groups: HashMap<T, Vec<usize>>,
 }
 
 pub trait Grouper<T> {
@@ -16,8 +16,8 @@ pub trait Grouper<T> {
 }
 
 impl<T> Grouper<T> for HashGrouper<T>
-    where T: Clone + Hash + Eq {
-
+    where T: Clone + Hash + Eq
+{
     fn groupby(key: &[T]) -> HashGrouper<T> {
 
         let mut map: HashMap<T, Vec<usize>> = HashMap::new();

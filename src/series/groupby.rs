@@ -8,21 +8,18 @@ use super::Series;
 use algos::computation::NanMinMax;
 use algos::grouper::Grouper;
 use groupby::GroupBy;
-use traits::{Apply, BasicAggregation, NumericAggregation,
-             ComparisonAggregation};
+use traits::{Apply, BasicAggregation, NumericAggregation, ComparisonAggregation};
 
-////////////////////////////////////////////////////////////////////////////////
-// Apply
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Apply
+/// /////////////////////////////////////////////////////////////////////////////
 
-impl<'v, 'i, V, I, G, W> Apply<'i, W>
-    for GroupBy<'i, Series<'v, 'i, V, I>, G>
-
+impl<'v, 'i, V, I, G, W> Apply<'i, W> for GroupBy<'i, Series<'v, 'i, V, I>, G>
     where V: 'v + Clone,
           I: Clone + Eq + Hash,
           G: 'i + Clone + Eq + Hash + Ord,
-          W: 'i + Clone {
-
+          W: 'i + Clone
+{
     type In = Series<'v, 'i, V, I>;
     type FOut = W;
     // ToDo: use 'n lifetime for value
@@ -42,15 +39,15 @@ impl<'v, 'i, V, I, G, W> Apply<'i, W>
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Aggregation
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Aggregation
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, V, I, G> BasicAggregation<'i> for GroupBy<'i, Series<'v, 'i, V, I>, G>
     where V: Clone + Zero + Add,
           I: Clone + Eq + Hash,
-          G: 'i + Clone + Eq + Hash + Ord {
-
+          G: 'i + Clone + Eq + Hash + Ord
+{
     // result can have different lifetime
     // ToDo: use 'n lifetime for value
     type Kept = Series<'i, 'i, V, G>;
@@ -68,8 +65,8 @@ impl<'v, 'i, V, I, G> BasicAggregation<'i> for GroupBy<'i, Series<'v, 'i, V, I>,
 impl<'v, 'i, V, I, G> NumericAggregation<'i> for GroupBy<'i, Series<'v, 'i, V, I>, G>
     where V: Clone + Zero + Add + Sub + Div + ToPrimitive,
           I: Clone + Eq + Hash,
-          G: 'i + Clone + Eq + Hash + Ord {
-
+          G: 'i + Clone + Eq + Hash + Ord
+{
     // result can have different lifetime
     // ToDo: use 'n lifetime for value
     type Coerced = Series<'i, 'i, f64, G>;
@@ -98,8 +95,8 @@ impl<'v, 'i, V, I, G> NumericAggregation<'i> for GroupBy<'i, Series<'v, 'i, V, I
 impl<'v, 'i, V, I, G> ComparisonAggregation<'i> for GroupBy<'i, Series<'v, 'i, V, I>, G>
     where V: Clone + NanMinMax<V>,
           I: Clone + Eq + Hash,
-          G: 'i + Clone + Eq + Hash + Ord {
-
+          G: 'i + Clone + Eq + Hash + Ord
+{
     // result can have different lifetime
     // ToDo: use 'n lifetime for value
     type Kept = Series<'i, 'i, V, G>;
@@ -120,8 +117,7 @@ mod tests {
     use super::super::Series;
     use super::super::super::indexer::Indexer;
     use super::super::super::groupby::GroupBy;
-    use super::super::super::{BasicAggregation, NumericAggregation,
-                              ComparisonAggregation};
+    use super::super::super::{BasicAggregation, NumericAggregation, ComparisonAggregation};
 
     #[test]
     fn test_series_get_group() {

@@ -20,8 +20,8 @@ pub trait JoinOp<T> {
 }
 
 impl<T> JoinOp<T> for HashJoin
-    where T: Clone + Hash + Eq {
-
+    where T: Clone + Hash + Eq
+{
     fn inner(left: &[T], right: &[T]) -> (Vec<T>, Vec<usize>, Vec<usize>) {
 
         let exp_capacity = cmp::min(left.len(), right.len());
@@ -40,7 +40,7 @@ impl<T> JoinOp<T> for HashJoin
                     indexer.push((*key).clone());
                     lindexer.push(i);
                     rindexer.push(*val);
-                },
+                }
                 None => {}
             }
         }
@@ -75,7 +75,7 @@ impl<T> JoinOp<T> for HashJoin
                     indexer.push((*key).clone());
                     kindexer.push(i);
                     oindexer.push(*loc);
-                },
+                }
                 None => {
                     indexer.push((*key).clone());
                     kindexer.push(i);
@@ -104,18 +104,14 @@ impl<T> JoinOp<T> for HashJoin
             match lmap.get(&Cow::Borrowed(key)) {
                 Some(loc) => {
                     lindexer.push(*loc);
-                },
-                None => {
-                    lindexer.push(USIZE_MISSING)
                 }
+                None => lindexer.push(USIZE_MISSING),
             }
             match rmap.get(&Cow::Borrowed(key)) {
                 Some(loc) => {
                     rindexer.push(*loc);
-                },
-                None => {
-                    rindexer.push(USIZE_MISSING)
                 }
+                None => rindexer.push(USIZE_MISSING),
             }
 
         }
@@ -152,10 +148,10 @@ mod tests {
 
     #[test]
     fn test_vec_inner_join_string() {
-        let v1: Vec<String> = vec!["a".to_string(), "b".to_string(),
-                                   "c".to_string(), "d".to_string()];
-        let v2: Vec<String> = vec!["d".to_string(), "c".to_string(),
-                                   "e".to_string(), "a".to_string()];
+        let v1: Vec<String> =
+            vec!["a".to_string(), "b".to_string(), "c".to_string(), "d".to_string()];
+        let v2: Vec<String> =
+            vec!["d".to_string(), "c".to_string(), "e".to_string(), "a".to_string()];
 
         let res = HashJoin::inner(&v1, &v2);
 
@@ -178,10 +174,10 @@ mod tests {
 
     #[test]
     fn test_vec_left_join_string() {
-        let v1: Vec<String> = vec!["a".to_string(), "b".to_string(),
-                                   "c".to_string(), "d".to_string()];
-        let v2: Vec<String> = vec!["d".to_string(), "c".to_string(),
-                                   "e".to_string(), "a".to_string()];
+        let v1: Vec<String> =
+            vec!["a".to_string(), "b".to_string(), "c".to_string(), "d".to_string()];
+        let v2: Vec<String> =
+            vec!["d".to_string(), "c".to_string(), "e".to_string(), "a".to_string()];
 
         let res = HashJoin::left(&v1, &v2);
 
@@ -203,10 +199,10 @@ mod tests {
 
     #[test]
     fn test_vec_right_join_string() {
-        let v1: Vec<String> = vec!["a".to_string(), "b".to_string(),
-                                   "c".to_string(), "d".to_string()];
-        let v2: Vec<String> = vec!["d".to_string(), "c".to_string(),
-                                   "e".to_string(), "a".to_string()];
+        let v1: Vec<String> =
+            vec!["a".to_string(), "b".to_string(), "c".to_string(), "d".to_string()];
+        let v2: Vec<String> =
+            vec!["d".to_string(), "c".to_string(), "e".to_string(), "a".to_string()];
 
         let res = HashJoin::right(&v1, &v2);
 
@@ -228,15 +224,18 @@ mod tests {
 
     #[test]
     fn test_vec_outer_join_string() {
-        let v1: Vec<String> = vec!["a".to_string(), "b".to_string(),
-                                   "c".to_string(), "d".to_string()];
-        let v2: Vec<String> = vec!["d".to_string(), "c".to_string(),
-                                   "e".to_string(), "a".to_string()];
+        let v1: Vec<String> =
+            vec!["a".to_string(), "b".to_string(), "c".to_string(), "d".to_string()];
+        let v2: Vec<String> =
+            vec!["d".to_string(), "c".to_string(), "e".to_string(), "a".to_string()];
 
         let res = HashJoin::outer(&v1, &v2);
 
-        let exp = vec!["a".to_string(), "b".to_string(), "c".to_string(),
-                       "d".to_string(), "e".to_string()];
+        let exp = vec!["a".to_string(),
+                       "b".to_string(),
+                       "c".to_string(),
+                       "d".to_string(),
+                       "e".to_string()];
         assert_eq!(res.0, exp);
         assert_eq!(res.1, vec![0, 1, 2, 3, USIZE_MISSING]);
         assert_eq!(res.2, vec![3, USIZE_MISSING, 1, 0, 2]);

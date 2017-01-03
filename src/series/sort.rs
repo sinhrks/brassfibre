@@ -6,13 +6,13 @@ use indexer::Indexer;
 use traits::Slicer;
 
 //**********************************************
-// Soat
+//*Soat
 //**********************************************
 
 impl<'v, 'i, V, I> Series<'v, 'i, V, I>
     where V: Clone,
-          I: Clone + Eq + Hash + Ord {
-
+          I: Clone + Eq + Hash + Ord
+{
     pub fn sort_index(&self) -> Self {
         let (indexer, sorted) = self.index.argsort();
         let new_values = Sorter::reindex(&self.values, &indexer);
@@ -22,8 +22,8 @@ impl<'v, 'i, V, I> Series<'v, 'i, V, I>
 
 impl<'v, 'i, V, I> Series<'v, 'i, V, I>
     where V: Clone + Ord,
-          I: Clone + Eq + Hash {
-
+          I: Clone + Eq + Hash
+{
     pub fn sort_values(&self) -> Self {
         let (indexer, sorted) = Sorter::argsort(&self.values);
         let index: Indexer<I> = self.index.reindex(&indexer);

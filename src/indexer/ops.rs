@@ -60,7 +60,9 @@ macro_rules! define_numeric_op {
 
             type Output = Indexer<O>;
             fn $m(self, _rhs: Self) -> Self::Output {
-                let new_values: Vec<O> = Elemwise::elemwise_oo(self.values, _rhs.values, |x, y| x.$m(y));
+                let new_values: Vec<O> = Elemwise::elemwise_oo(self.values,
+                                                               _rhs.values,
+                                                               |x, y| x.$m(y));
                 Indexer::new(new_values)
             }
         }
@@ -71,7 +73,9 @@ macro_rules! define_numeric_op {
 
             type Output = Indexer<O>;
             fn $m(self, _rhs: &Self) -> Self::Output {
-                let new_values: Vec<O> = Elemwise::elemwise_or(self.values, &_rhs.values, |x, y| x.$m(y));
+                let new_values: Vec<O> = Elemwise::elemwise_or(self.values,
+                                                               &_rhs.values,
+                                                               |x, y| x.$m(y));
                 Indexer::new(new_values)
             }
         }
@@ -82,7 +86,9 @@ macro_rules! define_numeric_op {
 
             type Output = Indexer<O>;
             fn $m(self, _rhs: Indexer<U>) -> Self::Output {
-                let new_values: Vec<O> = Elemwise::elemwise_ro(&self.values, _rhs.values, |x, y| x.$m(y));
+                let new_values: Vec<O> = Elemwise::elemwise_ro(&self.values,
+                                                               _rhs.values,
+                                                               |x, y| x.$m(y));
                 Indexer::new(new_values)
             }
         }
@@ -93,7 +99,9 @@ macro_rules! define_numeric_op {
 
             type Output = Indexer<O>;
             fn $m(self, _rhs: &Indexer<U>) -> Self::Output {
-                let new_values: Vec<O> = Elemwise::elemwise_rr(&self.values, &_rhs.values, |x, y| x.$m(y));
+                let new_values: Vec<O> = Elemwise::elemwise_rr(&self.values,
+                                                               &_rhs.values,
+                                                               |x, y| x.$m(y));
                 Indexer::new(new_values)
             }
         }
@@ -142,16 +150,15 @@ mod tests {
         assert_eq!(&(idx + &3).values, &vec![4, 5, 6]);
     }
 
-    /*
-    ToDo
-    #[test]
-    fn test_index_ops_str_broadcast() {
-        let idx = Indexer::<String>::new(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
-        // idx moves by ops
-        let exp = Indexer::<String>::new(vec!["ax".to_string(), "bx".to_string(), "cx".to_string()]);
-        assert_eq!(idx + "x".to_string(), exp);
-    }
-    */
+    // ToDo
+    // #[test]
+    // fn test_index_ops_str_broadcast() {
+    // let idx = Indexer::<String>::new(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
+    // idx moves by ops
+    // let exp = Indexer::<String>::new(vec!["ax".to_string(), "bx".to_string(), "cx".to_string()]);
+    // assert_eq!(idx + "x".to_string(), exp);
+    // }
+    //
 
     #[test]
     fn test_index_ops_i64_elemwise() {

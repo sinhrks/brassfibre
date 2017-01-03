@@ -155,7 +155,8 @@ macro_rules! define_numeric_op {
             }
         }
 
-        impl<'lv, 'li, 'lc, 'rv, 'ri , 'rc, 'l, 'r, V, I, C, O> $t<&'r Block<'rv, 'ri, 'rc, V, I, C>>
+        impl<'lv, 'li, 'lc, 'rv, 'ri , 'rc, 'l, 'r, V, I, C, O>
+            $t<&'r Block<'rv, 'ri, 'rc, V, I, C>>
             for &'l Block<'lv, 'li, 'lc, V, I, C>
 
             where V: Clone + $t<Output=O>,
@@ -198,50 +199,38 @@ mod tests {
 
     #[test]
     fn test_block_ops_i64_broadcast() {
-        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6], vec![10, 20, 30], vec!["X", "Y"]);
         // b moves by ops
         let res = b + 3;
-        let exp = Block::from_col_vec(vec![4, 5, 6, 7, 8, 9],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+        let exp = Block::from_col_vec(vec![4, 5, 6, 7, 8, 9], vec![10, 20, 30], vec!["X", "Y"]);
         assert_eq!(res, exp);
 
-        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6], vec![10, 20, 30], vec!["X", "Y"]);
         let res = b * 2;
-        let exp = Block::from_col_vec(vec![2, 4, 6, 8, 10, 12],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+        let exp = Block::from_col_vec(vec![2, 4, 6, 8, 10, 12], vec![10, 20, 30], vec!["X", "Y"]);
         assert_eq!(res, exp);
 
-        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6], vec![10, 20, 30], vec!["X", "Y"]);
         let res = b - 3;
-        let exp = Block::from_col_vec(vec![-2, -1, 0, 1, 2, 3],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+        let exp = Block::from_col_vec(vec![-2, -1, 0, 1, 2, 3], vec![10, 20, 30], vec!["X", "Y"]);
         assert_eq!(res, exp);
 
-        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6], vec![10, 20, 30], vec!["X", "Y"]);
         let res = b / 2;
-        let exp = Block::from_col_vec(vec![0, 1, 1, 2, 2, 3],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+        let exp = Block::from_col_vec(vec![0, 1, 1, 2, 2, 3], vec![10, 20, 30], vec!["X", "Y"]);
         assert_eq!(res, exp);
 
-        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6], vec![10, 20, 30], vec!["X", "Y"]);
         let res = b % 2;
-        let exp = Block::from_col_vec(vec![1, 0, 1, 0, 1, 0],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+        let exp = Block::from_col_vec(vec![1, 0, 1, 0, 1, 0], vec![10, 20, 30], vec!["X", "Y"]);
         assert_eq!(res, exp);
     }
 
     #[test]
     fn test_block_ops_i64_broadcast_refs() {
-        let exp = Block::from_col_vec(vec![4, 5, 6, 7, 8, 9],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+        let exp = Block::from_col_vec(vec![4, 5, 6, 7, 8, 9], vec![10, 20, 30], vec!["X", "Y"]);
 
-        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6], vec![10, 20, 30], vec!["X", "Y"]);
         let res = &b + 3;
         assert_eq!(res, exp);
 
@@ -251,11 +240,9 @@ mod tests {
 
     #[test]
     fn test_block_ops_i64_broadcast_move() {
-        let exp = Block::from_col_vec(vec![4, 5, 6, 7, 8, 9],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+        let exp = Block::from_col_vec(vec![4, 5, 6, 7, 8, 9], vec![10, 20, 30], vec!["X", "Y"]);
 
-        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6], vec![10, 20, 30], vec!["X", "Y"]);
         let res = b + &3;
         assert_eq!(res, exp);
     }
@@ -263,49 +250,61 @@ mod tests {
     #[test]
     fn test_block_ops_f64_broadcast() {
         let b = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         // b moves by ops
         let res = b + 3.;
         let exp = Block::from_col_vec(vec![4., 5., 6., 7., 8., 9.],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+                                      vec![10, 20, 30],
+                                      vec!["X", "Y"]);
         assert_eq!(res, exp);
 
         let b = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let res = b * 2.;
         let exp = Block::from_col_vec(vec![2., 4., 6., 8., 10., 12.],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+                                      vec![10, 20, 30],
+                                      vec!["X", "Y"]);
         assert_eq!(res, exp);
 
         let b = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let res = b - 3.;
         let exp = Block::from_col_vec(vec![-2., -1., 0., 1., 2., 3.],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+                                      vec![10, 20, 30],
+                                      vec!["X", "Y"]);
         assert_eq!(res, exp);
 
         let b = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let res = b / 2.;
         let exp = Block::from_col_vec(vec![0.5, 1., 1.5, 2., 2.5, 3.],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+                                      vec![10, 20, 30],
+                                      vec!["X", "Y"]);
         assert_eq!(res, exp);
 
         let b = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let res = b % 2.;
         let exp = Block::from_col_vec(vec![1., 0., 1., 0., 1., 0.],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+                                      vec![10, 20, 30],
+                                      vec!["X", "Y"]);
         assert_eq!(res, exp);
     }
 
     #[test]
     fn test_block_ops_f64_broadcast_refs() {
         let exp = Block::from_col_vec(vec![4., 5., 6., 7., 8., 9.],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+                                      vec![10, 20, 30],
+                                      vec!["X", "Y"]);
 
         let b = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let res = &b + 3.;
         assert_eq!(res, exp);
 
@@ -316,90 +315,70 @@ mod tests {
     #[test]
     fn test_block_ops_f64_broadcast_move() {
         let exp = Block::from_col_vec(vec![4., 5., 6., 7., 8., 9.],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+                                      vec![10, 20, 30],
+                                      vec!["X", "Y"]);
 
         let b = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let res = b + &3.;
         assert_eq!(res, exp);
     }
 
     #[test]
     fn test_block_ops_i64_elemwise() {
-        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
-        let r = Block::from_col_vec(vec![2, 3, 1, 2, 3, 1],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6], vec![10, 20, 30], vec!["X", "Y"]);
+        let r = Block::from_col_vec(vec![2, 3, 1, 2, 3, 1], vec![10, 20, 30], vec!["X", "Y"]);
         // b moves by ops
         let res = b + r;
-        let exp = Block::from_col_vec(vec![3, 5, 4, 6, 8, 7],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+        let exp = Block::from_col_vec(vec![3, 5, 4, 6, 8, 7], vec![10, 20, 30], vec!["X", "Y"]);
         assert_eq!(res, exp);
 
-        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
-        let r = Block::from_col_vec(vec![2, 3, 1, 2, 3, 1],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6], vec![10, 20, 30], vec!["X", "Y"]);
+        let r = Block::from_col_vec(vec![2, 3, 1, 2, 3, 1], vec![10, 20, 30], vec!["X", "Y"]);
         let res = b * r;
-        let exp = Block::from_col_vec(vec![2, 6, 3, 8, 15, 6],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+        let exp = Block::from_col_vec(vec![2, 6, 3, 8, 15, 6], vec![10, 20, 30], vec!["X", "Y"]);
         assert_eq!(res, exp);
 
-        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
-        let r = Block::from_col_vec(vec![2, 3, 1, 2, 3, 1],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6], vec![10, 20, 30], vec!["X", "Y"]);
+        let r = Block::from_col_vec(vec![2, 3, 1, 2, 3, 1], vec![10, 20, 30], vec!["X", "Y"]);
         let res = b - r;
-        let exp = Block::from_col_vec(vec![-1, -1, 2, 2, 2, 5],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let exp = Block::from_col_vec(vec![-1, -1, 2, 2, 2, 5], vec![10, 20, 30], vec!["X", "Y"]);
         assert_eq!(res, exp);
 
-        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
-        let r = Block::from_col_vec(vec![2, 3, 1, 2, 3, 1],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6], vec![10, 20, 30], vec!["X", "Y"]);
+        let r = Block::from_col_vec(vec![2, 3, 1, 2, 3, 1], vec![10, 20, 30], vec!["X", "Y"]);
         let res = b / r;
-        let exp = Block::from_col_vec(vec![0, 0, 3, 2, 1, 6],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+        let exp = Block::from_col_vec(vec![0, 0, 3, 2, 1, 6], vec![10, 20, 30], vec!["X", "Y"]);
         assert_eq!(res, exp);
 
-        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
-        let r = Block::from_col_vec(vec![2, 3, 1, 2, 3, 1],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6], vec![10, 20, 30], vec!["X", "Y"]);
+        let r = Block::from_col_vec(vec![2, 3, 1, 2, 3, 1], vec![10, 20, 30], vec!["X", "Y"]);
         let res = b % r;
-        let exp = Block::from_col_vec(vec![1, 2, 0, 0, 2, 0],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+        let exp = Block::from_col_vec(vec![1, 2, 0, 0, 2, 0], vec![10, 20, 30], vec!["X", "Y"]);
         assert_eq!(res, exp);
     }
 
     #[test]
     fn test_block_ops_i64_elemwise_refs() {
-        let exp = Block::from_col_vec(vec![3, 5, 4, 6, 8, 7],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+        let exp = Block::from_col_vec(vec![3, 5, 4, 6, 8, 7], vec![10, 20, 30], vec!["X", "Y"]);
 
-        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
-        let r = Block::from_col_vec(vec![2, 3, 1, 2, 3, 1],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6], vec![10, 20, 30], vec!["X", "Y"]);
+        let r = Block::from_col_vec(vec![2, 3, 1, 2, 3, 1], vec![10, 20, 30], vec!["X", "Y"]);
         let res = &b + r;
         assert_eq!(res, exp);
 
-        let r = Block::from_col_vec(vec![2, 3, 1, 2, 3, 1],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let r = Block::from_col_vec(vec![2, 3, 1, 2, 3, 1], vec![10, 20, 30], vec!["X", "Y"]);
         let res = &b + &r;
         assert_eq!(res, exp);
     }
 
     #[test]
     fn test_block_ops_i64_elemwise_move() {
-        let exp = Block::from_col_vec(vec![3, 5, 4, 6, 8, 7],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+        let exp = Block::from_col_vec(vec![3, 5, 4, 6, 8, 7], vec![10, 20, 30], vec!["X", "Y"]);
 
-        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
-        let r = Block::from_col_vec(vec![2, 3, 1, 2, 3, 1],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+        let b = Block::from_col_vec(vec![1, 2, 3, 4, 5, 6], vec![10, 20, 30], vec!["X", "Y"]);
+        let r = Block::from_col_vec(vec![2, 3, 1, 2, 3, 1], vec![10, 20, 30], vec!["X", "Y"]);
         let res = b + &r;
         assert_eq!(res, exp);
     }
@@ -407,68 +386,87 @@ mod tests {
     #[test]
     fn test_block_ops_f64_elemwise() {
         let b = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let r = Block::from_col_vec(vec![2., 3., 1., 2., 3., 1.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         // b moves by ops
         let res = b + r;
         let exp = Block::from_col_vec(vec![3., 5., 4., 6., 8., 7.],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+                                      vec![10, 20, 30],
+                                      vec!["X", "Y"]);
         assert_eq!(res, exp);
 
         let b = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let r = Block::from_col_vec(vec![2., 3., 1., 2., 3., 1.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let res = b * r;
         let exp = Block::from_col_vec(vec![2., 6., 3., 8., 15., 6.],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+                                      vec![10, 20, 30],
+                                      vec!["X", "Y"]);
         assert_eq!(res, exp);
 
         let b = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let r = Block::from_col_vec(vec![2., 3., 1., 2., 3., 1.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let res = b - r;
         let exp = Block::from_col_vec(vec![-1., -1., 2., 2., 2., 5.],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+                                      vec![10, 20, 30],
+                                      vec!["X", "Y"]);
         assert_eq!(res, exp);
 
         let b = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let r = Block::from_col_vec(vec![2., 3., 1., 2., 3., 1.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let res = b / r;
-        let exp = Block::from_col_vec(vec![0.5, 0.6666666666666666, 3.,
-                                           2., 1.6666666666666667, 6.],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+        let exp =
+            Block::from_col_vec(vec![0.5, 0.6666666666666666, 3., 2., 1.6666666666666667, 6.],
+                                vec![10, 20, 30],
+                                vec!["X", "Y"]);
         assert_eq!(res, exp);
 
         let b = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let r = Block::from_col_vec(vec![2., 3., 1., 2., 3., 1.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let res = b % r;
         let exp = Block::from_col_vec(vec![1., 2., 0., 0., 2., 0.],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+                                      vec![10, 20, 30],
+                                      vec!["X", "Y"]);
         assert_eq!(res, exp);
     }
 
     #[test]
     fn test_block_ops_f64_elemwise_refs() {
         let exp = Block::from_col_vec(vec![3., 5., 4., 6., 8., 7.],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+                                      vec![10, 20, 30],
+                                      vec!["X", "Y"]);
 
         let b = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let r = Block::from_col_vec(vec![2., 3., 1., 2., 3., 1.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
 
         let res = &b + r;
         assert_eq!(res, exp);
 
         let r = Block::from_col_vec(vec![2., 3., 1., 2., 3., 1.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let res = &b + &r;
         assert_eq!(res, exp);
     }
@@ -476,12 +474,15 @@ mod tests {
     #[test]
     fn test_block_ops_f64_elemwise_move() {
         let exp = Block::from_col_vec(vec![3., 5., 4., 6., 8., 7.],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+                                      vec![10, 20, 30],
+                                      vec!["X", "Y"]);
 
         let b = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let r = Block::from_col_vec(vec![2., 3., 1., 2., 3., 1.],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
 
         let res = b + &r;
         assert_eq!(res, exp);
@@ -490,31 +491,40 @@ mod tests {
     #[test]
     fn test_block_ops_bool_elemwise_logical() {
         let b = Block::from_col_vec(vec![true, false, true, false, true, false],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let r = Block::from_col_vec(vec![true, true, true, false, false, false],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         // b moves by ops
         let res = b & r;
         let exp = Block::from_col_vec(vec![true, false, true, false, false, false],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+                                      vec![10, 20, 30],
+                                      vec!["X", "Y"]);
         assert_eq!(res, exp);
 
         let b = Block::from_col_vec(vec![true, false, true, false, true, false],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let r = Block::from_col_vec(vec![true, true, true, false, false, false],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let res = b | r;
         let exp = Block::from_col_vec(vec![true, true, true, false, true, false],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+                                      vec![10, 20, 30],
+                                      vec!["X", "Y"]);
         assert_eq!(res, exp);
 
         let b = Block::from_col_vec(vec![true, false, true, false, true, false],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let r = Block::from_col_vec(vec![true, true, true, false, false, false],
-                                    vec![10, 20, 30], vec!["X", "Y"]);
+                                    vec![10, 20, 30],
+                                    vec!["X", "Y"]);
         let res = b ^ r;
         let exp = Block::from_col_vec(vec![false, true, false, false, true, false],
-                                      vec![10, 20, 30], vec!["X", "Y"]);
+                                      vec![10, 20, 30],
+                                      vec!["X", "Y"]);
         assert_eq!(res, exp);
     }
 }

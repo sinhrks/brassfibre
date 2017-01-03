@@ -6,20 +6,18 @@ fn main() {
     // ./target/debug/examples/block
 
     println!("** Creation **");
-    let values = vec![1, 2, 3, 4, 5,
-                      6, 7, 8, 9, 10,
-                      11, 12, 13, 14, 15];
-    let b = Block::from_col_vec(values,
-                                vec![10, 20, 30, 40, 50],
-                                vec!["X", "YYY", "ZZ"]);
+    let values = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    let b = Block::from_col_vec(values, vec![10, 20, 30, 40, 50], vec!["X", "YYY", "ZZ"]);
     println!("{:?}\n", &b);
 
     println!("** Selection **");
 
     println!("by single columns label\n{:?}\n", &b.get(&"YYY"));
     println!("by single columns location\n{:?}\n", &b.iget(&0));
-    println!("by multiple index labels\n{:?}\n", &b.locs(&vec![20, 30, 40]));
-    println!("by multiple index locations\n{:?}\n", &b.ilocs(&vec![0, 2, 1]));
+    println!("by multiple index labels\n{:?}\n",
+             &b.locs(&vec![20, 30, 40]));
+    println!("by multiple index locations\n{:?}\n",
+             &b.ilocs(&vec![0, 2, 1]));
 
     println!("** Calculation **");
     println!("elemwise\n{:?}\n", &(&b + 5));

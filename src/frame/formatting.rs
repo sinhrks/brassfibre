@@ -7,25 +7,25 @@ use formatting;
 
 impl<'v, 'i, 'c, I, C> fmt::Display for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
-          C: Clone + Eq + Hash + fmt::Debug {
-
+          C: Clone + Eq + Hash + fmt::Debug
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "DataFrame(columns={:?})", &self.columns.values)
     }
-
 }
 
 impl<'v, 'i, 'c, I, C> fmt::Debug for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash + ToString,
-          C: Clone + Eq + Hash + ToString {
-
+          C: Clone + Eq + Hash + ToString
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 
         let mut str_values: Vec<Vec<String>> = vec![];
 
         for (i, column) in self.columns.values.iter().enumerate() {
             let current: Vec<String> = self.values[i].to_string_vec();
-            let column_str = formatting::pad_string_vector_with_header(&current, column.to_string());
+            let column_str = formatting::pad_string_vector_with_header(&current,
+                                                                       column.to_string());
             str_values.push(column_str);
         }
         let str_index = formatting::pad_string_vector_with_header(&self.index.values,

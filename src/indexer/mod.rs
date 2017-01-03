@@ -27,12 +27,13 @@ pub struct Indexer<U: Clone + Hash> {
     htable: RefCell<HashMap<U, usize>>,
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Constructor
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Constructor
+/// /////////////////////////////////////////////////////////////////////////////
 
-impl<U> Indexer<U> where U: Clone + Eq + Hash {
-
+impl<U> Indexer<U>
+    where U: Clone + Eq + Hash
+{
     pub fn from_len(len: usize) -> Indexer<usize> {
         // ToDo: don't need hash if index is range-like
         (0..len).collect()
@@ -46,12 +47,13 @@ impl<U> Indexer<U> where U: Clone + Eq + Hash {
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Indexing
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Indexing
+/// /////////////////////////////////////////////////////////////////////////////
 
-impl<U> Slicer for Indexer<U> where U: Clone + Eq + Hash {
-
+impl<U> Slicer for Indexer<U>
+    where U: Clone + Eq + Hash
+{
     fn len(&self) -> usize {
         self.values.len()
     }
@@ -72,8 +74,9 @@ impl<U> Slicer for Indexer<U> where U: Clone + Eq + Hash {
     }
 }
 
-impl<U> IndexerIndex for Indexer<U> where U: Clone + Eq + Hash {
-
+impl<U> IndexerIndex for Indexer<U>
+    where U: Clone + Eq + Hash
+{
     type Key = U;
 
     /// Whether Indexer contains label or not
@@ -119,13 +122,13 @@ impl<U> IndexerIndex for Indexer<U> where U: Clone + Eq + Hash {
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Append
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Append
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'a, T> Append<'a> for Indexer<T>
-    where T: Clone + Eq + Hash {
-
+    where T: Clone + Eq + Hash
+{
     fn append(&self, other: &Self) -> Self {
         let mut new_values: Vec<T> = self.values.clone();
         new_values.append(&mut other.values.clone());
@@ -133,24 +136,25 @@ impl<'a, T> Append<'a> for Indexer<T>
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Eq
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Eq
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<U> PartialEq for Indexer<U>
-    where U: Clone + Eq + Hash {
+    where U: Clone + Eq + Hash
+{
     fn eq(&self, other: &Indexer<U>) -> bool {
         self.values == other.values
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Iterator
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Iterator
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<U> IntoIterator for Indexer<U>
-    where U: Clone + Eq + Hash {
-
+    where U: Clone + Eq + Hash
+{
     type Item = U;
     type IntoIter = vec::IntoIter<U>;
 
@@ -160,16 +164,19 @@ impl<U> IntoIterator for Indexer<U>
 }
 
 impl<U> Indexer<U>
-    where U: Clone + Eq + Hash {
-
+    where U: Clone + Eq + Hash
+{
     pub fn iter(&self) -> slice::Iter<U> {
         self.values.iter()
     }
 }
 
 impl<U> FromIterator<U> for Indexer<U>
-    where U: Clone + Eq + Hash {
-    fn from_iter<T>(iter: T) -> Self where T: IntoIterator<Item=U> {
+    where U: Clone + Eq + Hash
+{
+    fn from_iter<T>(iter: T) -> Self
+        where T: IntoIterator<Item = U>
+    {
         let values: Vec<U> = iter.into_iter().collect();
         Indexer::new(values)
     }

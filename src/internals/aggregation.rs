@@ -1,11 +1,9 @@
 use super::Array;
 use algos::computation::Aggregation;
-use traits::{BasicAggregation, NumericAggregation,
-             ComparisonAggregation};
+use traits::{BasicAggregation, NumericAggregation, ComparisonAggregation};
 
 
 impl<'s> BasicAggregation<'s> for Array {
-
     type Kept = f64;
     type Counted = usize;
 
@@ -27,7 +25,6 @@ impl<'s> BasicAggregation<'s> for Array {
 }
 
 impl<'s> NumericAggregation<'s> for Array {
-
     type Coerced = f64;
 
     fn mean(&'s self) -> Self::Coerced {
@@ -72,7 +69,6 @@ impl<'s> NumericAggregation<'s> for Array {
 }
 
 impl<'s> ComparisonAggregation<'s> for Array {
-
     type Kept = f64;
 
     fn min(&'s self) -> Self::Kept {

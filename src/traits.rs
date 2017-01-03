@@ -1,8 +1,8 @@
 //! Common Traits
 
-////////////////////////////////////////////////////////////////////////////////
-// Indexing
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Indexing
+/// /////////////////////////////////////////////////////////////////////////////
 
 /// Indexing methods for non-labeled Array / Indexer
 pub trait Slicer: Sized {
@@ -18,7 +18,6 @@ pub trait Slicer: Sized {
 
 /// Indexing methods for Indexer
 pub trait IndexerIndex: Slicer {
-
     type Key;
 
     fn contains(&self, label: &Self::Key) -> bool;
@@ -32,7 +31,6 @@ pub trait IndexerIndex: Slicer {
 
 /// Indexing methods for Index(Row)
 pub trait RowIndex<'s>: Sized {
-
     // 's: lifetime of myself
 
     type Key;
@@ -78,7 +76,6 @@ pub trait RowIndex<'s>: Sized {
 
 /// Indexing methods for Columns
 pub trait ColIndex<'s>: Sized {
-
     // 's: lifetime of myself
 
     type Key;
@@ -100,9 +97,9 @@ pub trait ColIndex<'s>: Sized {
     // ToDo bgets
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Reshaping
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Reshaping
+/// /////////////////////////////////////////////////////////////////////////////
 
 /// Concatenate along row
 pub trait Append<'s>: Sized {
@@ -119,9 +116,9 @@ pub trait Join: Sized {
     fn join_inner(&self, other: &Self) -> Self;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Apply
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Apply
+/// /////////////////////////////////////////////////////////////////////////////
 
 pub trait Apply<'s, R> {
     // R: Type function returns, dummy to avoid unconstrained lifetime parameter
@@ -133,12 +130,11 @@ pub trait Apply<'s, R> {
     fn apply<'f>(&'s self, func: &'f Fn(&Self::In) -> Self::FOut) -> Self::Out;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Aggregation
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Aggregation
+/// /////////////////////////////////////////////////////////////////////////////
 
 pub trait BasicAggregation<'s> {
-
     // result which can keep current dtype
     type Kept;
     // result for count (to usize or its container)
@@ -149,7 +145,6 @@ pub trait BasicAggregation<'s> {
 }
 
 pub trait NumericAggregation<'s> {
-
     // result which is coerced (to f64 or its container)
     type Coerced;
 
@@ -161,17 +156,14 @@ pub trait NumericAggregation<'s> {
 }
 
 pub trait ComparisonAggregation<'s> {
-
     type Kept;
 
     fn min(&'s self) -> Self::Kept;
     fn max(&'s self) -> Self::Kept;
 }
 
-pub trait Description<'s>: BasicAggregation<'s> +
-                           NumericAggregation<'s> +
-                           ComparisonAggregation<'s> {
-
+pub trait Description<'s>
+    : BasicAggregation<'s> + NumericAggregation<'s> + ComparisonAggregation<'s> {
     type Described;
 
     fn describe(&'s self) -> Self::Described;

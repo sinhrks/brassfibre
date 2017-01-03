@@ -5,14 +5,13 @@ use super::DataFrame;
 use algos::join::{JoinOp, HashJoin};
 use indexer::Indexer;
 use internals::Array;
-use traits::{Slicer, IndexerIndex, RowIndex,
-             Append, Concatenation, Join};
+use traits::{Slicer, IndexerIndex, RowIndex, Append, Concatenation, Join};
 
 
 impl<'v, 'i, 'c, I, C> Append<'c> for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
-          C: Clone + Eq + Hash {
-
+          C: Clone + Eq + Hash
+{
     fn append<'o>(&'c self, other: &'o Self) -> Self {
         assert!(self.columns == other.columns, "columns must be identical");
 
@@ -31,8 +30,8 @@ impl<'v, 'i, 'c, I, C> Append<'c> for DataFrame<'v, 'i, 'c, I, C>
 
 impl<'v, 'i, 'c, I, C> Concatenation<'i> for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
-          C: Clone + Eq + Hash {
-
+          C: Clone + Eq + Hash
+{
     fn concat<'o>(&'i self, other: &'o Self) -> Self {
         assert!(self.index == other.index, "index must be identical");
 
@@ -51,11 +50,12 @@ impl<'v, 'i, 'c, I, C> Concatenation<'i> for DataFrame<'v, 'i, 'c, I, C>
 
 impl<'v, 'i, 'c, I, C> Join for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
-          C: Clone + Eq + Hash {
-
+          C: Clone + Eq + Hash
+{
     fn join_inner(&self, other: &Self) -> Self {
 
-        let (new_index, lindexer, rindexer) = HashJoin::inner(&self.index.values, &other.index.values);
+        let (new_index, lindexer, rindexer) = HashJoin::inner(&self.index.values,
+                                                              &other.index.values);
         let new_columns = self.columns.append(&other.columns);
 
         let mut new_values: Vec<Cow<Array>> = Vec::with_capacity(new_columns.len());

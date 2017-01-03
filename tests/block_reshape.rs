@@ -12,10 +12,9 @@ fn test_block_append() {
 
     let res = b1.append(&b2);
 
-    let exp = Block::from_col_vec(vec![1., 2., 3., 7., 8., 9.,
-                                       4., 5., 6., 10., 11., 12.],
-                                 vec!["A", "B", "C", "D", "E", "F"],
-                                 vec!["X", "Y"]);
+    let exp = Block::from_col_vec(vec![1., 2., 3., 7., 8., 9., 4., 5., 6., 10., 11., 12.],
+                                  vec!["A", "B", "C", "D", "E", "F"],
+                                  vec!["X", "Y"]);
     assert_eq!(res, exp);
 }
 
@@ -44,10 +43,9 @@ fn test_block_concat() {
 
     let res = b1.concat(&b2);
 
-    let exp = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.,
-                                       7., 8., 9., 10., 11., 12.],
-                                 vec!["A", "B", "C"],
-                                 vec!["X1", "Y1", "X2", "Y2"]);
+    let exp = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12.],
+                                  vec!["A", "B", "C"],
+                                  vec!["X1", "Y1", "X2", "Y2"]);
     assert_eq!(res, exp);
 }
 
@@ -75,19 +73,17 @@ fn test_block_join() {
                                  vec!["X2", "Y2"]);
 
     let res = b1.join_inner(&b2);
-    let exp = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.,
-                                       7., 8., 9., 10., 11., 12.],
-                                 vec!["A", "B", "C"],
-                                 vec!["X1", "Y1", "X2", "Y2"]);
+    let exp = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12.],
+                                  vec!["A", "B", "C"],
+                                  vec!["X1", "Y1", "X2", "Y2"]);
     assert_eq!(res, exp);
 
     let b3 = Block::from_col_vec(vec![1., 2., 3., 4., 5., 6.],
                                  vec!["D", "B", "A"],
                                  vec!["X3", "Y3"]);
     let res = b1.join_inner(&b3);
-    let exp = Block::from_col_vec(vec![1., 2., 4., 5.,
-                                       3., 2., 6., 5.],
-                                 vec!["A", "B"],
-                                 vec!["X1", "Y1", "X3", "Y3"]);
+    let exp = Block::from_col_vec(vec![1., 2., 4., 5., 3., 2., 6., 5.],
+                                  vec!["A", "B"],
+                                  vec!["X1", "Y1", "X3", "Y3"]);
     assert_eq!(res, exp);
 }

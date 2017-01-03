@@ -4,12 +4,12 @@ use super::Indexer;
 use algos::sort::Sorter;
 
 //**********************************************
-// Soat
+//*Soat
 //**********************************************
 
 impl<U> Indexer<U>
-    where U: Clone + Eq + Hash + Ord {
-
+    where U: Clone + Eq + Hash + Ord
+{
     pub fn argsort(&self) -> (Vec<usize>, Self) {
         let (indexer, sorted) = Sorter::argsort(&self.values);
         let sorted = Indexer::new(sorted);

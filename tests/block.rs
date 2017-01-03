@@ -5,9 +5,7 @@ use brassfibre::*;
 
 #[test]
 fn test_block_creation_from_col_vec() {
-    let values = vec![1, 2, 3, 4, 5,
-                      6, 7, 8, 9, 10,
-                      11, 12, 13, 14, 15];
+    let values = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
     let b = Block::from_col_vec(values,
                                 vec!["A", "BB", "CC", "D", "EEE"],
                                 vec!["X", "YYY", "ZZ"]);
@@ -36,11 +34,7 @@ fn test_block_creation_from_col_vec() {
 
 #[test]
 fn test_block_creation_from_row_vec() {
-    let values = vec![1, 6, 11,
-                      2, 7, 12,
-                      3, 8, 13,
-                      4, 9, 14,
-                      5, 10, 15];
+    let values = vec![1, 6, 11, 2, 7, 12, 3, 8, 13, 4, 9, 14, 5, 10, 15];
     let b = Block::from_row_vec(values,
                                 vec!["A", "BB", "CC", "D", "EEE"],
                                 vec!["X", "YYY", "ZZ"]);
@@ -69,9 +63,7 @@ fn test_block_creation_from_row_vec() {
 
 #[test]
 fn test_block_creation_from_vec() {
-    let values = vec![vec![1, 2, 3, 4, 5],
-                      vec![6, 7, 8, 9, 10],
-                      vec![11, 12, 13, 14, 15]];
+    let values = vec![vec![1, 2, 3, 4, 5], vec![6, 7, 8, 9, 10], vec![11, 12, 13, 14, 15]];
     let b = Block::from_vec(values,
                             vec!["A", "BB", "CC", "D", "EEE"],
                             vec!["X", "YYY", "ZZ"]);
@@ -100,17 +92,13 @@ fn test_block_creation_from_vec() {
 
 #[test]
 fn test_block_creation_from_nested_vec() {
-    let values = vec![vec![1, 2, 3, 4, 5],
-                      vec![6, 7, 8, 9, 10],
-                      vec![11, 12, 13, 14, 15]];
+    let values = vec![vec![1, 2, 3, 4, 5], vec![6, 7, 8, 9, 10], vec![11, 12, 13, 14, 15]];
     let b = Block::from_nested_vec(values,
                                    vec!["A", "BB", "CC", "D", "EEE"],
                                    vec!["X", "YYY", "ZZ"]);
     assert_eq!(b.len(), 5);
 
-    let exp_values = vec![vec![1, 2, 3, 4, 5],
-                          vec![6, 7, 8, 9, 10],
-                          vec![11, 12, 13, 14, 15]];
+    let exp_values = vec![vec![1, 2, 3, 4, 5], vec![6, 7, 8, 9, 10], vec![11, 12, 13, 14, 15]];
     let exp = Block::from_vec(exp_values,
                               vec!["A", "BB", "CC", "D", "EEE"],
                               vec!["X", "YYY", "ZZ"]);
@@ -138,72 +126,50 @@ fn test_block_creation_from_series() {
 
 #[test]
 fn test_block_creation_into() {
-    let values = vec![1, 2, 3, 4, 5,
-                      6, 7, 8, 9, 10,
-                      11, 12, 13, 14, 15];
+    let values = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
     let exp = Block::from_col_vec(values,
                                   vec!["A", "BB", "CC", "D", "EEE"],
                                   vec!["X", "YYY", "ZZ"]);
 
     let index = Indexer::new(vec!["A", "BB", "CC", "D", "EEE"]);
     let columns = Indexer::new(vec!["X", "YYY", "ZZ"]);
-    let values = vec![1, 2, 3, 4, 5,
-                      6, 7, 8, 9, 10,
-                      11, 12, 13, 14, 15];
+    let values = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
     let b = Block::from_col_vec(values, index, columns);
     assert_eq!(b, exp);
 
     let index = Indexer::new(vec!["A", "BB", "CC", "D", "EEE"]);
     let columns = Indexer::new(vec!["X", "YYY", "ZZ"]);
-    let values = vec![1, 6, 11,
-                      2, 7, 12,
-                      3, 8, 13,
-                      4, 9, 14,
-                      5, 10, 15];
+    let values = vec![1, 6, 11, 2, 7, 12, 3, 8, 13, 4, 9, 14, 5, 10, 15];
     let b = Block::from_row_vec(values, index, columns);
     assert_eq!(b, exp);
 
     let index = Indexer::new(vec!["A", "BB", "CC", "D", "EEE"]);
     let columns = Indexer::new(vec!["X", "YYY", "ZZ"]);
-    let values = vec![vec![1, 2, 3, 4, 5],
-                      vec![6, 7, 8, 9, 10],
-                      vec![11, 12, 13, 14, 15]];
+    let values = vec![vec![1, 2, 3, 4, 5], vec![6, 7, 8, 9, 10], vec![11, 12, 13, 14, 15]];
     let b = Block::from_nested_vec(values, index, columns);
     assert_eq!(b, exp);
 }
 
 #[test]
 fn test_block_head_tail() {
-    let values = vec![vec![1, 2, 3, 4, 5],
-                      vec![6, 7, 8, 9, 10],
-                      vec![11, 12, 13, 14, 15]];
+    let values = vec![vec![1, 2, 3, 4, 5], vec![6, 7, 8, 9, 10], vec![11, 12, 13, 14, 15]];
     let b = Block::from_nested_vec(values,
                                    vec!["A", "BB", "CC", "D", "EEE"],
                                    vec!["X", "YYY", "ZZ"]);
 
 
-    let exp_values = vec![vec![1, 2, 3],
-                          vec![6, 7, 8],
-                          vec![11, 12, 13]];
-    let exp = Block::from_vec(exp_values,
-                              vec!["A", "BB", "CC"],
-                              vec!["X", "YYY", "ZZ"]);
+    let exp_values = vec![vec![1, 2, 3], vec![6, 7, 8], vec![11, 12, 13]];
+    let exp = Block::from_vec(exp_values, vec!["A", "BB", "CC"], vec!["X", "YYY", "ZZ"]);
     assert_eq!(b.head(3), exp);
 
-    let exp_values = vec![vec![3, 4, 5],
-                          vec![8, 9, 10],
-                          vec![13, 14, 15]];
-    let exp = Block::from_vec(exp_values,
-                              vec!["CC", "D", "EEE"],
-                              vec!["X", "YYY", "ZZ"]);
+    let exp_values = vec![vec![3, 4, 5], vec![8, 9, 10], vec![13, 14, 15]];
+    let exp = Block::from_vec(exp_values, vec!["CC", "D", "EEE"], vec!["X", "YYY", "ZZ"]);
     assert_eq!(b.tail(3), exp);
 }
 
 #[test]
 fn test_block_columns_get() {
-    let values = vec![1, 2, 3, 4, 5,
-                      6, 7, 8, 9, 10,
-                      11, 12, 13, 14, 15];
+    let values = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
     let b = Block::from_col_vec(values,
                                 vec!["A", "BB", "CC", "D", "EEE"],
                                 vec!["X", "YYY", "ZZ"]);
@@ -221,14 +187,12 @@ fn test_block_columns_get() {
 
 #[test]
 fn test_block_columns_slice() {
-    let values = vec![1, 2, 3, 4, 5,
-                      6, 7, 8, 9, 10,
-                      11, 12, 13, 14, 15];
+    let values = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
     let b = Block::from_col_vec(values,
                                 vec!["A", "BB", "CC", "D", "EEE"],
                                 vec!["X", "YYY", "ZZ"]);
 
-    let exp = Block::from_col_vec(vec![6, 7, 8, 9, 10, 1, 2, 3, 4, 5,],
+    let exp = Block::from_col_vec(vec![6, 7, 8, 9, 10, 1, 2, 3, 4, 5],
                                   vec!["A", "BB", "CC", "D", "EEE"],
                                   vec!["YYY", "X"]);
     let res = b.gets(&vec!["YYY", "X"]);
@@ -281,9 +245,8 @@ fn test_slice_ilocs() {
 
     // slice
     let sliced = b.ilocs(&vec![0, 2]);
-    let exp = Block::<f64, &str, i64>::from_col_vec(vec![1., 3., 4., 6.],
-                                                    vec!["A", "C"],
-                                                    vec![1, 3]);
+    let exp =
+        Block::<f64, &str, i64>::from_col_vec(vec![1., 3., 4., 6.], vec!["A", "C"], vec![1, 3]);
     assert_eq!(sliced, exp);
 
     // compare columns
@@ -305,9 +268,8 @@ fn test_slice_locs() {
     // slice
     let sliced = b.locs(&vec!["B", "C"]);
 
-    let exp = Block::<f64, &str, i64>::from_col_vec(vec![2., 3., 5., 6.],
-                                                    vec!["B", "C"],
-                                                    vec![1, 3]);
+    let exp =
+        Block::<f64, &str, i64>::from_col_vec(vec![2., 3., 5., 6.], vec!["B", "C"], vec![1, 3]);
     assert_eq!(sliced, exp);
 
     // compare columns
@@ -321,29 +283,21 @@ fn test_slice_locs() {
 
 #[test]
 fn test_block_reindex() {
-    let values = vec![vec![1, 2, 3, 4, 5],
-                      vec![6, 7, 8, 9, 10],
-                      vec![11, 12, 13, 14, 15]];
+    let values = vec![vec![1, 2, 3, 4, 5], vec![6, 7, 8, 9, 10], vec![11, 12, 13, 14, 15]];
     let b = Block::from_nested_vec(values,
                                    vec!["A", "BB", "CC", "D", "EEE"],
                                    vec!["X", "YYY", "ZZ"]);
     let res = b.reindex(&vec!["BB", "D", "A"]);
 
-    let values = vec![vec![2, 4, 1],
-                      vec![7, 9, 6],
-                      vec![12, 14, 11]];
-    let exp = Block::from_nested_vec(values,
-                                     vec!["BB", "D", "A"],
-                                     vec!["X", "YYY", "ZZ"]);
+    let values = vec![vec![2, 4, 1], vec![7, 9, 6], vec![12, 14, 11]];
+    let exp = Block::from_nested_vec(values, vec!["BB", "D", "A"], vec!["X", "YYY", "ZZ"]);
     assert_eq!(res, exp);
 }
 
 #[test]
 #[should_panic]
 fn test_block_reindex_panic() {
-    let values = vec![vec![1, 2, 3, 4, 5],
-                      vec![6, 7, 8, 9, 10],
-                      vec![11, 12, 13, 14, 15]];
+    let values = vec![vec![1, 2, 3, 4, 5], vec![6, 7, 8, 9, 10], vec![11, 12, 13, 14, 15]];
     let b = Block::from_nested_vec(values,
                                    vec!["A", "BB", "CC", "D", "EEE"],
                                    vec!["X", "YYY", "ZZ"]);
@@ -352,29 +306,21 @@ fn test_block_reindex_panic() {
 
 #[test]
 fn test_block_reindex_by_index() {
-    let values = vec![vec![1, 2, 3, 4, 5],
-                      vec![6, 7, 8, 9, 10],
-                      vec![11, 12, 13, 14, 15]];
+    let values = vec![vec![1, 2, 3, 4, 5], vec![6, 7, 8, 9, 10], vec![11, 12, 13, 14, 15]];
     let b = Block::from_nested_vec(values,
                                    vec!["A", "BB", "CC", "D", "EEE"],
                                    vec!["X", "YYY", "ZZ"]);
     let res = b.reindex_by_index(&vec![1, 3, 0]);
 
-    let values = vec![vec![2, 4, 1],
-                      vec![7, 9, 6],
-                      vec![12, 14, 11]];
-    let exp = Block::from_nested_vec(values,
-                                     vec!["BB", "D", "A"],
-                                     vec!["X", "YYY", "ZZ"]);
+    let values = vec![vec![2, 4, 1], vec![7, 9, 6], vec![12, 14, 11]];
+    let exp = Block::from_nested_vec(values, vec!["BB", "D", "A"], vec!["X", "YYY", "ZZ"]);
     assert_eq!(res, exp);
 }
 
 #[test]
 #[should_panic]
 fn test_block_reindex_by_index_panic() {
-    let values = vec![vec![1, 2, 3, 4, 5],
-                      vec![6, 7, 8, 9, 10],
-                      vec![11, 12, 13, 14, 15]];
+    let values = vec![vec![1, 2, 3, 4, 5], vec![6, 7, 8, 9, 10], vec![11, 12, 13, 14, 15]];
     let b = Block::from_nested_vec(values,
                                    vec!["A", "BB", "CC", "D", "EEE"],
                                    vec!["X", "YYY", "ZZ"]);

@@ -13,7 +13,7 @@ fn default_columns(n: usize) -> Vec<String> {
 pub fn read_csv<'a, R: Read>(mut reader: Reader<R>) -> DataFrame<'a, 'a, 'a, usize, String> {
 
     // headers read 1st row regardless of has_headers property
-    let header : Vec<String> = reader.headers().unwrap();
+    let header: Vec<String> = reader.headers().unwrap();
     let columns: Vec<String> = if reader.has_headers {
         header
     } else {
@@ -47,21 +47,20 @@ pub fn read_csv<'a, R: Read>(mut reader: Reader<R>) -> DataFrame<'a, 'a, 'a, usi
         arrays.push(array);
     }
 
-    /*
-    ToDo: compare perf to disable boundary check / avoid clone
-    let mut arrays: Vec<Array> = Vec::with_capacity(ncols);
-    for i in 0..ncols {
-        let mut new_value: Vec<Scalar> = Vec::with_capacity(len);
-        for j in 0..len {
-            unsafe {
-                // avoid index boundary check
-                new_value.push((*records.get_unchecked(j * ncols + i)).clone());
-            }
-        }
-        let array: Array = new_value.into();
-        arrays.push(array);
-    }
-    */
+    // ToDo: compare perf to disable boundary check / avoid clone
+    // let mut arrays: Vec<Array> = Vec::with_capacity(ncols);
+    // for i in 0..ncols {
+    // let mut new_value: Vec<Scalar> = Vec::with_capacity(len);
+    // for j in 0..len {
+    // unsafe {
+    // avoid index boundary check
+    // new_value.push((*records.get_unchecked(j * ncols + i)).clone());
+    // }
+    // }
+    // let array: Array = new_value.into();
+    // arrays.push(array);
+    // }
+    //
 
     DataFrame::from_vec(arrays, index, columns)
 }

@@ -15,25 +15,24 @@ mod reshape;
 #[derive(Clone)]
 pub struct DataFrame<'v, 'i, 'c, I: Hash, C: Hash>
     where I: 'i + Clone + Hash,
-          C: 'c + Clone + Hash {
+          C: 'c + Clone + Hash
+{
     /// 2-dimentional block contains multiple type.
     /// I: type of indexer
     /// C: type of columns
-
-    // Do not use #[derice(PartialEq)] as internals may not be comparable
     pub values: Vec<Cow<'v, Array>>,
     pub index: Cow<'i, Indexer<I>>,
     pub columns: Cow<'c, Indexer<C>>,
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Indexing
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Indexing
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, 'c, I, C> RowIndex<'c> for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
-          C: Clone + Eq + Hash {
-
+          C: Clone + Eq + Hash
+{
     type Key = I;
     type Row = Array;
 
@@ -60,9 +59,7 @@ impl<'v, 'i, 'c, I, C> RowIndex<'c> for DataFrame<'v, 'i, 'c, I, C>
 
         let mut new_values: Vec<Cow<Array>> = Vec::with_capacity(self.columns.len());
         for current in self.values.iter() {
-            let new_value = unsafe {
-                current.ilocs_unchecked(locations)
-            };
+            let new_value = unsafe { current.ilocs_unchecked(locations) };
             new_values.push(Cow::Owned(new_value));
         }
         DataFrame::from_cow(new_values,
@@ -78,8 +75,8 @@ impl<'v, 'i, 'c, I, C> RowIndex<'c> for DataFrame<'v, 'i, 'c, I, C>
 
 impl<'v, 'i, 'c, I, C> ColIndex<'i> for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
-          C: Clone + Eq + Hash {
-
+          C: Clone + Eq + Hash
+{
     type Key = C;
     type Column = Array;
 
@@ -110,26 +107,26 @@ impl<'v, 'i, 'c, I, C> ColIndex<'i> for DataFrame<'v, 'i, 'c, I, C>
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Misc
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Misc
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, 'c, I, C> DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,
-          C: Clone + Eq + Hash {
-
-    pub fn from_vec<X, Y>(values: Vec<Array>,
-                          index: X, columns: Y) -> Self
+          C: Clone + Eq + Hash
+{
+    pub fn from_vec<X, Y>(values: Vec<Array>, index: X, columns: Y) -> Self
         where X: Into<Indexer<I>>,
-              Y: Into<Indexer<C>> {
+              Y: Into<Indexer<C>>
+    {
 
         let index: Indexer<I> = index.into();
         let columns: Indexer<C> = columns.into();
 
         assert!(values.len() == columns.len(), "Length mismatch!");
         let values: Vec<Cow<Array>> = values.into_iter()
-                                            .map(|x| Cow::Owned(x))
-                                            .collect();
+            .map(|x| Cow::Owned(x))
+            .collect();
 
         let len = index.len();
         for value in values.iter() {
@@ -144,7 +141,8 @@ impl<'v, 'i, 'c, I, C> DataFrame<'v, 'i, 'c, I, C>
 
     fn from_cow(values: Vec<Cow<'v, Array>>,
                 index: Cow<'i, Indexer<I>>,
-                columns: Cow<'c, Indexer<C>>) -> Self {
+                columns: Cow<'c, Indexer<C>>)
+                -> Self {
         // temp internal, use IntoCow
         DataFrame {
             values: values,
@@ -165,9 +163,10 @@ impl<'v, 'i, 'c, I, C> DataFrame<'v, 'i, 'c, I, C>
         let flags = self.is_numeric();
         // ToDo: use bgets
         let indexer: Vec<usize> = flags.iter()
-                                       .enumerate()
-                                       .filter(|&(_, &f)| f)
-                                       .map(|(i, _)| i).collect();
+            .enumerate()
+            .filter(|&(_, &f)| f)
+            .map(|(i, _)| i)
+            .collect();
         self.igets(&indexer)
     }
 
@@ -184,35 +183,35 @@ impl<'v, 'i, 'c, I, C> DataFrame<'v, 'i, 'c, I, C>
     }
 
     pub fn groupby<G>(&'i self, other: Vec<G>) -> GroupBy<DataFrame<I, C>, G>
-        where G: Clone + Eq + Hash + Ord {
+        where G: Clone + Eq + Hash + Ord
+    {
 
         GroupBy::new(&self, other)
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Eq
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Eq
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, 'c, I, C> PartialEq for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Hash + Eq,
-          C: Clone + Hash + Eq {
-
+          C: Clone + Hash + Eq
+{
     fn eq(&self, other: &Self) -> bool {
-        (self.index.eq(&other.index)) &&
-        (self.columns.eq(&other.columns)) &&
+        (self.index.eq(&other.index)) && (self.columns.eq(&other.columns)) &&
         (self.values.eq(&other.values))
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Iterator
-////////////////////////////////////////////////////////////////////////////////
+/// /////////////////////////////////////////////////////////////////////////////
+/// Iterator
+/// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, 'c, I, C> IntoIterator for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Hash + Eq,
-          C: Clone + Hash + Eq  {
-
+          C: Clone + Hash + Eq
+{
     type Item = Cow<'v, Array>;
     type IntoIter = vec::IntoIter<Cow<'v, Array>>;
 
@@ -223,8 +222,8 @@ impl<'v, 'i, 'c, I, C> IntoIterator for DataFrame<'v, 'i, 'c, I, C>
 
 impl<'v, 'i, 'c, I, C> DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Hash + Eq,
-          C: Clone + Hash + Eq  {
-
+          C: Clone + Hash + Eq
+{
     pub fn iter(&self) -> slice::Iter<Cow<Array>> {
         self.values.iter()
     }
@@ -250,20 +249,15 @@ mod tests {
 
     #[test]
     fn test_block_add_columns() {
-        let values = vec![Array::Int64Array(vec![1, 2, 3]),
-                          Array::Float64Array(vec![4., 5., 6.])];
-        let mut df = DataFrame::from_vec(values,
-                                         vec!["A", "BB", "CC"],
-                                         vec!["X", "Y"]);
+        let values = vec![Array::Int64Array(vec![1, 2, 3]), Array::Float64Array(vec![4., 5., 6.])];
+        let mut df = DataFrame::from_vec(values, vec!["A", "BB", "CC"], vec!["X", "Y"]);
         assert_eq!(df.len(), 3);
         df.insert(Array::Int64Array(vec![10, 11, 12]), "Z");
 
         let exp_values = vec![Array::Int64Array(vec![1, 2, 3]),
                               Array::Float64Array(vec![4., 5., 6.]),
                               Array::Int64Array(vec![10, 11, 12])];
-        let exp = DataFrame::from_vec(exp_values,
-                                      vec!["A", "BB", "CC"],
-                                      vec!["X", "Y", "Z"]);
+        let exp = DataFrame::from_vec(exp_values, vec!["A", "BB", "CC"], vec!["X", "Y", "Z"]);
         assert_eq!(df.values, exp.values);
         assert_eq!(df.index, exp.index);
         assert_eq!(df.columns, exp.columns);
@@ -283,9 +277,7 @@ mod tests {
         let exp_values = vec![Array::Int64Array(vec![1, 4, 3]),
                               Array::Float64Array(vec![6., 9., 8.]),
                               Array::Int64Array(vec![11, 14, 13])];
-        let exp = DataFrame::from_vec(exp_values,
-                                      vec!["A", "D", "CC"],
-                                      vec!["X", "YYY", "ZZ"]);
+        let exp = DataFrame::from_vec(exp_values, vec!["A", "D", "CC"], vec!["X", "YYY", "ZZ"]);
         assert_eq!(res.values, exp.values);
         assert_eq!(res.index, exp.index);
         assert_eq!(res.columns, exp.columns);
@@ -305,9 +297,7 @@ mod tests {
         let exp_values = vec![Array::Int64Array(vec![1, 4, 3]),
                               Array::Float64Array(vec![6., 9., 8.]),
                               Array::Int64Array(vec![11, 14, 13])];
-        let exp = DataFrame::from_vec(exp_values,
-                                      vec!["A", "D", "CC"],
-                                      vec!["X", "YYY", "ZZ"]);
+        let exp = DataFrame::from_vec(exp_values, vec!["A", "D", "CC"], vec!["X", "YYY", "ZZ"]);
         assert_eq!(res.values, exp.values);
         assert_eq!(res.index, exp.index);
         assert_eq!(res.columns, exp.columns);
