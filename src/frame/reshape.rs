@@ -2,11 +2,11 @@ use std::borrow::{Borrow, Cow};
 use std::hash::Hash;
 
 use super::DataFrame;
-use super::super::algos::join::{JoinOp, HashJoin};
-use super::super::indexer::Indexer;
-use super::super::internals::Array;
-use super::super::traits::{Slicer, IndexerIndex, RowIndex,
-                           Append, Concatenation, Join};
+use algos::join::{JoinOp, HashJoin};
+use indexer::Indexer;
+use internals::Array;
+use traits::{Slicer, IndexerIndex, RowIndex,
+             Append, Concatenation, Join};
 
 
 impl<'v, 'i, 'c, I, C> Append<'c> for DataFrame<'v, 'i, 'c, I, C>

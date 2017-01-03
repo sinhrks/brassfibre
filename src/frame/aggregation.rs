@@ -2,11 +2,11 @@ use std::borrow::Cow;
 use std::hash::Hash;
 
 use super::DataFrame;
-use super::super::indexer::Indexer;
-use super::super::internals::Array;
-use super::super::series::Series;
-use super::super::traits::{BasicAggregation, NumericAggregation,
-                           ComparisonAggregation, Description};
+use indexer::Indexer;
+use internals::Array;
+use series::Series;
+use traits::{BasicAggregation, NumericAggregation,
+             ComparisonAggregation, Description};
 
 impl<'v, 'i, 'c, I, C> BasicAggregation<'c> for DataFrame<'v, 'i, 'c, I, C>
     where I: Clone + Eq + Hash,

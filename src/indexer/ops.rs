@@ -2,7 +2,7 @@ use std::hash::Hash;
 use std::ops::{Add, Mul, Sub, Div, Rem, BitAnd, BitOr, BitXor};
 
 use super::Indexer;
-use super::super::algos::elemwise::Elemwise;
+use algos::elemwise::Elemwise;
 
 macro_rules! define_numeric_op {
     ($t:ident, $m:ident) => {

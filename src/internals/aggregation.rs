@@ -1,7 +1,7 @@
 use super::Array;
-use super::super::algos::computation::Aggregation;
-use super::super::traits::{BasicAggregation, NumericAggregation,
-                           ComparisonAggregation};
+use algos::computation::Aggregation;
+use traits::{BasicAggregation, NumericAggregation,
+             ComparisonAggregation};
 
 
 impl<'s> BasicAggregation<'s> for Array {

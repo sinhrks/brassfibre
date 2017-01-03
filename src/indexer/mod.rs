@@ -6,9 +6,9 @@ use std::iter::FromIterator;
 use std::slice;
 use std::vec;
 
-use super::algos::indexing::Indexing;
-use super::algos::sort::Sorter;
-use super::traits::{Slicer, IndexerIndex, Append};
+use algos::indexing::Indexing;
+use algos::sort::Sorter;
+use traits::{Slicer, IndexerIndex, Append};
 
 mod convert;
 mod formatting;

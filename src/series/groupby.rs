@@ -5,11 +5,11 @@ use std::ops::{Add, Sub, Div};
 use std::hash::Hash;
 
 use super::Series;
-use super::super::algos::computation::NanMinMax;
-use super::super::algos::grouper::Grouper;
-use super::super::groupby::GroupBy;
-use super::super::traits::{Apply, BasicAggregation, NumericAggregation,
-                           ComparisonAggregation};
+use algos::computation::NanMinMax;
+use algos::grouper::Grouper;
+use groupby::GroupBy;
+use traits::{Apply, BasicAggregation, NumericAggregation,
+             ComparisonAggregation};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Apply

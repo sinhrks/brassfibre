@@ -4,11 +4,11 @@ use std::hash::Hash;
 use std::ops::{Add, Sub, Div};
 
 use super::Block;
-use super::super::algos::computation::{Aggregation, NanMinMax};
-use super::super::indexer::Indexer;
-use super::super::series::Series;
-use super::super::traits::{Apply, BasicAggregation, NumericAggregation,
-                           ComparisonAggregation, Description};
+use algos::computation::{Aggregation, NanMinMax};
+use indexer::Indexer;
+use series::Series;
+use traits::{Apply, BasicAggregation, NumericAggregation,
+             ComparisonAggregation, Description};
 
 impl<'v, 'i, 'c, V, I, C> BasicAggregation<'c> for Block<'v, 'i, 'c, V, I, C>
     where V: 'c + Clone + Zero + Add,
@@ -94,4 +94,3 @@ impl<'v, 'i, 'c, V, I, C> Description<'c> for Block<'v, 'i, 'c, V, I, C>
                         Cow::Borrowed(self.columns.borrow()))
     }
 }
-

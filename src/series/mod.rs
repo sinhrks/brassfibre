@@ -4,12 +4,11 @@ use std::iter::FromIterator;
 use std::slice;
 use std::vec;
 
-use super::algos::indexing::Indexing;
-use super::algos::sort::Sorter;
-use super::indexer::Indexer;
-use super::groupby::GroupBy;
-use super::traits::{Slicer, IndexerIndex,
-                    RowIndex, Append, Apply};
+use algos::indexing::Indexing;
+use algos::sort::Sorter;
+use indexer::Indexer;
+use groupby::GroupBy;
+use traits::{Slicer, IndexerIndex, RowIndex, Append, Apply};
 
 mod aggregation;
 mod convert;

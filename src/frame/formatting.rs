@@ -2,7 +2,7 @@ use std::fmt;
 use std::hash::Hash;
 
 use super::DataFrame;
-use super::super::formatting;
+use formatting;
 
 
 impl<'v, 'i, 'c, I, C> fmt::Display for DataFrame<'v, 'i, 'c, I, C>

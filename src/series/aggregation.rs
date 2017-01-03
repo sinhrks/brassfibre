@@ -3,10 +3,10 @@ use std::hash::Hash;
 use std::ops::{Add, Sub, Div};
 
 use super::Series;
-use super::super::algos::computation::{Aggregation, NanMinMax};
-use super::super::algos::counter::Counter;
-use super::super::traits::{Apply, BasicAggregation, NumericAggregation,
-                           ComparisonAggregation, Description};
+use algos::computation::{Aggregation, NanMinMax};
+use algos::counter::Counter;
+use traits::{Apply, BasicAggregation, NumericAggregation,
+             ComparisonAggregation, Description};
 
 
 impl<'v, 'i, V, I> BasicAggregation<'i> for Series<'v, 'i, V, I>

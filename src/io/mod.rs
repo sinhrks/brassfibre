@@ -1,9 +1,9 @@
 use csv::Reader;
 use std::io::Read;
 
-use super::frame::DataFrame;
-use super::indexer::Indexer;
-use super::internals::{Array, Scalar};
+use frame::DataFrame;
+use indexer::Indexer;
+use internals::{Array, Scalar};
 
 fn default_columns(n: usize) -> Vec<String> {
     let columns: Vec<usize> = (0..n).collect();

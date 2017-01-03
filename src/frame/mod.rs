@@ -3,10 +3,10 @@ use std::hash::Hash;
 use std::slice;
 use std::vec;
 
-use super::groupby::GroupBy;
-use super::indexer::Indexer;
-use super::internals::Array;
-use super::traits::{Slicer, IndexerIndex, RowIndex, ColIndex};
+use groupby::GroupBy;
+use indexer::Indexer;
+use internals::Array;
+use traits::{Slicer, IndexerIndex, RowIndex, ColIndex};
 
 mod aggregation;
 mod formatting;
@@ -234,8 +234,8 @@ impl<'v, 'i, 'c, I, C> DataFrame<'v, 'i, 'c, I, C>
 mod tests {
 
     use super::DataFrame;
-    use super::super::internals::Array;
-    use super::super::traits::{RowIndex, ColIndex};
+    use internals::Array;
+    use traits::{RowIndex, ColIndex};
 
     #[test]
     fn test_block_creation_from_vec() {

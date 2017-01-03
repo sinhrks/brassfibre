@@ -3,7 +3,7 @@ use std::hash::Hash;
 use std::ops::{Add, Mul, Sub, Div, Rem, BitAnd, BitOr, BitXor};
 
 use super::Series;
-use super::super::algos::elemwise::Elemwise;
+use algos::elemwise::Elemwise;
 
 macro_rules! define_numeric_op {
     ($t:ident, $m:ident) => {
@@ -414,4 +414,3 @@ mod tests {
         assert_eq!(result, exp);
     }
 }
-

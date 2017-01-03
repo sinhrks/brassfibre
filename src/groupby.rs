@@ -1,7 +1,7 @@
 use std::hash::Hash;
 
-use super::algos::grouper::{Grouper, HashGrouper};
-use super::traits::RowIndex;
+use algos::grouper::{Grouper, HashGrouper};
+use traits::RowIndex;
 
 pub struct GroupBy<'a, D: 'a, G: Hash> {
     /// Grouped Series

@@ -2,7 +2,7 @@ use std::hash::Hash;
 use std::fmt;
 
 use super::Series;
-use super::super::formatting;
+use formatting;
 
 impl<'v, 'i, V, I> fmt::Display for Series<'v, 'i, V, I>
     where V: Clone + fmt::Debug,

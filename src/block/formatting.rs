@@ -2,7 +2,7 @@ use std::fmt;
 use std::hash::Hash;
 
 use super::Block;
-use super::super::formatting;
+use formatting;
 
 
 impl<'v, 'i, 'c, V, I, C> fmt::Display for Block<'v, 'i, 'c, V, I, C>

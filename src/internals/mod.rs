@@ -1,8 +1,8 @@
 use std::any::TypeId;
 
-use super::algos::indexing::Indexing;
-use super::algos::sort::Sorter;
-use super::traits::{Slicer, Append};
+use algos::indexing::Indexing;
+use algos::sort::Sorter;
+use traits::{Slicer, Append};
 
 mod aggregation;
 mod convert;

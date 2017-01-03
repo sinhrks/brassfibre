@@ -1,7 +1,7 @@
 use std::ops::{Add, Mul, Sub, Div, Rem, BitAnd, BitOr, BitXor};
 
 use super::Array;
-use super::super::algos::elemwise::Elemwise;
+use algos::elemwise::Elemwise;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Array broadcast ops
@@ -351,4 +351,3 @@ mod tests {
         assert_eq!(l ^ r, Array::BoolArray(vec![true, true, false]));
     }
 }
-

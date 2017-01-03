@@ -6,11 +6,10 @@ use std::hash::Hash;
 use std::ops::{Add, Sub, Div};
 
 use super::Block;
-use super::super::algos::computation::NanMinMax;
-use super::super::algos::grouper::{Grouper};
-use super::super::groupby::GroupBy;
-use super::super::traits::{Apply, BasicAggregation, NumericAggregation,
-                           ComparisonAggregation};
+use algos::computation::NanMinMax;
+use algos::grouper::{Grouper};
+use groupby::GroupBy;
+use traits::{Apply, BasicAggregation, NumericAggregation, ComparisonAggregation};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Apply

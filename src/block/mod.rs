@@ -3,12 +3,11 @@ use std::hash::Hash;
 use std::slice;
 use std::vec;
 
-use super::algos::sort::Sorter;
-use super::indexer::Indexer;
-use super::groupby::GroupBy;
-use super::series::Series;
-use super::traits::{Slicer, IndexerIndex, RowIndex, ColIndex,
-                    Apply};
+use algos::sort::Sorter;
+use indexer::Indexer;
+use groupby::GroupBy;
+use series::Series;
+use traits::{Slicer, IndexerIndex, RowIndex, ColIndex, Apply};
 
 mod aggregation;
 mod formatting;

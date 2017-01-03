@@ -3,7 +3,7 @@ use std::hash::Hash;
 use std::ops::{Add, Mul, Sub, Div, Rem, BitAnd, BitOr, BitXor};
 
 use super::Block;
-use super::super::algos::elemwise::Elemwise;
+use algos::elemwise::Elemwise;
 
 macro_rules! define_numeric_op {
     ($t:ident, $m:ident) => {
@@ -194,7 +194,7 @@ define_numeric_op!(BitXor, bitxor);
 #[cfg(test)]
 mod tests {
 
-    use super::super::Block;
+    use block::Block;
 
     #[test]
     fn test_block_ops_i64_broadcast() {
