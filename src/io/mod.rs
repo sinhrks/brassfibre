@@ -1,18 +1,24 @@
 use csv;
+use std::hash::Hash;
 use std::io::{Read, Write};
+use std::string::ToString;
 
 use frame::DataFrame;
 use indexer::Indexer;
 use internals::{Array, Scalar};
-use traits::RowIndex;
+use traits::{Slicer, RowIndex};
 
 fn default_columns(n: usize) -> Vec<String> {
     let columns: Vec<usize> = (0..n).collect();
     columns.into_iter().map(|x| x.to_string()).collect()
 }
 
-impl<'a> DataFrame<'a, 'a, 'a, usize, String> {
-    pub fn read_csv<R: Read>(mut reader: csv::Reader<R>) -> Result<Self, csv::Error> {
+impl<'a, I, C> DataFrame<'a, 'a, 'a, I, C>
+    where I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash
+{
+    pub fn read_csv<R: Read>(mut reader: csv::Reader<R>)
+                             -> Result<DataFrame<'a, 'a, 'a, usize, String>, csv::Error> {
 
         // headers read 1st row regardless of has_headers property
         let header: Vec<String> = try!(reader.headers());
@@ -65,7 +71,12 @@ impl<'a> DataFrame<'a, 'a, 'a, usize, String> {
 
         Ok(DataFrame::from_vec(arrays, index, columns))
     }
+}
 
+impl<'a, I, C> DataFrame<'a, 'a, 'a, I, C>
+    where I: Clone + Eq + Hash,
+          C: Clone + Eq + Hash + ToString
+{
     pub fn write_csv<W: Write>(&self, writer: &mut csv::Writer<W>) -> Result<(), csv::Error> {
 
         // output columns
@@ -73,7 +84,7 @@ impl<'a> DataFrame<'a, 'a, 'a, usize, String> {
         // pad
         // columns.push(Scalar::String("".to_string()));
         for i in self.columns.values.iter() {
-            let s: Scalar = i.clone().into();
+            let s: Scalar = i.to_string().into();
             columns.push(s);
         }
         try!(writer.encode(columns));
@@ -85,7 +96,7 @@ impl<'a> DataFrame<'a, 'a, 'a, usize, String> {
             // row.push(s);
 
             for col in self.values.iter() {
-                row.push(col.iloc(i));
+                row.push(col.iloc(&i));
             }
             try!(writer.encode(row));
         }

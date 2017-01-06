@@ -13,7 +13,7 @@ mod formatting;
 mod reshape;
 
 #[derive(Clone)]
-pub struct DataFrame<'v, 'i, 'c, I: Hash, C: Hash>
+pub struct DataFrame<'v, 'i, 'c, I, C>
     where I: 'i + Clone + Hash,
           C: 'c + Clone + Hash
 {

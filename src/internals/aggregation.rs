@@ -10,6 +10,8 @@ impl<'s> BasicAggregation<'s> for Array {
     fn sum(&'s self) -> Self::Kept {
         match self {
             &Array::Int64Array(ref vals) => Aggregation::vec_sum(&vals) as f64,
+            &Array::Int32Array(ref vals) => Aggregation::vec_sum(&vals) as f64,
+            &Array::UsizeArray(ref vals) => Aggregation::vec_sum(&vals) as f64,
             &Array::Float64Array(ref vals) => Aggregation::vec_sum(&vals),
             _ => panic!("unable to aggregate non-numeric values"),
         }
@@ -18,6 +20,8 @@ impl<'s> BasicAggregation<'s> for Array {
     fn count(&'s self) -> Self::Counted {
         match self {
             &Array::Int64Array(ref vals) => Aggregation::vec_count(&vals),
+            &Array::Int32Array(ref vals) => Aggregation::vec_count(&vals),
+            &Array::UsizeArray(ref vals) => Aggregation::vec_count(&vals),
             &Array::Float64Array(ref vals) => Aggregation::vec_count(&vals),
             _ => panic!("unable to aggregate non-numeric values"),
         }
@@ -30,6 +34,8 @@ impl<'s> NumericAggregation<'s> for Array {
     fn mean(&'s self) -> Self::Coerced {
         match self {
             &Array::Int64Array(ref vals) => Aggregation::vec_mean(&vals) as f64,
+            &Array::Int32Array(ref vals) => Aggregation::vec_mean(&vals) as f64,
+            &Array::UsizeArray(ref vals) => Aggregation::vec_mean(&vals) as f64,
             &Array::Float64Array(ref vals) => Aggregation::vec_mean(&vals),
             _ => panic!("unable to aggregate non-numeric values"),
         }
@@ -38,6 +44,8 @@ impl<'s> NumericAggregation<'s> for Array {
     fn var(&'s self) -> Self::Coerced {
         match self {
             &Array::Int64Array(ref vals) => Aggregation::vec_var(&vals),
+            &Array::Int32Array(ref vals) => Aggregation::vec_var(&vals),
+            &Array::UsizeArray(ref vals) => Aggregation::vec_var(&vals),
             &Array::Float64Array(ref vals) => Aggregation::vec_var(&vals),
             _ => panic!("unable to aggregate non-numeric values"),
         }
@@ -46,6 +54,8 @@ impl<'s> NumericAggregation<'s> for Array {
     fn unbiased_var(&'s self) -> Self::Coerced {
         match self {
             &Array::Int64Array(ref vals) => Aggregation::vec_unbiased_var(&vals),
+            &Array::Int32Array(ref vals) => Aggregation::vec_unbiased_var(&vals) as f64,
+            &Array::UsizeArray(ref vals) => Aggregation::vec_unbiased_var(&vals) as f64,
             &Array::Float64Array(ref vals) => Aggregation::vec_unbiased_var(&vals),
             _ => panic!("unable to aggregate non-numeric values"),
         }
@@ -54,6 +64,8 @@ impl<'s> NumericAggregation<'s> for Array {
     fn std(&'s self) -> Self::Coerced {
         match self {
             &Array::Int64Array(ref vals) => Aggregation::vec_std(&vals),
+            &Array::Int32Array(ref vals) => Aggregation::vec_std(&vals),
+            &Array::UsizeArray(ref vals) => Aggregation::vec_std(&vals),
             &Array::Float64Array(ref vals) => Aggregation::vec_std(&vals),
             _ => panic!("unable to aggregate non-numeric values"),
         }
@@ -61,7 +73,9 @@ impl<'s> NumericAggregation<'s> for Array {
 
     fn unbiased_std(&'s self) -> Self::Coerced {
         match self {
-            &Array::Int64Array(ref vals) => Aggregation::vec_unbiased_std(&vals) as f64,
+            &Array::Int64Array(ref vals) => Aggregation::vec_unbiased_std(&vals),
+            &Array::Int32Array(ref vals) => Aggregation::vec_unbiased_std(&vals),
+            &Array::UsizeArray(ref vals) => Aggregation::vec_unbiased_std(&vals),
             &Array::Float64Array(ref vals) => Aggregation::vec_unbiased_std(&vals),
             _ => panic!("unable to aggregate non-numeric values"),
         }
@@ -74,6 +88,8 @@ impl<'s> ComparisonAggregation<'s> for Array {
     fn min(&'s self) -> Self::Kept {
         match self {
             &Array::Int64Array(ref vals) => Aggregation::vec_min(&vals) as f64,
+            &Array::Int32Array(ref vals) => Aggregation::vec_min(&vals) as f64,
+            &Array::UsizeArray(ref vals) => Aggregation::vec_min(&vals) as f64,
             &Array::Float64Array(ref vals) => Aggregation::vec_min(&vals),
             _ => panic!("unable to aggregate non-numeric values"),
         }
@@ -82,6 +98,8 @@ impl<'s> ComparisonAggregation<'s> for Array {
     fn max(&'s self) -> Self::Kept {
         match self {
             &Array::Int64Array(ref vals) => Aggregation::vec_max(&vals) as f64,
+            &Array::Int32Array(ref vals) => Aggregation::vec_max(&vals) as f64,
+            &Array::UsizeArray(ref vals) => Aggregation::vec_max(&vals) as f64,
             &Array::Float64Array(ref vals) => Aggregation::vec_max(&vals),
             _ => panic!("unable to aggregate non-numeric values"),
         }

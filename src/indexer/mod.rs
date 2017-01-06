@@ -54,8 +54,14 @@ impl<U> Indexer<U>
 impl<U> Slicer for Indexer<U>
     where U: Clone + Eq + Hash
 {
+    type Scalar = U;
+
     fn len(&self) -> usize {
         self.values.len()
+    }
+
+    fn iloc(&self, location: &usize) -> Self::Scalar {
+        self.values[*location].clone()
     }
 
     fn ilocs(&self, locations: &[usize]) -> Self {

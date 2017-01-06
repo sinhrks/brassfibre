@@ -1,6 +1,6 @@
 extern crate csv;
 extern crate num;
-extern crate rayon;
+// extern crate rayon;
 extern crate rustc_serialize;
 
 mod algos;

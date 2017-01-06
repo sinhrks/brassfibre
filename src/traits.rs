@@ -6,7 +6,10 @@
 
 /// Indexing methods for non-labeled Array / Indexer
 pub trait Slicer: Sized {
+    type Scalar;
+
     fn len(&self) -> usize;
+    fn iloc(&self, location: &usize) -> Self::Scalar;
     fn ilocs(&self, locations: &[usize]) -> Self;
     unsafe fn ilocs_unchecked(&self, locations: &[usize]) -> Self;
     fn blocs(&self, flags: &[bool]) -> Self;

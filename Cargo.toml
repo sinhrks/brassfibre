@@ -2,9 +2,14 @@
 name = "brassfibre"
 version = "0.1.0"
 authors = ["sinhrks <sinhrks@gmail.com>"]
+repository = "https://github.com/sinhrks/brassfibre"
+license = "BSD-3-Clause"
+readme = "README.md"
+description = "Provides multiple-dtype columner storage, known as DataFrame in pandas/R "
+keywords = [ "DataFrame", "labeled vector" ]
 
 [dependencies]
 csv = "0.14.7"
 num = "0.1.36"
-rayon = "0.4.2"
+# rayon = "0.4.2"
 rustc-serialize = "0.3.21"

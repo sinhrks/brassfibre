@@ -42,7 +42,7 @@ impl<'v, 'i, V, I> RowIndex<'i> for Series<'v, 'i, V, I>
     }
 
     fn loc(&self, label: &Self::Key) -> Self::Row {
-        let loc = self.index.get_loc(&label);
+        let loc = self.index.get_loc(label);
         self.iloc(&loc)
     }
 

@@ -120,6 +120,17 @@ fn test_index_push() {
 }
 
 #[test]
+fn test_index_iloc_ilocs() {
+    let values: Vec<i64> = vec![1, 2, 3];
+    let idx = Indexer::<i64>::new(values);
+
+    assert_eq!(idx.iloc(&0), 1);
+    assert_eq!(idx.iloc(&2), 3);
+
+    assert_eq!(idx.ilocs(&[2, 0]), Indexer::<i64>::new(vec![3, 1]));
+}
+
+#[test]
 fn test_reindex() {
     let idx = Indexer::<&str>::new(vec!["A", "B", "C"]);
 

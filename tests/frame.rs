@@ -158,7 +158,7 @@ fn test_frame_properties() {
     let df = DataFrame::from_vec(values, index, columns);
 
     let exp: Vec<String> =
-        vec!["str".to_string(), "i64".to_string(), "bool".to_string(), "f64".to_string()];
+        vec!["str".to_string(), "i32".to_string(), "bool".to_string(), "f64".to_string()];
     assert_eq!(df.dtypes(), exp);
 
     let exp: Vec<bool> = vec![false, true, false, true];

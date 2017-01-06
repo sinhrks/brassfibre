@@ -24,8 +24,12 @@ fn test_creation() {
 #[test]
 fn test_creation_new() {
     let iarr = Array::new(vec![1, 2, 3]);
-    assert_eq!(iarr.dtype(), "i64");
+    assert_eq!(iarr.dtype(), "i32");
     assert_eq!(iarr.len(), 3);
+
+    let i64arr = Array::new(vec![1i64, 2, 3]);
+    assert_eq!(i64arr.dtype(), "i64");
+    assert_eq!(i64arr.len(), 3);
 
     let farr = Array::new(vec![1.1, 2.1, 3.1, 4.1]);
     assert_eq!(farr.dtype(), "f64");
@@ -48,8 +52,12 @@ fn test_creation_new() {
 #[test]
 fn test_creation_macros() {
     let iarr = array![1, 2, 3];
-    assert_eq!(iarr.dtype(), "i64");
+    assert_eq!(iarr.dtype(), "i32");
     assert_eq!(iarr.len(), 3);
+
+    let i64arr = array![1i64, 2, 3];
+    assert_eq!(i64arr.dtype(), "i64");
+    assert_eq!(i64arr.len(), 3);
 
     let farr = array![1.1, 2.1, 3.1, 4.1];
     assert_eq!(farr.dtype(), "f64");
@@ -137,19 +145,23 @@ fn test_astype() {
 fn test_ilocs() {
     let iarr = Array::Int64Array(vec![1, 2, 3, 4, 5]);
     assert_eq!(iarr.dtype(), "i64");
+    assert_eq!(iarr.iloc(&2), Scalar::i64(3));
     let ires = iarr.ilocs(&vec![1, 4, 0]);
     assert_eq!(ires, Array::Int64Array(vec![2, 5, 1]));
 
     let farr = Array::Float64Array(vec![1.1, 2.1, 3.1, 4.1, 5.1]);
     assert_eq!(farr.dtype(), "f64");
+    assert_eq!(farr.iloc(&2), Scalar::f64(3.1));
     let fres = farr.ilocs(&vec![1, 4, 0]);
     assert_eq!(fres, Array::Float64Array(vec![2.1, 5.1, 1.1]));
 
     let barr = Array::BoolArray(vec![true, false, true, true]);
+    assert_eq!(barr.iloc(&2), Scalar::bool(true));
     let bres = barr.ilocs(&vec![1, 2]);
     assert_eq!(bres, Array::BoolArray(vec![false, true]));
 
     let sarr = Array::StringArray(vec!["a".to_string(), "b".to_string(), "c".to_string()]);
+    assert_eq!(sarr.iloc(&2), Scalar::String("c".to_string()));
     let sres = sarr.ilocs(&vec![2, 0]);
     assert_eq!(sres,
                Array::StringArray(vec!["c".to_string(), "a".to_string()]));
@@ -190,7 +202,7 @@ fn test_container() {
     let farr: Array = vec![1.1, 2.1, 3.1].into();
     let barr: Array = vec![true, false, true].into();
     let sarr: Array = vec!["a", "b", "c"].into();
-    assert_eq!(iarr.dtype(), "i64");
+    assert_eq!(iarr.dtype(), "i32");
     assert_eq!(farr.dtype(), "f64");
     assert_eq!(barr.dtype(), "bool");
     assert_eq!(sarr.dtype(), "str");
@@ -198,7 +210,10 @@ fn test_container() {
     let container: Vec<Array> = vec![iarr, farr, barr, sarr];
     assert_eq!(container.len(), 4);
     let dtypes: Vec<String> = container.iter().map(|ref x| x.dtype()).collect();
-    assert_eq!(dtypes, vec!["i64", "f64", "bool", "str"]);
+    assert_eq!(dtypes, vec!["i32", "f64", "bool", "str"]);
+
+    let i64arr: Array = vec![1i64, 2, 3].into();
+    assert_eq!(i64arr.dtype(), "i64");
 }
 
 #[test]

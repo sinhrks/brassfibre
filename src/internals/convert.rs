@@ -24,6 +24,8 @@ macro_rules! add_array_conversion {
     }
 }
 add_array_conversion!(i64, Int64Array);
+add_array_conversion!(i32, Int32Array);
+add_array_conversion!(usize, UsizeArray);
 add_array_conversion!(f64, Float64Array);
 add_array_conversion!(bool, BoolArray);
 add_array_conversion!(String, StringArray);
@@ -46,13 +48,15 @@ impl From<Vec<Scalar>> for Array {
 
         match &values[0] {
             &Scalar::i64(_) => Array::Int64Array(values.iter().map(|ref x| x.as_i64()).collect()),
+            &Scalar::i32(_) => Array::Int32Array(values.iter().map(|ref x| x.as_i32()).collect()),
+            &Scalar::usize(_) => {
+                Array::UsizeArray(values.iter().map(|ref x| x.as_usize()).collect())
+            }
             &Scalar::f64(_) => Array::Float64Array(values.iter().map(|ref x| x.as_f64()).collect()),
             &Scalar::bool(_) => Array::BoolArray(values.iter().map(|ref x| x.as_bool()).collect()),
             &Scalar::String(_) => {
                 Array::StringArray(values.iter().map(|ref x| x.as_str()).collect())
             }
-            // ToDo: impl usize
-            _ => panic!(""),
         }
     }
 }
@@ -61,6 +65,8 @@ impl From<Array> for Vec<Scalar> {
     fn from(values: Array) -> Self {
         match values {
             Array::Int64Array(vals) => vals.into_iter().map(|x| Scalar::i64(x)).collect(),
+            Array::Int32Array(vals) => vals.into_iter().map(|x| Scalar::i32(x)).collect(),
+            Array::UsizeArray(vals) => vals.into_iter().map(|x| Scalar::usize(x)).collect(),
             Array::Float64Array(vals) => vals.into_iter().map(|x| Scalar::f64(x)).collect(),
             Array::BoolArray(vals) => vals.into_iter().map(|x| Scalar::bool(x)).collect(),
             Array::StringArray(vals) => vals.into_iter().map(|x| Scalar::String(x)).collect(),
@@ -92,6 +98,7 @@ macro_rules! add_scalar_conversion {
     }
 }
 add_scalar_conversion!(i64);
+add_scalar_conversion!(i32);
 add_scalar_conversion!(usize);
 add_scalar_conversion!(f64);
 add_scalar_conversion!(bool);
@@ -159,6 +166,53 @@ mod tests {
         assert_eq!(res, exp);
 
         let vals = Array::Int64Array(vec![1, 2]);
+        let res: Vec<Scalar> = Vec::from(vals);
+        assert_eq!(res, exps);
+    }
+
+    #[test]
+    fn test_usize_vec_to_array() {
+        let exp: Array = Array::UsizeArray(vec![1, 2]);
+
+        // Into
+        let vals: Vec<usize> = vec![1, 2];
+        let res: Array = vals.into();
+        assert_eq!(res, exp);
+
+        let vals: Vec<Scalar> = vec![Scalar::usize(1), Scalar::usize(2)];
+        let res: Array = vals.into();
+        assert_eq!(res, exp);
+
+        // From
+        let vals: Vec<usize> = vec![1, 2];
+        let res = Array::from(vals);
+        assert_eq!(res, exp);
+
+        let vals: Vec<Scalar> = vec![Scalar::usize(1), Scalar::usize(2)];
+        let res = Array::from(vals);
+        assert_eq!(res, exp);
+    }
+
+    #[test]
+    fn test_usize_array_to_vec() {
+        let exp: Vec<usize> = vec![1, 2];
+        let exps: Vec<Scalar> = vec![Scalar::usize(1), Scalar::usize(2)];
+
+        // Into
+        let vals = Array::UsizeArray(vec![1, 2]);
+        let res: Vec<usize> = vals.into();
+        assert_eq!(res, exp);
+
+        let vals = Array::UsizeArray(vec![1, 2]);
+        let res: Vec<Scalar> = vals.into();
+        assert_eq!(res, exps);
+
+        // From
+        let vals = Array::UsizeArray(vec![1, 2]);
+        let res: Vec<usize> = Vec::from(vals);
+        assert_eq!(res, exp);
+
+        let vals = Array::UsizeArray(vec![1, 2]);
         let res: Vec<Scalar> = Vec::from(vals);
         assert_eq!(res, exps);
     }

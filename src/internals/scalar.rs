@@ -4,6 +4,7 @@ impl Scalar {
     pub fn dtype(&self) -> String {
         match self {
             &Scalar::i64(_) => "i64".to_string(),
+            &Scalar::i32(_) => "i32".to_string(),
             &Scalar::usize(_) => "usize".to_string(),
             &Scalar::f64(_) => "f64".to_string(),
             &Scalar::bool(_) => "bool".to_string(),
@@ -14,6 +15,20 @@ impl Scalar {
     pub fn is_i64(&self) -> bool {
         match self {
             &Scalar::i64(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_i32(&self) -> bool {
+        match self {
+            &Scalar::i32(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_usize(&self) -> bool {
+        match self {
+            &Scalar::usize(_) => true,
             _ => false,
         }
     }
@@ -42,15 +57,41 @@ impl Scalar {
     pub fn as_i64(&self) -> i64 {
         match self {
             &Scalar::i64(val) => val,
+            &Scalar::i32(val) => val as i64,
+            &Scalar::usize(val) => val as i64,
             &Scalar::f64(val) => val as i64,
             &Scalar::bool(val) => val as i64,
             _ => panic!("unable to coerce to i64"),
         }
     }
 
+    pub fn as_i32(&self) -> i32 {
+        match self {
+            &Scalar::i64(val) => val as i32,
+            &Scalar::i32(val) => val,
+            &Scalar::usize(val) => val as i32,
+            &Scalar::f64(val) => val as i32,
+            &Scalar::bool(val) => val as i32,
+            _ => panic!("unable to coerce to i32"),
+        }
+    }
+
+    pub fn as_usize(&self) -> usize {
+        match self {
+            &Scalar::i64(val) => val as usize,
+            &Scalar::i32(val) => val as usize,
+            &Scalar::usize(val) => val,
+            &Scalar::f64(val) => val as usize,
+            &Scalar::bool(val) => val as usize,
+            _ => panic!("unable to coerce to usize"),
+        }
+    }
+
     pub fn as_f64(&self) -> f64 {
         match self {
             &Scalar::i64(val) => val as f64,
+            &Scalar::i32(val) => val as f64,
+            &Scalar::usize(val) => val as f64,
             &Scalar::f64(val) => val,
             _ => panic!("unable to coerce to f64"),
         }
@@ -87,6 +128,7 @@ mod tests {
         assert_eq!(i.is_str(), false);
 
         assert_eq!(i.as_i64(), 1);
+        assert_eq!(i.as_usize(), 1 as usize);
         assert_eq!(i.as_f64(), 1 as f64);
     }
 
@@ -117,6 +159,7 @@ mod tests {
 
         assert_eq!(f.as_f64(), 1.1);
         assert_eq!(f.as_i64(), 1.1 as i64);
+        assert_eq!(f.as_usize(), 1.1 as usize);
     }
 
     #[test]
