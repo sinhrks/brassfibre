@@ -6,7 +6,7 @@ repository = "https://github.com/sinhrks/brassfibre"
 license = "BSD-3-Clause"
 readme = "README.md"
 description = "Provides multiple-dtype columner storage, known as DataFrame in pandas/R "
-keywords = [ "DataFrame", "labeled vector" ]
+keywords = [ "DataFrame", "Preprocessing", "Columner", "DataStore"]
 
 [dependencies]
 csv = "0.14.7"
