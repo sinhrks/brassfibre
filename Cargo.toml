@@ -2,11 +2,12 @@
 name = "brassfibre"
 version = "0.2.0"
 authors = ["sinhrks <sinhrks@gmail.com>"]
-repository = "https://github.com/sinhrks/brassfibre"
 license = "BSD-3-Clause"
 readme = "README.md"
 description = "Provides multiple-dtype columner storage, known as DataFrame in pandas/R "
 keywords = [ "DataFrame", "Preprocessing", "Columner", "DataStore"]
+documentation = "https://docs.rs/brassfibre/"
+repository = "https://github.com/sinhrks/brassfibre"
 
 [dependencies]
 csv = "0.14.7"
