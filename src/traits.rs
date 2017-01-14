@@ -1,23 +1,7 @@
 //! Common Traits
 
-/// /////////////////////////////////////////////////////////////////////////////
-/// Indexing
-/// /////////////////////////////////////////////////////////////////////////////
-
 /// Indexing methods for non-labeled Array / Indexer
-pub trait Slicer: Sized {
-    type Scalar;
-
-    fn len(&self) -> usize;
-    fn iloc(&self, location: &usize) -> Self::Scalar;
-    fn ilocs(&self, locations: &[usize]) -> Self;
-    unsafe fn ilocs_unchecked(&self, locations: &[usize]) -> Self;
-    fn blocs(&self, flags: &[bool]) -> Self;
-
-    fn reindex(&self, locations: &[usize]) -> Self {
-        self.ilocs(locations)
-    }
-}
+pub use nullvec::prelude::Slicer;
 
 /// Indexing methods for Indexer
 pub trait IndexerIndex: Slicer {
@@ -100,10 +84,6 @@ pub trait ColIndex<'s>: Sized {
     // ToDo bgets
 }
 
-/// /////////////////////////////////////////////////////////////////////////////
-/// Reshaping
-/// /////////////////////////////////////////////////////////////////////////////
-
 /// Concatenate along row
 pub trait Append<'s>: Sized {
     fn append<'o>(&'s self, other: &'o Self) -> Self;
@@ -119,10 +99,6 @@ pub trait Join: Sized {
     fn join_inner(&self, other: &Self) -> Self;
 }
 
-/// /////////////////////////////////////////////////////////////////////////////
-/// Apply
-/// /////////////////////////////////////////////////////////////////////////////
-
 pub trait Apply<'s, R> {
     // R: Type function returns, dummy to avoid unconstrained lifetime parameter
 
@@ -132,10 +108,6 @@ pub trait Apply<'s, R> {
 
     fn apply<'f>(&'s self, func: &'f Fn(&Self::In) -> Self::FOut) -> Self::Out;
 }
-
-/// /////////////////////////////////////////////////////////////////////////////
-/// Aggregation
-/// /////////////////////////////////////////////////////////////////////////////
 
 pub trait BasicAggregation<'s> {
     // result which can keep current dtype

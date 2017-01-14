@@ -4,8 +4,7 @@ use std::iter::FromIterator;
 use std::slice;
 use std::vec;
 
-use algos::indexing::Indexing;
-use algos::sort::Sorter;
+use nullvec::prelude::dev::algos::Indexing;
 use indexer::Indexer;
 use groupby::GroupBy;
 use traits::{Slicer, IndexerIndex, RowIndex, Append, Apply};
@@ -54,13 +53,13 @@ impl<'v, 'i, V, I> RowIndex<'i> for Series<'v, 'i, V, I>
         let locations = self.index.get_locs(labels);
 
         let new_index = self.index.reindex(&locations);
-        let new_values = unsafe { Sorter::reindex_unchecked(&self.values, &locations) };
+        let new_values = unsafe { Indexing::reindex_unchecked(&self.values, &locations) };
         Series::new(new_values, new_index)
     }
 
     fn reindex_by_index(&self, locations: &[usize]) -> Self {
         let new_index = self.index.reindex(&locations);
-        let new_values = unsafe { Sorter::reindex_unchecked(&self.values, &locations) };
+        let new_values = unsafe { Indexing::reindex_unchecked(&self.values, &locations) };
         Series::new(new_values, new_index)
     }
 

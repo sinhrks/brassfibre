@@ -1,7 +1,8 @@
 use std::hash::Hash;
 
 use super::Series;
-use algos::sort::Sorter;
+use nullvec::prelude::dev::algos::Indexing;
+use nullvec::prelude::dev::algos::Sorter;
 use indexer::Indexer;
 use traits::Slicer;
 
@@ -15,7 +16,7 @@ impl<'v, 'i, V, I> Series<'v, 'i, V, I>
 {
     pub fn sort_index(&self) -> Self {
         let (indexer, sorted) = self.index.argsort();
-        let new_values = Sorter::reindex(&self.values, &indexer);
+        let new_values = Indexing::reindex(&self.values, &indexer);
         Series::new(new_values, sorted)
     }
 }

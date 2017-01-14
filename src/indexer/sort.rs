@@ -1,7 +1,7 @@
 use std::hash::Hash;
 
 use super::Indexer;
-use algos::sort::Sorter;
+use nullvec::prelude::dev::algos::Sorter;
 
 //**********************************************
 //*Soat

@@ -1,7 +1,6 @@
 use std::any::TypeId;
 
-use algos::indexing::Indexing;
-use algos::sort::Sorter;
+use nullvec::prelude::dev::algos::Indexing;
 use traits::{Slicer, Append};
 
 mod aggregation;
@@ -9,9 +8,7 @@ mod convert;
 mod ops;
 mod scalar;
 
-/// /////////////////////////////////////////////////////////////////////////////
 /// Scalar
-/// /////////////////////////////////////////////////////////////////////////////
 #[allow(non_camel_case_types)]
 #[derive(RustcDecodable, RustcEncodable, Clone, PartialEq, Debug)]
 pub enum Scalar {
@@ -23,9 +20,7 @@ pub enum Scalar {
     String(String),
 }
 
-/// /////////////////////////////////////////////////////////////////////////////
 /// Array
-/// /////////////////////////////////////////////////////////////////////////////
 #[derive(Clone, PartialEq, Debug)]
 pub enum Array {
     Int64Array(Vec<i64>),
@@ -207,38 +202,46 @@ impl Slicer for Array {
         }
     }
 
+    unsafe fn iloc_unchecked(&self, location: &usize) -> Self::Scalar {
+        unimplemented!()
+    }
+
     fn ilocs(&self, locations: &[usize]) -> Self {
         match self {
-            &Array::Int64Array(ref vals) => Sorter::reindex(vals, locations).into(),
-            &Array::Int32Array(ref vals) => Sorter::reindex(vals, locations).into(),
-            &Array::UsizeArray(ref vals) => Sorter::reindex(vals, locations).into(),
-            &Array::Float64Array(ref vals) => Sorter::reindex(vals, locations).into(),
-            &Array::BoolArray(ref vals) => Sorter::reindex(vals, locations).into(),
-            &Array::StringArray(ref vals) => Sorter::reindex(vals, locations).into(),
+            &Array::Int64Array(ref vals) => Indexing::reindex(vals, locations).into(),
+            &Array::Int32Array(ref vals) => Indexing::reindex(vals, locations).into(),
+            &Array::UsizeArray(ref vals) => Indexing::reindex(vals, locations).into(),
+            &Array::Float64Array(ref vals) => Indexing::reindex(vals, locations).into(),
+            &Array::BoolArray(ref vals) => Indexing::reindex(vals, locations).into(),
+            &Array::StringArray(ref vals) => Indexing::reindex(vals, locations).into(),
         }
     }
 
     unsafe fn ilocs_unchecked(&self, locations: &[usize]) -> Self {
         match self {
             &Array::Int64Array(ref vals) => {
-                Array::Int64Array(Sorter::reindex_unchecked(vals, locations))
+                Array::Int64Array(Indexing::reindex_unchecked(vals, locations))
             }
             &Array::Int32Array(ref vals) => {
-                Array::Int32Array(Sorter::reindex_unchecked(vals, locations))
+                Array::Int32Array(Indexing::reindex_unchecked(vals, locations))
             }
             &Array::UsizeArray(ref vals) => {
-                Array::UsizeArray(Sorter::reindex_unchecked(vals, locations))
+                Array::UsizeArray(Indexing::reindex_unchecked(vals, locations))
             }
             &Array::Float64Array(ref vals) => {
-                Array::Float64Array(Sorter::reindex_unchecked(vals, locations))
+                Array::Float64Array(Indexing::reindex_unchecked(vals, locations))
             }
             &Array::BoolArray(ref vals) => {
-                Array::BoolArray(Sorter::reindex_unchecked(vals, locations))
+                Array::BoolArray(Indexing::reindex_unchecked(vals, locations))
             }
             &Array::StringArray(ref vals) => {
-                Array::StringArray(Sorter::reindex_unchecked(vals, locations))
+                Array::StringArray(Indexing::reindex_unchecked(vals, locations))
             }
         }
+    }
+
+    fn ilocs_forced(&self, locations: &[usize]) -> Self {
+        unimplemented!()
     }
 
     fn blocs(&self, flags: &[bool]) -> Self {

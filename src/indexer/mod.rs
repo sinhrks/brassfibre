@@ -6,8 +6,7 @@ use std::iter::FromIterator;
 use std::slice;
 use std::vec;
 
-use algos::indexing::Indexing;
-use algos::sort::Sorter;
+use nullvec::prelude::dev::algos::Indexing;
 use traits::{Slicer, IndexerIndex, Append};
 
 mod convert;
@@ -64,14 +63,22 @@ impl<U> Slicer for Indexer<U>
         self.values[*location].clone()
     }
 
+    unsafe fn iloc_unchecked(&self, location: &usize) -> Self::Scalar {
+        self.values.get_unchecked(*location).clone()
+    }
+
     fn ilocs(&self, locations: &[usize]) -> Self {
-        let new_values = Sorter::reindex(&self.values, locations);
+        let new_values = Indexing::reindex(&self.values, locations);
         Indexer::new(new_values)
     }
 
     unsafe fn ilocs_unchecked(&self, locations: &[usize]) -> Self {
-        let new_values = Sorter::reindex_unchecked(&self.values, locations);
+        let new_values = Indexing::reindex_unchecked(&self.values, locations);
         Indexer::new(new_values)
+    }
+
+    fn ilocs_forced(&self, locations: &[usize]) -> Self {
+        unimplemented!()
     }
 
     fn blocs(&self, flags: &[bool]) -> Self {

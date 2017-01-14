@@ -1,7 +1,7 @@
 use std::ops::{Add, Mul, Sub, Div, Rem, BitAnd, BitOr, BitXor};
 
 use super::Array;
-use algos::elemwise::Elemwise;
+use nullvec::prelude::dev::algos::Elemwise;
 
 /// /////////////////////////////////////////////////////////////////////////////
 /// Array broadcast ops

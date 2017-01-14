@@ -3,7 +3,8 @@ use std::hash::Hash;
 use std::slice;
 use std::vec;
 
-use algos::sort::Sorter;
+use nullvec::prelude::dev::algos::Indexing;
+use nullvec::prelude::dev::algos::Sorter;
 use indexer::Indexer;
 use groupby::GroupBy;
 use series::Series;
@@ -65,7 +66,7 @@ impl<'v, 'i, 'c, V, I, C> RowIndex<'c> for Block<'v, 'i, 'c, V, I, C>
 
         let mut new_values: Vec<Cow<Vec<V>>> = Vec::with_capacity(self.columns.len());
         for current in self.values.iter() {
-            let new_value = unsafe { Sorter::reindex_unchecked(current, locations) };
+            let new_value = unsafe { Indexing::reindex_unchecked(current, locations) };
             new_values.push(Cow::Owned(new_value));
         }
         Block::from_cow(new_values,
