@@ -1,6 +1,6 @@
 # brassfibre
 
-Provides multiple-dtype columner storage, known as DataFrame in pandas/R Rust labeled vector experiment.
+Provides multiple-dtype columner storage, known as DataFrame in pandas/R.
 
 [![Release](https://img.shields.io/crates/v/brassfibre.svg)](https://crates.io/crates/brassfibre)
 [![Documentation](https://docs.rs/brassfibre/badge.svg)](https://docs.rs/brassfibre/)
