@@ -1,6 +1,7 @@
 use std::fmt;
 use std::hash::Hash;
 
+use nullvec::prelude::dev::Stringify;
 use super::DataFrame;
 use formatting;
 
@@ -23,7 +24,7 @@ impl<'v, 'i, 'c, I, C> fmt::Debug for DataFrame<'v, 'i, 'c, I, C>
         let mut str_values: Vec<Vec<String>> = vec![];
 
         for (i, column) in self.columns.values.iter().enumerate() {
-            let current: Vec<String> = self.values[i].to_string_vec();
+            let current: Vec<String> = self.values[i].into_string_vec();
             let column_str = formatting::pad_string_vector_with_header(&current,
                                                                        column.to_string());
             str_values.push(column_str);

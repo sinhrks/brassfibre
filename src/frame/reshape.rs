@@ -1,10 +1,12 @@
 use std::borrow::{Borrow, Cow};
 use std::hash::Hash;
 
+use nullvec::prelude::Array;
+use nullvec::prelude::Append as NullVecAppend;
+
 use super::DataFrame;
 use algos::join::{JoinOp, HashJoin};
 use indexer::Indexer;
-use internals::Array;
 use traits::{Slicer, IndexerIndex, RowIndex, Append, Concatenation, Join};
 
 

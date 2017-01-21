@@ -1,9 +1,14 @@
 use std::borrow::Cow;
 use std::hash::Hash;
 
+use nullvec::prelude::{Array, Scalar, Nullable, NullVec};
+use nullvec::prelude::BasicAggregation as NBasicAggregation;
+use nullvec::prelude::NumericAggregation as NNumericAggregation;
+use nullvec::prelude::ComparisonAggregation as NComparisonAggregation;
+
+
 use super::DataFrame;
 use indexer::Indexer;
-use internals::Array;
 use series::Series;
 use traits::{BasicAggregation, NumericAggregation, ComparisonAggregation, Description};
 
@@ -12,12 +17,13 @@ impl<'v, 'i, 'c, I, C> BasicAggregation<'c> for DataFrame<'v, 'i, 'c, I, C>
           C: 'c + Clone + Eq + Hash
 {
     // ToDo: use 'n lifetime for values
-    type Kept = Series<'c, 'c, f64, C>;
+    type Kept = Series<'c, 'c, Scalar, C>;
     type Counted = Series<'c, 'c, usize, C>;
 
     fn sum(&'c self) -> Self::Kept {
         let ndf = self.get_numeric_data();
-        let new_values: Vec<f64> = ndf.values.iter().map(|x| x.sum()).collect();
+        // ToDo: FIXME
+        let new_values: Vec<Scalar> = ndf.values.iter().map(|x| x.sum()).collect();
         Series::from_cow(Cow::Owned(new_values), ndf.columns)
     }
 
@@ -37,31 +43,41 @@ impl<'v, 'i, 'c, I, C> NumericAggregation<'c> for DataFrame<'v, 'i, 'c, I, C>
 
     fn mean(&'c self) -> Self::Coerced {
         let ndf = self.get_numeric_data();
-        let new_values: Vec<f64> = ndf.values.iter().map(|x| x.mean()).collect();
+        // ToDo: FIXME
+        let new_values_tmp: NullVec<f64> = ndf.values.iter().map(|x| x.mean()).collect();
+        let new_values: Vec<f64> = new_values_tmp.into();
         Series::from_cow(Cow::Owned(new_values), ndf.columns)
     }
 
     fn var(&'c self) -> Self::Coerced {
         let ndf = self.get_numeric_data();
-        let new_values: Vec<f64> = ndf.values.iter().map(|x| x.var()).collect();
+        // ToDo: FIXME
+        let new_values_tmp: NullVec<f64> = ndf.values.iter().map(|x| x.var()).collect();
+        let new_values: Vec<f64> = new_values_tmp.into();
         Series::from_cow(Cow::Owned(new_values), ndf.columns)
     }
 
     fn unbiased_var(&'c self) -> Self::Coerced {
         let ndf = self.get_numeric_data();
-        let new_values: Vec<f64> = ndf.values.iter().map(|x| x.unbiased_var()).collect();
+        // ToDo: FIXME
+        let new_values_tmp: NullVec<f64> = ndf.values.iter().map(|x| x.unbiased_var()).collect();
+        let new_values: Vec<f64> = new_values_tmp.into();
         Series::from_cow(Cow::Owned(new_values), ndf.columns)
     }
 
     fn std(&'c self) -> Self::Coerced {
         let ndf = self.get_numeric_data();
-        let new_values: Vec<f64> = ndf.values.iter().map(|x| x.std()).collect();
+        // ToDo: FIXME
+        let new_values_tmp: NullVec<f64> = ndf.values.iter().map(|x| x.std()).collect();
+        let new_values: Vec<f64> = new_values_tmp.into();
         Series::from_cow(Cow::Owned(new_values), ndf.columns)
     }
 
     fn unbiased_std(&'c self) -> Self::Coerced {
         let ndf = self.get_numeric_data();
-        let new_values: Vec<f64> = ndf.values.iter().map(|x| x.unbiased_std()).collect();
+        // ToDo: FIXME
+        let new_values_tmp: NullVec<f64> = ndf.values.iter().map(|x| x.unbiased_std()).collect();
+        let new_values: Vec<f64> = new_values_tmp.into();
         Series::from_cow(Cow::Owned(new_values), ndf.columns)
     }
 }
@@ -71,17 +87,19 @@ impl<'v, 'i, 'c, I, C> ComparisonAggregation<'c> for DataFrame<'v, 'i, 'c, I, C>
           C: 'c + Clone + Eq + Hash
 {
     // ToDo: use 'n lifetime for values
-    type Kept = Series<'c, 'c, f64, C>;
+    type Kept = Series<'c, 'c, Scalar, C>;
 
     fn min(&'c self) -> Self::Kept {
         let ndf = self.get_numeric_data();
-        let new_values: Vec<f64> = ndf.values.iter().map(|x| x.min()).collect();
+        // ToDo: FIXME
+        let new_values: Vec<Scalar> = ndf.values.iter().map(|x| x.min()).collect();
         Series::from_cow(Cow::Owned(new_values), ndf.columns)
     }
 
     fn max(&'c self) -> Self::Kept {
         let ndf = self.get_numeric_data();
-        let new_values: Vec<f64> = ndf.values.iter().map(|x| x.max()).collect();
+        // ToDo: FIXME
+        let new_values: Vec<Scalar> = ndf.values.iter().map(|x| x.max()).collect();
         Series::from_cow(Cow::Owned(new_values), ndf.columns)
     }
 }
@@ -98,7 +116,13 @@ impl<'v, 'i, 'c, I, C> Description<'c> for DataFrame<'v, 'i, 'c, I, C>
         let new_index: Vec<&str> = vec!["count", "mean", "std", "min", "max"];
 
         let describe = |x: &Array| {
-            Array::Float64Array(vec![x.count() as f64, x.mean(), x.std(), x.min(), x.max()])
+            let values: Vec<Nullable<f64>> = vec![Nullable::new(x.count() as f64),
+                                                  x.mean(),
+                                                  x.std(),
+                                                  x.min().as_f64(),
+                                                  x.max().as_f64()];
+            let nvalues: NullVec<f64> = values.into();
+            Array::Float64Array(nvalues)
         };
 
         let new_values: Vec<Cow<Array>> = ndf.values

@@ -1,8 +1,6 @@
 extern crate csv;
 extern crate num;
 // extern crate rayon;
-extern crate rustc_serialize;
-
 extern crate nullvec;
 
 mod algos;
@@ -11,7 +9,6 @@ mod formatting;
 mod frame;
 mod groupby;
 mod indexer;
-mod internals;
 mod io;
 #[macro_use]
 mod macros;

@@ -3,9 +3,10 @@ use std::hash::Hash;
 use std::io::{Read, Write};
 use std::string::ToString;
 
+use nullvec::prelude::{Array, Scalar};
+
 use frame::DataFrame;
 use indexer::Indexer;
-use internals::{Array, Scalar};
 use traits::{Slicer, RowIndex};
 
 fn default_columns(n: usize) -> Vec<String> {
