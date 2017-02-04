@@ -29,36 +29,6 @@ ZZ 100");
 }
 
 #[test]
-fn test_block_format() {
-    let b = Block::from_col_vec(vec![1, 10, 100, 100, 10, 1, 1, 1, 1],
-                                vec!["XX", "Y", "ZZ"],
-                                vec!["A", "BBB", "CCCCC"]);
-
-    // better way?
-    let mut buf = Vec::new();
-    let _ = write!(&mut buf, "{}", b);
-    let res = str::from_utf8(&buf).unwrap();
-    assert_eq!(res, "Block(columns=[\"A\", \"BBB\", \"CCCCC\"])");
-}
-
-#[test]
-fn test_block_format_debug() {
-    let b = Block::from_col_vec(vec![1, 10, 100, 100, 10, 1, 1, 1, 1],
-                                vec!["XX", "Y", "ZZ"],
-                                vec!["A", "BBB", "CCCCC"]);
-
-    // better way?
-    let mut buf = Vec::new();
-    let _ = write!(&mut buf, "{:?}", b);
-    let res = str::from_utf8(&buf).unwrap();
-    assert_eq!(res,
-               "     A BBB CCCCC
-XX   1 100     1
- Y  10  10     1
-ZZ 100   1     1");
-}
-
-#[test]
 fn test_dataframe_format() {
     let values =
         vec![array![1, 2, 3, 4, 5], array![6.1, 7.1, 8.1, 9.1, 10.1], array![11, 12, 13, 14, 15]];

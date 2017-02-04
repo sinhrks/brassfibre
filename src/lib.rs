@@ -4,7 +4,6 @@ extern crate num;
 extern crate nullvec;
 
 mod algos;
-mod block;
 mod formatting;
 mod frame;
 mod groupby;
