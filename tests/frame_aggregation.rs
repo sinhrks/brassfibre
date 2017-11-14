@@ -33,10 +33,10 @@ fn test_frame_agg() {
         Series::new(vec![1.5811388300841898, 1.5811388300841898], vec!["X", "Y"]);
     assert_eq!(df.unbiased_std(), exp);
 
-    //let exp: Series<f64, &str> = Series::new(vec![1., 6.], vec!["X", "Y"]);
+    // let exp: Series<f64, &str> = Series::new(vec![1., 6.], vec!["X", "Y"]);
     // assert_eq!(df.min(), exp);
 
-    //let exp: Series<f64, &str> = Series::new(vec![5., 10.], vec!["X", "Y"]);
+    // let exp: Series<f64, &str> = Series::new(vec![5., 10.], vec!["X", "Y"]);
     // assert_eq!(df.max(), exp);
 }
 

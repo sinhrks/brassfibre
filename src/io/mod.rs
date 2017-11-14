@@ -26,7 +26,7 @@ where
         // headers read 1st row regardless of has_headers property. Need to clone to avoid double
         // borrow in this function
         let header = reader.headers()?.clone();
-        let columns: Vec<String> =  if reader.has_headers() {
+        let columns: Vec<String> = if reader.has_headers() {
             header.iter().map(|s| s.to_string()).collect()
         } else {
             default_columns(header.len())
@@ -37,7 +37,7 @@ where
         for record in reader.records() {
             let values: Vec<Scalar> = record?.iter().map(|s| s.into()).collect();
             records.push(values);
-         }
+        }
 
         let index: Indexer<usize> = Indexer::<usize>::from_len(records.len());
 
