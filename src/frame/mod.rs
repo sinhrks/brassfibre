@@ -43,11 +43,11 @@ where
         self.index.len()
     }
 
-    fn loc(&'c self, label: &Self::Key) -> Self::Row {
+    fn loc(&'c self, _label: &Self::Key) -> Self::Row {
         unimplemented!()
     }
 
-    fn iloc(&'c self, locaiton: &usize) -> Self::Row {
+    fn iloc(&'c self, _locaiton: &usize) -> Self::Row {
         unimplemented!()
     }
 
@@ -72,7 +72,7 @@ where
         )
     }
 
-    fn blocs(&self, labels: &[bool]) -> Self {
+    fn blocs(&self, _labels: &[bool]) -> Self {
         unimplemented!()
         // ToDo: fix Series impl
     }
@@ -86,11 +86,11 @@ where
     type Key = C;
     type Column = Array;
 
-    fn get(&'i self, label: &Self::Key) -> Self::Column {
+    fn get(&'i self, _label: &Self::Key) -> Self::Column {
         unimplemented!();
     }
 
-    fn iget(&'i self, loc: &usize) -> Self::Column {
+    fn iget(&'i self, _loc: &usize) -> Self::Column {
         unimplemented!();
     }
 

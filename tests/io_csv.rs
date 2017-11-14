@@ -10,7 +10,7 @@ fn test_read_csv_no_header() {
 y,false,3,2.2
 z,true,1,4.5";
 
-    let rdr = csv::Reader::from_string(data).has_headers(false);
+    let rdr = csv::ReaderBuilder::new().has_headers(false).from_reader(data.as_bytes());
     let res = DataFrame::<usize, String>::read_csv(rdr).unwrap();
 
     let exp_dtypes: Vec<String> = vec![
@@ -48,7 +48,7 @@ x,true,7,1.1
 y,false,3,2.2
 z,true,1,4.5";
 
-    let rdr = csv::Reader::from_string(data).has_headers(true);
+    let rdr = csv::ReaderBuilder::new().has_headers(true).from_reader(data.as_bytes());
     let res = DataFrame::<usize, String>::read_csv(rdr).unwrap();
 
     let exp_dtypes: Vec<String> = vec![
@@ -83,7 +83,7 @@ z,true,1,4.5";
 fn test_empty() {
     let data = "";
 
-    let rdr = csv::Reader::from_string(data).has_headers(false);
+    let rdr = csv::ReaderBuilder::new().has_headers(false).from_reader(data.as_bytes());
     let res = DataFrame::<usize, String>::read_csv(rdr).unwrap();
 
     let exp_dtypes: Vec<String> = vec![];
@@ -100,7 +100,7 @@ fn test_read_csv_error_different_items() {
 1,7,1.1
 1,3
 1,1,4.5";
-    let rdr = csv::Reader::from_string(data).has_headers(true);
+    let rdr = csv::ReaderBuilder::new().has_headers(true).from_reader(data.as_bytes());
     let res = DataFrame::<usize, String>::read_csv(rdr);
     assert!(res.is_err())
 }
@@ -125,13 +125,13 @@ fn test_write_csv() {
         ],
     );
 
-    let mut wtr = csv::Writer::from_memory();
+    let mut wtr = csv::WriterBuilder::new().has_headers(true).from_writer(vec![]);
     df.write_csv(&mut wtr).unwrap();
-    let res = wtr.as_string();
+    let res = String::from_utf8(wtr.into_inner().unwrap()).unwrap();
     assert_eq!(res, "A,B,C,D\nx,true,7,1.1\ny,false,3,2.2\nz,true,1,4.5\n");
 
     // test round-trip
-    let rdr = csv::Reader::from_string(res).has_headers(true);
+    let rdr = csv::ReaderBuilder::new().has_headers(true).from_reader(res.as_bytes());
     let res = DataFrame::<usize, String>::read_csv(rdr).unwrap();
     assert_eq!(res, df);
 }
@@ -154,13 +154,11 @@ fn test_file_io() {
             "D".to_string(),
         ],
     );
-    let mut wtr = csv::Writer::from_file("./data.csv").unwrap();
+    let mut wtr = csv::Writer::from_path("./data.csv").unwrap();
     df.write_csv(&mut wtr).unwrap();
     wtr.flush().unwrap();
 
-    let rdr = csv::Reader::from_file("./data.csv").unwrap().has_headers(
-        true,
-    );
+    let rdr = csv::ReaderBuilder::new().has_headers(true).from_path("./data.csv").unwrap();
     let res = DataFrame::<usize, String>::read_csv(rdr).unwrap();
     println!("{:?}", df.dtypes());
     println!("{:?}", res.dtypes());

@@ -7,7 +7,7 @@ use nullvec::prelude::Append as NullVecAppend;
 use super::DataFrame;
 use algos::join::{JoinOp, HashJoin};
 use indexer::Indexer;
-use traits::{Slicer, IndexerIndex, RowIndex, Append, Concatenation, Join};
+use traits::{Slicer, RowIndex, Append, Concatenation, Join};
 
 
 impl<'v, 'i, 'c, I, C> Append<'c> for DataFrame<'v, 'i, 'c, I, C>

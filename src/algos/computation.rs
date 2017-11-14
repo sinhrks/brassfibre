@@ -2,7 +2,7 @@
 use std::cmp;
 use std::ops::{Add, Sub, Div};
 
-use num::{Num, Zero, Float, ToPrimitive};
+use num::{Zero, Float, ToPrimitive};
 
 //**********************************************
 //*Min, Max

@@ -1,16 +1,17 @@
 [package]
 name = "brassfibre"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["sinhrks <sinhrks@gmail.com>"]
 license = "BSD-3-Clause"
 readme = "README.md"
 description = "Provides multiple-dtype columner storage, known as DataFrame in pandas/R "
 keywords = [ "DataFrame", "Preprocessing", "Columner", "DataStore"]
+categories = [ "data-structures" ]
 documentation = "https://docs.rs/brassfibre/"
 repository = "https://github.com/sinhrks/brassfibre"
 
 [dependencies]
-csv = "0.14.7"
-num = "0.1.36"
+csv = "1.0.0-beta.5"
+num = "0.1.40"
 # rayon = "0.4.2"
-nullvec = "0.1.4"
+nullvec = "0.2.0"

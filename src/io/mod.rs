@@ -23,28 +23,31 @@ where
         mut reader: csv::Reader<R>,
     ) -> Result<DataFrame<'a, 'a, 'a, usize, String>, csv::Error> {
 
-        // headers read 1st row regardless of has_headers property
-        let header: Vec<String> = try!(reader.headers());
-        let columns: Vec<String> = if reader.has_headers {
-            header
+        // headers read 1st row regardless of has_headers property. Need to clone to avoid double
+        // borrow in this function
+        let header = reader.headers()?.clone();
+        let columns: Vec<String> =  if reader.has_headers() {
+            header.iter().map(|s| s.to_string()).collect()
         } else {
             default_columns(header.len())
         };
         let ncols = columns.len();
 
         let mut records: Vec<Vec<Scalar>> = vec![];
-        for record in reader.decode() {
-            let values: Vec<Scalar> = try!(record);
+        for record in reader.records() {
+            let values: Vec<Scalar> = record?.iter().map(|s| s.into()).collect();
             records.push(values);
-        }
+         }
 
         let index: Indexer<usize> = Indexer::<usize>::from_len(records.len());
 
         // column-wise vec of scalar
         let mut colvecs: Vec<Vec<Scalar>> = Vec::with_capacity(ncols);
+
         for _ in 0..columns.len() {
             colvecs.push(Vec::with_capacity(records.len()));
         }
+
         for record in records {
             for (column, val) in colvecs.iter_mut().zip(record) {
                 column.push(val);
@@ -84,25 +87,25 @@ where
     pub fn write_csv<W: Write>(&self, writer: &mut csv::Writer<W>) -> Result<(), csv::Error> {
 
         // output columns
-        let mut columns: Vec<Scalar> = Vec::with_capacity(self.values.len() + 1);
+        let mut columns: Vec<String> = Vec::with_capacity(self.values.len() + 1);
         // pad
         // columns.push(Scalar::String("".to_string()));
         for i in self.columns.values.iter() {
-            let s: Scalar = i.to_string().into();
+            let s: String = i.to_string().into();
             columns.push(s);
         }
-        try!(writer.encode(columns));
+        writer.write_record(columns)?;
 
         for i in 0..self.len() {
-            let mut row: Vec<Scalar> = Vec::with_capacity(self.values.len() + 1);
+            let mut row: Vec<String> = Vec::with_capacity(self.values.len() + 1);
 
             // let s: Scalar = self.index.values[i].clone().into();
             // row.push(s);
 
             for col in self.values.iter() {
-                row.push(col.iloc(&i));
+                row.push(col.iloc(&i).into());
             }
-            try!(writer.encode(row));
+            writer.write_record(row)?;
         }
         Ok(())
     }

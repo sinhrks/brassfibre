@@ -9,8 +9,8 @@ fn test_frame_agg() {
     let columns: Vec<&str> = vec!["X", "Y"];
     let df = DataFrame::from_vec(values, index, columns);
 
-    let exp: Series<Scalar, &str> =
-        Series::new(vec![Scalar::i64(15), Scalar::f64(40.)], vec!["X", "Y"]);
+    // let exp: Series<Scalar, &str> =
+    //     Series::new(vec![Scalar::i64(15), Scalar::f64(40.)], vec!["X", "Y"]);
     // assert_eq!(df.sum(), exp);
 
     let exp: Series<usize, &str> = Series::new(vec![5, 5], vec!["X", "Y"]);
@@ -33,10 +33,10 @@ fn test_frame_agg() {
         Series::new(vec![1.5811388300841898, 1.5811388300841898], vec!["X", "Y"]);
     assert_eq!(df.unbiased_std(), exp);
 
-    let exp: Series<f64, &str> = Series::new(vec![1., 6.], vec!["X", "Y"]);
+    //let exp: Series<f64, &str> = Series::new(vec![1., 6.], vec!["X", "Y"]);
     // assert_eq!(df.min(), exp);
 
-    let exp: Series<f64, &str> = Series::new(vec![5., 10.], vec!["X", "Y"]);
+    //let exp: Series<f64, &str> = Series::new(vec![5., 10.], vec!["X", "Y"]);
     // assert_eq!(df.max(), exp);
 }
 
@@ -58,10 +58,10 @@ fn test_frame_agg_non_numerics() {
     let columns: Vec<&str> = vec!["A", "B", "C", "D"];
     let df = DataFrame::from_vec(values, index, columns);
 
-    let exp: Series<Scalar, &str> = Series::new(
-        vec![Scalar::i64(14), Scalar::f64(37.600000000000001)],
-        vec!["B", "D"],
-    );
+    // let exp: Series<Scalar, &str> = Series::new(
+    //     vec![Scalar::i64(14), Scalar::f64(37.600000000000001)],
+    //     vec!["B", "D"],
+    // );
     // assert_eq!(df.sum(), exp);
 
     let exp: Series<usize, &str> = Series::new(vec![5, 5], vec!["B", "D"]);
@@ -87,12 +87,12 @@ fn test_frame_agg_non_numerics() {
         Series::new(vec![3.4928498393145961, 2.6508489206290125], vec!["B", "D"]);
     assert_eq!(df.unbiased_std(), exp);
 
-    let exp: Series<Scalar, &str> =
-        Series::new(vec![Scalar::i64(-2), Scalar::f64(3.1)], vec!["B", "D"]);
+    // let exp: Series<Scalar, &str> =
+    //     Series::new(vec![Scalar::i64(-2), Scalar::f64(3.1)], vec!["B", "D"]);
     // assert_eq!(df.min(), exp);
 
-    let exp: Series<Scalar, &str> =
-        Series::new(vec![Scalar::i64(7), Scalar::f64(10.)], vec!["B", "D"]);
+    // let exp: Series<Scalar, &str> =
+    //     Series::new(vec![Scalar::i64(7), Scalar::f64(10.)], vec!["B", "D"]);
     // assert_eq!(df.max(), exp);
 }
 

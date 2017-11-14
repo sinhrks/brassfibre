@@ -1,4 +1,3 @@
-#[macro_use]
 extern crate brassfibre;
 use brassfibre::prelude::*;
 
