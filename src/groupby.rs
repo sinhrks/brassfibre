@@ -12,13 +12,16 @@ pub struct GroupBy<'a, D: 'a, G: Hash> {
 }
 
 impl<'a, D, G> GroupBy<'a, D, G>
-    where D: RowIndex<'a>,
-          G: Clone + Eq + Hash + Ord
+where
+    D: RowIndex<'a>,
+    G: Clone + Eq + Hash + Ord,
 {
     pub fn new(data: &'a D, indexer: Vec<G>) -> Self {
 
-        assert!(data.len() == indexer.len(),
-                "Series and Indexer length are different");
+        assert!(
+            data.len() == indexer.len(),
+            "Series and Indexer length are different"
+        );
 
         let grouper: HashGrouper<G> = HashGrouper::groupby(&indexer);
 

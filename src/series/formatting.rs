@@ -5,8 +5,9 @@ use super::Series;
 use formatting;
 
 impl<'v, 'i, V, I> fmt::Display for Series<'v, 'i, V, I>
-    where V: Clone + fmt::Debug,
-          I: Clone + Eq + Hash
+where
+    V: Clone + fmt::Debug,
+    I: Clone + Eq + Hash,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Series({:?})", &self.values)
@@ -14,8 +15,9 @@ impl<'v, 'i, V, I> fmt::Display for Series<'v, 'i, V, I>
 }
 
 impl<'v, 'i, V, I> fmt::Debug for Series<'v, 'i, V, I>
-    where V: Clone + ToString,
-          I: Clone + Eq + Hash + ToString
+where
+    V: Clone + ToString,
+    I: Clone + Eq + Hash + ToString,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let str_index = formatting::pad_string_vector(&self.index.values);

@@ -8,7 +8,8 @@ use nullvec::prelude::dev::algos::Sorter;
 //**********************************************
 
 impl<U> Indexer<U>
-    where U: Clone + Eq + Hash + Ord
+where
+    U: Clone + Eq + Hash + Ord,
 {
     pub fn argsort(&self) -> (Vec<usize>, Self) {
         let (indexer, sorted) = Sorter::argsort(&self.values);

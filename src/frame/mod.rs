@@ -15,8 +15,9 @@ mod reshape;
 
 #[derive(Clone)]
 pub struct DataFrame<'v, 'i, 'c, I, C>
-    where I: 'i + Clone + Hash,
-          C: 'c + Clone + Hash
+where
+    I: 'i + Clone + Hash,
+    C: 'c + Clone + Hash,
 {
     /// 2-dimentional block contains multiple type.
     /// I: type of indexer
@@ -31,8 +32,9 @@ pub struct DataFrame<'v, 'i, 'c, I, C>
 /// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, 'c, I, C> RowIndex<'c> for DataFrame<'v, 'i, 'c, I, C>
-    where I: Clone + Eq + Hash,
-          C: Clone + Eq + Hash
+where
+    I: Clone + Eq + Hash,
+    C: Clone + Eq + Hash,
 {
     type Key = I;
     type Row = Array;
@@ -63,9 +65,11 @@ impl<'v, 'i, 'c, I, C> RowIndex<'c> for DataFrame<'v, 'i, 'c, I, C>
             let new_value = unsafe { current.ilocs_unchecked(locations) };
             new_values.push(Cow::Owned(new_value));
         }
-        DataFrame::from_cow(new_values,
-                            Cow::Owned(new_index),
-                            Cow::Borrowed(self.columns.borrow()))
+        DataFrame::from_cow(
+            new_values,
+            Cow::Owned(new_index),
+            Cow::Borrowed(self.columns.borrow()),
+        )
     }
 
     fn blocs(&self, labels: &[bool]) -> Self {
@@ -75,8 +79,9 @@ impl<'v, 'i, 'c, I, C> RowIndex<'c> for DataFrame<'v, 'i, 'c, I, C>
 }
 
 impl<'v, 'i, 'c, I, C> ColIndex<'i> for DataFrame<'v, 'i, 'c, I, C>
-    where I: Clone + Eq + Hash,
-          C: Clone + Eq + Hash
+where
+    I: Clone + Eq + Hash,
+    C: Clone + Eq + Hash,
 {
     type Key = C;
     type Column = Array;
@@ -102,9 +107,11 @@ impl<'v, 'i, 'c, I, C> ColIndex<'i> for DataFrame<'v, 'i, 'c, I, C>
             // new_values.push(Cow::Borrowed(self.values[*loc].borrow()));
             new_values.push(Cow::Owned(self.values[*loc].clone().into_owned()));
         }
-        DataFrame::from_cow(new_values,
-                            Cow::Borrowed(self.index.borrow()),
-                            Cow::Owned(new_columns))
+        DataFrame::from_cow(
+            new_values,
+            Cow::Borrowed(self.index.borrow()),
+            Cow::Owned(new_columns),
+        )
     }
 }
 
@@ -113,21 +120,21 @@ impl<'v, 'i, 'c, I, C> ColIndex<'i> for DataFrame<'v, 'i, 'c, I, C>
 /// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, 'c, I, C> DataFrame<'v, 'i, 'c, I, C>
-    where I: Clone + Eq + Hash,
-          C: Clone + Eq + Hash
+where
+    I: Clone + Eq + Hash,
+    C: Clone + Eq + Hash,
 {
     pub fn from_vec<X, Y>(values: Vec<Array>, index: X, columns: Y) -> Self
-        where X: Into<Indexer<I>>,
-              Y: Into<Indexer<C>>
+    where
+        X: Into<Indexer<I>>,
+        Y: Into<Indexer<C>>,
     {
 
         let index: Indexer<I> = index.into();
         let columns: Indexer<C> = columns.into();
 
         assert!(values.len() == columns.len(), "Length mismatch!");
-        let values: Vec<Cow<Array>> = values.into_iter()
-            .map(|x| Cow::Owned(x))
-            .collect();
+        let values: Vec<Cow<Array>> = values.into_iter().map(|x| Cow::Owned(x)).collect();
 
         let len = index.len();
         for value in values.iter() {
@@ -140,10 +147,11 @@ impl<'v, 'i, 'c, I, C> DataFrame<'v, 'i, 'c, I, C>
         }
     }
 
-    fn from_cow(values: Vec<Cow<'v, Array>>,
-                index: Cow<'i, Indexer<I>>,
-                columns: Cow<'c, Indexer<C>>)
-                -> Self {
+    fn from_cow(
+        values: Vec<Cow<'v, Array>>,
+        index: Cow<'i, Indexer<I>>,
+        columns: Cow<'c, Indexer<C>>,
+    ) -> Self {
         // temp internal, use IntoCow
         DataFrame {
             values: values,
@@ -163,7 +171,8 @@ impl<'v, 'i, 'c, I, C> DataFrame<'v, 'i, 'c, I, C>
     fn get_numeric_data(&'i self) -> DataFrame<'i, 'i, 'i, I, C> {
         let flags = self.is_numeric();
         // ToDo: use bgets
-        let indexer: Vec<usize> = flags.iter()
+        let indexer: Vec<usize> = flags
+            .iter()
             .enumerate()
             .filter(|&(_, &f)| f)
             .map(|(i, _)| i)
@@ -184,7 +193,8 @@ impl<'v, 'i, 'c, I, C> DataFrame<'v, 'i, 'c, I, C>
     }
 
     pub fn groupby<G>(&'i self, other: Vec<G>) -> GroupBy<DataFrame<I, C>, G>
-        where G: Clone + Eq + Hash + Ord
+    where
+        G: Clone + Eq + Hash + Ord,
     {
 
         GroupBy::new(&self, other)
@@ -196,12 +206,13 @@ impl<'v, 'i, 'c, I, C> DataFrame<'v, 'i, 'c, I, C>
 /// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, 'c, I, C> PartialEq for DataFrame<'v, 'i, 'c, I, C>
-    where I: Clone + Hash + Eq,
-          C: Clone + Hash + Eq
+where
+    I: Clone + Hash + Eq,
+    C: Clone + Hash + Eq,
 {
     fn eq(&self, other: &Self) -> bool {
         (self.index.eq(&other.index)) && (self.columns.eq(&other.columns)) &&
-        (self.values.eq(&other.values))
+            (self.values.eq(&other.values))
     }
 }
 
@@ -210,8 +221,9 @@ impl<'v, 'i, 'c, I, C> PartialEq for DataFrame<'v, 'i, 'c, I, C>
 /// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, 'c, I, C> IntoIterator for DataFrame<'v, 'i, 'c, I, C>
-    where I: Clone + Hash + Eq,
-          C: Clone + Hash + Eq
+where
+    I: Clone + Hash + Eq,
+    C: Clone + Hash + Eq,
 {
     type Item = Cow<'v, Array>;
     type IntoIter = vec::IntoIter<Cow<'v, Array>>;
@@ -222,8 +234,9 @@ impl<'v, 'i, 'c, I, C> IntoIterator for DataFrame<'v, 'i, 'c, I, C>
 }
 
 impl<'v, 'i, 'c, I, C> DataFrame<'v, 'i, 'c, I, C>
-    where I: Clone + Hash + Eq,
-          C: Clone + Hash + Eq
+where
+    I: Clone + Hash + Eq,
+    C: Clone + Hash + Eq,
 {
     pub fn iter(&self) -> slice::Iter<Cow<Array>> {
         self.values.iter()
@@ -240,12 +253,16 @@ mod tests {
 
     #[test]
     fn test_block_creation_from_vec() {
-        let values = vec![Array::new(vec![1, 2, 3, 4, 5]),
-                          Array::new(vec![6., 7., 8., 9., 10.]),
-                          Array::new(vec![11, 12, 13, 14, 15])];
-        let df = DataFrame::from_vec(values,
-                                     vec!["A", "BB", "CC", "D", "EEE"],
-                                     vec!["X", "YYY", "ZZ"]);
+        let values = vec![
+            Array::new(vec![1, 2, 3, 4, 5]),
+            Array::new(vec![6., 7., 8., 9., 10.]),
+            Array::new(vec![11, 12, 13, 14, 15]),
+        ];
+        let df = DataFrame::from_vec(
+            values,
+            vec!["A", "BB", "CC", "D", "EEE"],
+            vec!["X", "YYY", "ZZ"],
+        );
         assert_eq!(df.len(), 5);
     }
 
@@ -256,9 +273,11 @@ mod tests {
         assert_eq!(df.len(), 3);
         df.insert(Array::new(vec![10, 11, 12]), "Z");
 
-        let exp_values = vec![Array::new(vec![1, 2, 3]),
-                              Array::new(vec![4., 5., 6.]),
-                              Array::new(vec![10, 11, 12])];
+        let exp_values = vec![
+            Array::new(vec![1, 2, 3]),
+            Array::new(vec![4., 5., 6.]),
+            Array::new(vec![10, 11, 12]),
+        ];
         let exp = DataFrame::from_vec(exp_values, vec!["A", "BB", "CC"], vec!["X", "Y", "Z"]);
         assert_eq!(df.values, exp.values);
         assert_eq!(df.index, exp.index);
@@ -267,18 +286,24 @@ mod tests {
 
     #[test]
     fn test_block_slice_locs() {
-        let values = vec![Array::new(vec![1, 2, 3, 4, 5]),
-                          Array::new(vec![6., 7., 8., 9., 10.]),
-                          Array::new(vec![11, 12, 13, 14, 15])];
-        let df = DataFrame::from_vec(values,
-                                     vec!["A", "BB", "CC", "D", "EEE"],
-                                     vec!["X", "YYY", "ZZ"]);
+        let values = vec![
+            Array::new(vec![1, 2, 3, 4, 5]),
+            Array::new(vec![6., 7., 8., 9., 10.]),
+            Array::new(vec![11, 12, 13, 14, 15]),
+        ];
+        let df = DataFrame::from_vec(
+            values,
+            vec!["A", "BB", "CC", "D", "EEE"],
+            vec!["X", "YYY", "ZZ"],
+        );
         assert_eq!(df.len(), 5);
 
         let res = df.locs(&vec!["A", "D", "CC"]);
-        let exp_values = vec![Array::new(vec![1, 4, 3]),
-                              Array::new(vec![6., 9., 8.]),
-                              Array::new(vec![11, 14, 13])];
+        let exp_values = vec![
+            Array::new(vec![1, 4, 3]),
+            Array::new(vec![6., 9., 8.]),
+            Array::new(vec![11, 14, 13]),
+        ];
         let exp = DataFrame::from_vec(exp_values, vec!["A", "D", "CC"], vec!["X", "YYY", "ZZ"]);
         assert_eq!(res.values, exp.values);
         assert_eq!(res.index, exp.index);
@@ -287,18 +312,24 @@ mod tests {
 
     #[test]
     fn test_block_slice_ilocs() {
-        let values = vec![Array::new(vec![1, 2, 3, 4, 5]),
-                          Array::new(vec![6., 7., 8., 9., 10.]),
-                          Array::new(vec![11, 12, 13, 14, 15])];
-        let df = DataFrame::from_vec(values,
-                                     vec!["A", "BB", "CC", "D", "EEE"],
-                                     vec!["X", "YYY", "ZZ"]);
+        let values = vec![
+            Array::new(vec![1, 2, 3, 4, 5]),
+            Array::new(vec![6., 7., 8., 9., 10.]),
+            Array::new(vec![11, 12, 13, 14, 15]),
+        ];
+        let df = DataFrame::from_vec(
+            values,
+            vec!["A", "BB", "CC", "D", "EEE"],
+            vec!["X", "YYY", "ZZ"],
+        );
         assert_eq!(df.len(), 5);
 
         let res = df.ilocs(&vec![0, 3, 2]);
-        let exp_values = vec![Array::new(vec![1, 4, 3]),
-                              Array::new(vec![6., 9., 8.]),
-                              Array::new(vec![11, 14, 13])];
+        let exp_values = vec![
+            Array::new(vec![1, 4, 3]),
+            Array::new(vec![6., 9., 8.]),
+            Array::new(vec![11, 14, 13]),
+        ];
         let exp = DataFrame::from_vec(exp_values, vec!["A", "D", "CC"], vec!["X", "YYY", "ZZ"]);
         assert_eq!(res.values, exp.values);
         assert_eq!(res.index, exp.index);
@@ -307,18 +338,26 @@ mod tests {
 
     #[test]
     fn test_block_columns_slice() {
-        let values = vec![Array::new(vec![1, 2, 3, 4, 5]),
-                          Array::new(vec![6., 7., 8., 9., 10.]),
-                          Array::new(vec![11, 12, 13, 14, 15])];
-        let b = DataFrame::from_vec(values,
-                                    vec!["A", "BB", "CC", "D", "EEE"],
-                                    vec!["X", "YYY", "ZZ"]);
+        let values = vec![
+            Array::new(vec![1, 2, 3, 4, 5]),
+            Array::new(vec![6., 7., 8., 9., 10.]),
+            Array::new(vec![11, 12, 13, 14, 15]),
+        ];
+        let b = DataFrame::from_vec(
+            values,
+            vec!["A", "BB", "CC", "D", "EEE"],
+            vec!["X", "YYY", "ZZ"],
+        );
 
-        let exp_values = vec![Array::new(vec![6., 7., 8., 9., 10.]),
-                              Array::new(vec![1, 2, 3, 4, 5])];
-        let exp = DataFrame::from_vec(exp_values,
-                                      vec!["A", "BB", "CC", "D", "EEE"],
-                                      vec!["YYY", "X"]);
+        let exp_values = vec![
+            Array::new(vec![6., 7., 8., 9., 10.]),
+            Array::new(vec![1, 2, 3, 4, 5]),
+        ];
+        let exp = DataFrame::from_vec(
+            exp_values,
+            vec!["A", "BB", "CC", "D", "EEE"],
+            vec!["YYY", "X"],
+        );
         let res = b.gets(&vec!["YYY", "X"]);
         assert_eq!(res.values, exp.values);
         assert_eq!(res.index, exp.index);

@@ -219,8 +219,10 @@ fn test_series_append() {
     let s2 = Series::new(values, index);
 
     let res = s1.append(&s2);
-    let exp: Series<f64, i64> = Series::new(vec![1., 2., 3., 4., 5., 11., 12., 13., 14., 15.],
-                                            vec![10, 20, 30, 40, 50, 110, 120, 130, 140, 150]);
+    let exp: Series<f64, i64> = Series::new(
+        vec![1., 2., 3., 4., 5., 11., 12., 13., 14., 15.],
+        vec![10, 20, 30, 40, 50, 110, 120, 130, 140, 150],
+    );
     assert_eq!(res, exp);
 }
 

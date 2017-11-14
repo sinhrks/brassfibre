@@ -11,8 +11,9 @@ use traits::Slicer;
 //**********************************************
 
 impl<'v, 'i, V, I> Series<'v, 'i, V, I>
-    where V: Clone,
-          I: Clone + Eq + Hash + Ord
+where
+    V: Clone,
+    I: Clone + Eq + Hash + Ord,
 {
     pub fn sort_index(&self) -> Self {
         let (indexer, sorted) = self.index.argsort();
@@ -22,8 +23,9 @@ impl<'v, 'i, V, I> Series<'v, 'i, V, I>
 }
 
 impl<'v, 'i, V, I> Series<'v, 'i, V, I>
-    where V: Clone + Ord,
-          I: Clone + Eq + Hash
+where
+    V: Clone + Ord,
+    I: Clone + Eq + Hash,
 {
     pub fn sort_values(&self) -> Self {
         let (indexer, sorted) = Sorter::argsort(&self.values);

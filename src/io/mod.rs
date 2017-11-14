@@ -15,11 +15,13 @@ fn default_columns(n: usize) -> Vec<String> {
 }
 
 impl<'a, I, C> DataFrame<'a, 'a, 'a, I, C>
-    where I: Clone + Eq + Hash,
-          C: Clone + Eq + Hash
+where
+    I: Clone + Eq + Hash,
+    C: Clone + Eq + Hash,
 {
-    pub fn read_csv<R: Read>(mut reader: csv::Reader<R>)
-                             -> Result<DataFrame<'a, 'a, 'a, usize, String>, csv::Error> {
+    pub fn read_csv<R: Read>(
+        mut reader: csv::Reader<R>,
+    ) -> Result<DataFrame<'a, 'a, 'a, usize, String>, csv::Error> {
 
         // headers read 1st row regardless of has_headers property
         let header: Vec<String> = try!(reader.headers());
@@ -75,8 +77,9 @@ impl<'a, I, C> DataFrame<'a, 'a, 'a, I, C>
 }
 
 impl<'a, I, C> DataFrame<'a, 'a, 'a, I, C>
-    where I: Clone + Eq + Hash,
-          C: Clone + Eq + Hash + ToString
+where
+    I: Clone + Eq + Hash,
+    C: Clone + Eq + Hash + ToString,
 {
     pub fn write_csv<W: Write>(&self, writer: &mut csv::Writer<W>) -> Result<(), csv::Error> {
 

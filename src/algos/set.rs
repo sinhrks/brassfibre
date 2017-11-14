@@ -9,7 +9,8 @@ pub struct CowCollections;
 impl CowCollections {
     /// Create hashset to detect colision, without clone
     fn to_hashset<T>(a: &[T]) -> HashSet<Cow<T>>
-        where T: Clone + Hash + Eq
+    where
+        T: Clone + Hash + Eq,
     {
 
         HashSet::from_iter(a.iter().map(|x| Cow::Borrowed(x)))
@@ -18,7 +19,8 @@ impl CowCollections {
     /// Create HashMap<T, usize> from Vec<T> which value is appearance
     /// location
     pub fn to_enumhashmap<T>(v: &[T]) -> HashMap<Cow<T>, usize>
-        where T: Clone + Hash + Eq
+    where
+        T: Clone + Hash + Eq,
     {
         // ToDo: Handle duplicates
 
@@ -36,7 +38,8 @@ impl CowCollections {
 
 
 pub fn union<T>(a: &[T], b: &[T]) -> Vec<T>
-    where T: Clone + Hash + Eq
+where
+    T: Clone + Hash + Eq,
 {
     // Use HashMap to keep the order
 

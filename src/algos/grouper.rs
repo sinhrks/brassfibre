@@ -16,7 +16,8 @@ pub trait Grouper<T> {
 }
 
 impl<T> Grouper<T> for HashGrouper<T>
-    where T: Clone + Hash + Eq
+where
+    T: Clone + Hash + Eq,
 {
     fn groupby(key: &[T]) -> HashGrouper<T> {
 

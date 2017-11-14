@@ -9,8 +9,9 @@ use traits::{Apply, BasicAggregation, NumericAggregation, ComparisonAggregation,
 
 
 impl<'v, 'i, V, I> BasicAggregation<'i> for Series<'v, 'i, V, I>
-    where V: Clone + Zero + Add,
-          I: Clone + Eq + Hash
+where
+    V: Clone + Zero + Add,
+    I: Clone + Eq + Hash,
 {
     type Kept = V;
     type Counted = usize;
@@ -26,8 +27,14 @@ impl<'v, 'i, V, I> BasicAggregation<'i> for Series<'v, 'i, V, I>
 
 
 impl<'v, 'i, V, I> NumericAggregation<'i> for Series<'v, 'i, V, I>
-    where V: Clone + Zero + Add + Sub + Div + ToPrimitive,
-          I: Clone + Eq + Hash
+where
+    V: Clone
+        + Zero
+        + Add
+        + Sub
+        + Div
+        + ToPrimitive,
+    I: Clone + Eq + Hash,
 {
     type Coerced = f64;
 
@@ -53,8 +60,9 @@ impl<'v, 'i, V, I> NumericAggregation<'i> for Series<'v, 'i, V, I>
 }
 
 impl<'v, 'i, V, I> ComparisonAggregation<'i> for Series<'v, 'i, V, I>
-    where V: Clone + NanMinMax<V>,
-          I: Clone + Eq + Hash
+where
+    V: Clone + NanMinMax<V>,
+    I: Clone + Eq + Hash,
 {
     type Kept = V;
 
@@ -68,8 +76,15 @@ impl<'v, 'i, V, I> ComparisonAggregation<'i> for Series<'v, 'i, V, I>
 }
 
 impl<'v, 'i, V, I> Description<'i> for Series<'v, 'i, V, I>
-    where V: Clone + Zero + Add + Sub + Div + ToPrimitive + NanMinMax<V>,
-          I: Clone + Eq + Hash
+where
+    V: Clone
+        + Zero
+        + Add
+        + Sub
+        + Div
+        + ToPrimitive
+        + NanMinMax<V>,
+    I: Clone + Eq + Hash,
 {
     type Described = Series<'i, 'i, f64, &'i str>;
 
@@ -88,8 +103,9 @@ impl<'v, 'i, V, I> Description<'i> for Series<'v, 'i, V, I>
 // Other
 
 impl<'v, 'i, V, I> Series<'v, 'i, V, I>
-    where V: Clone + Eq + Hash + Ord,
-          I: Clone + Eq + Hash
+where
+    V: Clone + Eq + Hash + Ord,
+    I: Clone + Eq + Hash,
 {
     pub fn value_counts<'a>(&self) -> Series<'a, 'a, usize, V> {
         let c = Counter::new(&self.values);

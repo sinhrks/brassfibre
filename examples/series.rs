@@ -13,10 +13,14 @@ fn main() {
     println!("{:?}\n", &s);
 
     println!("** Selection **");
-    println!("by multiple index labels\n{:?}\n",
-             &s.locs(&vec![10, 40, 50]));
-    println!("by multiple index locations\n{:?}\n",
-             &s.ilocs(&vec![2, 3, 4]));
+    println!(
+        "by multiple index labels\n{:?}\n",
+        &s.locs(&vec![10, 40, 50])
+    );
+    println!(
+        "by multiple index locations\n{:?}\n",
+        &s.ilocs(&vec![2, 3, 4])
+    );
 
     println!("** Calculation **");
     println!("elemwise\n{:?}\n", &(&s + 1));

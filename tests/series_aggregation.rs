@@ -64,8 +64,10 @@ fn test_series_describe_int() {
     let s = Series::<i64, i64>::from_vec(values);
 
     let d = s.describe();
-    let exp: Series<f64, &str> = Series::new(vec![10., 5.5, 2.8722813232690143, 1., 10.],
-                                             vec!["count", "mean", "std", "min", "max"]);
+    let exp: Series<f64, &str> = Series::new(
+        vec![10., 5.5, 2.8722813232690143, 1., 10.],
+        vec!["count", "mean", "std", "min", "max"],
+    );
     assert_eq!(d, exp);
 }
 
@@ -75,8 +77,10 @@ fn test_series_describe_float() {
     let s = Series::<f64, i64>::from_vec(values);
 
     let d = s.describe();
-    let exp: Series<f64, &str> = Series::new(vec![10., 5.5, 2.8722813232690143, 1., 10.],
-                                             vec!["count", "mean", "std", "min", "max"]);
+    let exp: Series<f64, &str> = Series::new(
+        vec![10., 5.5, 2.8722813232690143, 1., 10.],
+        vec!["count", "mean", "std", "min", "max"],
+    );
     assert_eq!(d, exp);
 }
 

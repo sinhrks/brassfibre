@@ -15,10 +15,15 @@ use traits::{Apply, BasicAggregation, NumericAggregation, ComparisonAggregation}
 /// /////////////////////////////////////////////////////////////////////////////
 
 impl<'v, 'i, V, I, G, W> Apply<'i, W> for GroupBy<'i, Series<'v, 'i, V, I>, G>
-    where V: 'v + Clone,
-          I: Clone + Eq + Hash,
-          G: 'i + Clone + Eq + Hash + Ord,
-          W: 'i + Clone
+where
+    V: 'v + Clone,
+    I: Clone + Eq + Hash,
+    G: 'i
+        + Clone
+        + Eq
+        + Hash
+        + Ord,
+    W: 'i + Clone,
 {
     type In = Series<'v, 'i, V, I>;
     type FOut = W;

@@ -8,7 +8,8 @@ use super::Indexer;
 //**********************************************
 
 impl<U> Index<usize> for Indexer<U>
-    where U: Clone + Eq + Hash
+where
+    U: Clone + Eq + Hash,
 {
     type Output = U;
 
