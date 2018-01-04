@@ -6,12 +6,12 @@ rust:
   - stable
   - beta
   - nightly
-  
+
 install:
-  - (cargo install rustfmt || true)
+  - (cargo install --force rustfmt-nightly || true)
   - PATH=$PATH:/home/travis/.cargo/bin
-  
+
 script:
-  - cargo fmt -- --write-mode=diff 
-  - cargo build 
+  - cargo fmt -- --write-mode=diff
+  - cargo build
   - cargo test
