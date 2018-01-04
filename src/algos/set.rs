@@ -44,7 +44,7 @@ where
     // Use HashMap to keep the order
 
     // Clone for result Vec
-    let mut res: Vec<T> = a.iter().cloned().collect();
+    let mut res: Vec<T> = a.to_vec();
 
     let set = CowCollections::to_hashset(a);
 

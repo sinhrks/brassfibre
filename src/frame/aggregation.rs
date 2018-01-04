@@ -133,10 +133,8 @@ where
             Array::Float64Array(nvalues)
         };
 
-        let new_values: Vec<Cow<Array>> = ndf.values
-            .iter()
-            .map(|ref x| Cow::Owned(describe(x)))
-            .collect();
+        let new_values: Vec<Cow<Array>> =
+            ndf.values.iter().map(|x| Cow::Owned(describe(x))).collect();
         DataFrame::from_cow(new_values, Cow::Owned(Indexer::new(new_index)), ndf.columns)
     }
 }

@@ -9,7 +9,7 @@ fn test_series_get_group() {
     let s = Series::<f64, usize>::from_vec(values);
 
     // Use Series method
-    let sg = s.groupby(vec![1, 1, 1, 2, 2, 2]);
+    let sg = s.groupby(&[1, 1, 1, 2, 2, 2]);
     assert_eq!(sg.groups().len(), 2);
 
     let s1 = sg.get_group(&1);
@@ -27,7 +27,7 @@ fn test_series_agg_sum_integer_grouper() {
     let index: Vec<i64> = vec![10, 20, 30, 40, 50];
     let s = Series::<i64, i64>::new(values, index);
 
-    let sg = s.groupby(vec![1, 1, 1, 2, 2]);
+    let sg = s.groupby(&[1, 1, 1, 2, 2]);
     let sum = sg.sum();
 
     let exp: Series<i64, i64> = Series::new(vec![6, 9], vec![1, 2]);
@@ -39,7 +39,7 @@ fn test_series_agg_sum_str_grouper() {
     let values: Vec<i64> = vec![1, 2, 3, 4, 5];
     let index: Vec<i64> = vec![10, 20, 30, 40, 50];
     let s = Series::<i64, i64>::new(values, index);
-    let sg = s.groupby(vec!["A", "A", "A", "B", "B"]);
+    let sg = s.groupby(&["A", "A", "A", "B", "B"]);
     let sum = sg.sum();
 
     let exp: Series<i64, &str> = Series::new(vec![6, 9], vec!["A", "B"]);
@@ -52,7 +52,7 @@ fn test_series_agg_mean_integer_grouper() {
     let index: Vec<i64> = vec![10, 20, 30, 40, 50];
     let s = Series::<i64, i64>::new(values, index);
 
-    let sg = s.groupby(vec![1, 1, 1, 2, 2]);
+    let sg = s.groupby(&[1, 1, 1, 2, 2]);
     let sum = sg.mean();
 
     let exp: Series<f64, i64> = Series::new(vec![2.0, 4.5], vec![1, 2]);

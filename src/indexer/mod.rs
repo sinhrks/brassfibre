@@ -120,7 +120,7 @@ where
 
     /// Return label locations (Vector) corresponding to given labels (Vector)
     fn get_locs(&self, labels: &[U]) -> Vec<usize> {
-        labels.iter().map(|label| self.get_loc(&label)).collect()
+        labels.iter().map(|label| self.get_loc(label)).collect()
     }
 
     fn init_state(&self) {

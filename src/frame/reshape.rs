@@ -22,7 +22,7 @@ where
 
         let mut new_values: Vec<Cow<Array>> = Vec::with_capacity(self.columns.len());
         for (svalues, ovalues) in self.values.iter().zip(&other.values) {
-            let new_value = svalues.append(&ovalues);
+            let new_value = svalues.append(ovalues);
             new_values.push(Cow::Owned(new_value));
         }
         DataFrame::from_cow(

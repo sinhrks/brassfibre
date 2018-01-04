@@ -16,14 +16,14 @@ where
     D: RowIndex<'a>,
     G: Clone + Eq + Hash + Ord,
 {
-    pub fn new(data: &'a D, indexer: Vec<G>) -> Self {
+    pub fn new(data: &'a D, indexer: &[G]) -> Self {
 
         assert!(
             data.len() == indexer.len(),
             "Series and Indexer length are different"
         );
 
-        let grouper: HashGrouper<G> = HashGrouper::groupby(&indexer);
+        let grouper: HashGrouper<G> = HashGrouper::groupby(indexer);
 
         GroupBy {
             data: data,
@@ -33,7 +33,7 @@ where
 
     pub fn get_group(&self, group: &G) -> D {
         if let Some(locs) = self.grouper.get(group) {
-            self.data.ilocs(&locs)
+            self.data.ilocs(locs)
         } else {
             panic!("Group not found!");
         }

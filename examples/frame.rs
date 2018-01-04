@@ -17,17 +17,11 @@ fn main() {
 
     println!("** Selection **");
 
-    println!(
-        "by multiple index labels\n{:?}\n",
-        &df.locs(&vec![20, 30, 40])
-    );
-    println!(
-        "by multiple index locations\n{:?}\n",
-        &df.ilocs(&vec![0, 2, 1])
-    );
+    println!("by multiple index labels\n{:?}\n", &df.locs(&[20, 30, 40]));
+    println!("by multiple index locations\n{:?}\n", &df.ilocs(&[0, 2, 1]));
 
     println!("** GroupBy **");
-    let dg = df.groupby(vec!["A", "A", "B", "A", "B"]);
+    let dg = df.groupby(&["A", "A", "B", "A", "B"]);
     println!("get group\n{:?}\n", &dg.get_group(&"A"));
 
     println!("** Reshaping **");

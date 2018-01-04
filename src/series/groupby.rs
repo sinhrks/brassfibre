@@ -36,8 +36,8 @@ where
         let mut new_values: Vec<W> = Vec::with_capacity(self.grouper.len());
 
         let groups = self.groups();
-        for g in groups.iter() {
-            let s = self.get_group(&g);
+        for g in &groups {
+            let s = self.get_group(g);
             new_values.push(func(&s));
         }
         Series::new(new_values, groups)
@@ -130,7 +130,7 @@ mod tests {
         let s = Series::<f64, usize>::from_vec(values);
 
         // Instanciate directly method
-        let sg = GroupBy::<Series<f64, usize>, i64>::new(&s, vec![1, 1, 1, 2, 2, 2]);
+        let sg = GroupBy::<Series<f64, usize>, i64>::new(&s, &[1, 1, 1, 2, 2, 2]);
         assert_eq!(sg.groups().len(), 2);
 
         let s1 = sg.get_group(&1);
@@ -152,7 +152,7 @@ mod tests {
         let index: Vec<i64> = vec![10, 20, 30, 40, 50];
         let s = Series::<i64, i64>::new(values, index);
 
-        let sg = GroupBy::<Series<i64, i64>, i64>::new(&s, vec![1, 1, 1, 2, 2]);
+        let sg = GroupBy::<Series<i64, i64>, i64>::new(&s, &[1, 1, 1, 2, 2]);
 
         let exp: Series<i64, i64> = Series::new(vec![6, 9], vec![1, 2]);
         assert_eq!(sg.sum(), exp);
@@ -172,7 +172,7 @@ mod tests {
         let values: Vec<i64> = vec![1, 2, 3, 4, 5];
         let index: Vec<i64> = vec![10, 20, 30, 40, 50];
         let s = Series::<i64, i64>::new(values, index);
-        let sg = GroupBy::<Series<i64, i64>, &str>::new(&s, vec!["A", "A", "A", "B", "B"]);
+        let sg = GroupBy::<Series<i64, i64>, &str>::new(&s, &["A", "A", "A", "B", "B"]);
 
         let exp: Series<i64, &str> = Series::new(vec![6, 9], vec!["A", "B"]);
         assert_eq!(sg.sum(), exp);

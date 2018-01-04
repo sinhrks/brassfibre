@@ -36,24 +36,21 @@ where
         // keep left order
         for (i, key) in left.iter().enumerate() {
             // ToDo: sort?
-            match map.get(&Cow::Borrowed(key)) {
-                Some(val) => {
-                    indexer.push((*key).clone());
-                    lindexer.push(i);
-                    rindexer.push(*val);
-                }
-                None => {}
+            if let Some(val) = map.get(&Cow::Borrowed(key)) {
+                indexer.push((*key).clone());
+                lindexer.push(i);
+                rindexer.push(*val);
             }
         }
         (indexer, lindexer, rindexer)
     }
 
     fn left(left: &[T], right: &[T]) -> (Vec<T>, Vec<usize>, Vec<usize>) {
-        HashJoin::keep_first(&left, &right)
+        HashJoin::keep_first(left, right)
     }
 
     fn right(left: &[T], right: &[T]) -> (Vec<T>, Vec<usize>, Vec<usize>) {
-        let res = HashJoin::keep_first(&right, &left);
+        let res = HashJoin::keep_first(right, left);
         (res.0, res.2, res.1)
     }
 

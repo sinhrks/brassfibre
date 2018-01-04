@@ -16,7 +16,7 @@ fn test_frame_get_group() {
     );
     assert_eq!(df.len(), 5);
 
-    let dg = df.groupby(vec![1, 2, 1, 1, 2]);
+    let dg = df.groupby(&[1, 2, 1, 1, 2]);
     assert_eq!(&dg.groups().len(), &2);
 
     let df1 = dg.get_group(&1);

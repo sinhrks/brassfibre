@@ -33,8 +33,8 @@ where
         // sort by value, not using Sorter::sort_by for Vec
         let mut map: BTreeMap<usize, Vec<Cow<T>>> = BTreeMap::new();
 
-        for (ref k, ref c) in self.counts.iter() {
-            let e = map.entry(**c).or_insert(Vec::<Cow<T>>::new());
+        for (k, c) in &self.counts {
+            let e = map.entry(*c).or_insert_with(Vec::<Cow<T>>::new);
             e.push(Cow::Borrowed(k));
         }
 

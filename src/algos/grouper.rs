@@ -24,7 +24,7 @@ where
         let mut map: HashMap<T, Vec<usize>> = HashMap::new();
 
         for (i, k) in key.iter().enumerate() {
-            let e = map.entry(k.clone()).or_insert(Vec::<usize>::new());
+            let e = map.entry(k.clone()).or_insert_with(Vec::<usize>::new);
             e.push(i);
         }
         HashGrouper { groups: map }

@@ -60,8 +60,8 @@ where
     }
 
     fn reindex_by_index(&self, locations: &[usize]) -> Self {
-        let new_index = self.index.reindex(&locations);
-        let new_values = unsafe { Indexing::reindex_unchecked(&self.values, &locations) };
+        let new_index = self.index.reindex(locations);
+        let new_values = unsafe { Indexing::reindex_unchecked(&self.values, locations) };
         Series::new(new_values, new_index)
     }
 
@@ -120,11 +120,11 @@ where
         assert!(self.index == other.index, "index must be the same!");
     }
 
-    pub fn groupby<G>(&self, other: Vec<G>) -> GroupBy<Series<V, I>, G>
+    pub fn groupby<G>(&self, other: &[G]) -> GroupBy<Series<V, I>, G>
     where
         G: Clone + Eq + Hash + Ord,
     {
-        GroupBy::new(&self, other)
+        GroupBy::new(self, other)
     }
 }
 

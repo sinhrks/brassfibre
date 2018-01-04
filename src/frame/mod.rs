@@ -61,7 +61,7 @@ where
         // boudaries are checked in Indexer.reindex
 
         let mut new_values: Vec<Cow<Array>> = Vec::with_capacity(self.columns.len());
-        for current in self.values.iter() {
+        for current in &self.values {
             let new_value = unsafe { current.ilocs_unchecked(locations) };
             new_values.push(Cow::Owned(new_value));
         }
@@ -134,10 +134,10 @@ where
         let columns: Indexer<C> = columns.into();
 
         assert!(values.len() == columns.len(), "Length mismatch!");
-        let values: Vec<Cow<Array>> = values.into_iter().map(|x| Cow::Owned(x)).collect();
+        let values: Vec<Cow<Array>> = values.into_iter().map(Cow::Owned).collect();
 
         let len = index.len();
-        for value in values.iter() {
+        for value in &values {
             assert!(value.len() == len, "Length mismatch!");
         }
         DataFrame {
@@ -161,11 +161,11 @@ where
     }
 
     pub fn dtypes(&self) -> Vec<String> {
-        self.iter().map(|ref x| x.dtype()).collect()
+        self.iter().map(|x| x.dtype()).collect()
     }
 
     pub fn is_numeric(&self) -> Vec<bool> {
-        self.iter().map(|ref x| x.is_numeric()).collect()
+        self.iter().map(|x| x.is_numeric()).collect()
     }
 
     fn get_numeric_data(&'i self) -> DataFrame<'i, 'i, 'i, I, C> {
@@ -180,11 +180,6 @@ where
         self.igets(&indexer)
     }
 
-    fn assert_binop(&self, other: &Self) {
-        assert!(self.index == other.index, "index must be the same!");
-        assert!(self.columns == other.columns, "columns must be the same!");
-    }
-
     pub fn insert(&mut self, values: Array, name: C) {
         assert!(self.len() == values.len(), "Length mismatch!");
 
@@ -192,12 +187,12 @@ where
         self.columns.to_mut().push(name);
     }
 
-    pub fn groupby<G>(&'i self, other: Vec<G>) -> GroupBy<DataFrame<I, C>, G>
+    pub fn groupby<G>(&'i self, other: &[G]) -> GroupBy<DataFrame<I, C>, G>
     where
         G: Clone + Eq + Hash + Ord,
     {
 
-        GroupBy::new(&self, other)
+        GroupBy::new(self, other)
     }
 }
 

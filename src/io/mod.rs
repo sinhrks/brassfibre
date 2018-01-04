@@ -90,8 +90,8 @@ where
         let mut columns: Vec<String> = Vec::with_capacity(self.values.len() + 1);
         // pad
         // columns.push(Scalar::String("".to_string()));
-        for i in self.columns.values.iter() {
-            let s: String = i.to_string().into();
+        for i in &self.columns.values {
+            let s: String = i.to_string();
             columns.push(s);
         }
         writer.write_record(columns)?;
@@ -102,7 +102,7 @@ where
             // let s: Scalar = self.index.values[i].clone().into();
             // row.push(s);
 
-            for col in self.values.iter() {
+            for col in &self.values {
                 row.push(col.iloc(&i).into());
             }
             writer.write_record(row)?;

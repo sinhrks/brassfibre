@@ -38,7 +38,7 @@ where
         for (i, label) in str_index.iter().enumerate() {
             let mut row_vec = vec![];
             row_vec.push(label.clone());
-            for column in str_values.iter() {
+            for column in &str_values {
                 row_vec.push(column[i].clone());
             }
             result.push(row_vec.join(" "));
